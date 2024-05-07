@@ -30,7 +30,7 @@ information to effectively respond to your bug report or contribution.
 
 We welcome you to use the GitHub issue tracker to report bugs or suggest features.
 
-When filing an issue, please check [existing open](https://github.com/amazon-braket/amazon-braket-sdk-python/issues) and [recently closed](https://github.com/amazon-braket/amazon-braket-sdk-python/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aclosed%20) issues to make sure somebody else hasn't already
+When filing an issue, please check [existing open](https://github.com/amazon-braket/autoqasm/issues) and [recently closed](https://github.com/amazon-braket/autoqasm/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aclosed%20) issues to make sure somebody else hasn't already
 reported the issue. Please try to include as much information as you can. Details like these are incredibly useful:
 
 * A reproducible test case or series of steps.
@@ -52,34 +52,21 @@ Before sending us a pull request, please ensure that:
 
 ### Pull Down the Code
 
-1. If you do not already have one, create a GitHub account by following the prompts at [Join Github](https://github.com/join).
-1. Create a fork of this repository on GitHub. You should end up with a fork at `https://github.com/<username>/amazon-braket-sdk-python`.
+1. If you do not already have one, create a GitHub account by following the prompts at [Join GitHub](https://github.com/join).
+1. Create a fork of this repository on GitHub. You should end up with a fork at `https://github.com/<username>/autoqasm`.
    1. Follow the instructions at [Fork a Repo](https://help.github.com/en/articles/fork-a-repo) to fork a GitHub repository.
-1. Clone your fork of the repository: `git clone https://github.com/<username>/amazon-braket-sdk-python` where `<username>` is your github username.
+1. Clone your fork of the repository: `git clone https://github.com/<username>/autoqasm` where `<username>` is your github username.
 
 
 ### Run the Unit Tests
 
 1. Install tox using `pip install tox`
 1. Install coverage using `pip install '.[test]'`
-1. cd into the amazon-braket-sdk-python folder: `cd amazon-braket-sdk-python` or `cd /environment/amazon-braket-sdk-python`
+1. cd into the autoqasm folder: `cd autoqasm` or `cd /environment/autoqasm`
 1. Run the following tox command and verify that all unit tests pass: `tox -e unit-tests`
 
 You can also pass in various pytest arguments `tox -e unit-tests -- your-arguments` to run selected tests. For more information, please see [pytest usage](https://docs.pytest.org/en/stable/usage.html).
 
-
-### Run the Integration Tests
-
-Run the integration tests to make sure that the system as a whole still works.
-
-1. Follow the instructions at [Set Up the AWS Command Line Interface (AWS CLI)](https://docs.aws.amazon.com/polly/latest/dg/setup-aws-cli.html).
-1. Set the `AWS_PROFILE` information
-     ```bash
-     export AWS_PROFILE=Your_Profile_Name
-     ```
-1. Run the following tox command and verify that integ tests pass: `tox -e integ-tests`
-
-You can also pass in various pytest arguments `tox -e integ-tests -- your-arguments` to run selected tests. For more information, please see [pytest usage](https://docs.pytest.org/en/stable/usage.html).
 
 ### Make and Test Your Change
 
@@ -145,7 +132,7 @@ timeline
     Pre-Pull Request <br> (make PR)     : Code linting (tox -e linters)
                                         : Docs linting (tox -e docs)
                                         : Static typing analysis (covered by the linters)
-                                        : Tests (tox -e unit-tests|tox -e integ-tests)
+                                        : Tests (tox -e unit-tests)
 
     Pull Request <br> (CI checks)   : Semantic PR title check
                                     : Related issue check
@@ -215,12 +202,8 @@ You can then find the generated HTML files in `build/documentation/html`.
 
 ## Find Contributions to Work On
 
-Looking at the existing issues is a great way to find something to contribute on. As our projects, by default, use the default GitHub issue labels ((enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at any ['help wanted'](https://github.com/amazon-braket/amazon-braket-sdk-python/labels/help%20wanted) issues is a great place to start.
+Looking at the existing issues is a great way to find something to contribute on. As our projects, by default, use the default GitHub issue labels (enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at any ['help wanted'](https://github.com/amazon-braket/autoqasm/labels/help%20wanted) issues is a great place to start.
 
-## Building Integrations
-The Amazon Braket SDK supports integrations with popular quantum computing frameworks such as [PennyLane](https://github.com/amazon-braket/amazon-braket-pennylane-plugin-python), [Strawberryfields](https://github.com/amazon-braket/amazon-braket-strawberryfields-plugin-python) and [DWave's Ocean library](https://github.com/amazon-braket/amazon-braket-ocean-plugin-python). These serve as a good reference for a new integration you wish to develop.
-
-When developing a new integration with the Amazon Braket SDK, please remember to update the [user agent header](https://datatracker.ietf.org/doc/html/rfc7231#section-5.5.3) to include version information for your integration. An example can be found [here](https://github.com/amazon-braket/amazon-braket-pennylane-plugin-python/commit/ccee35604afc2b04d83ee9103eccb2821a4256cb).
 
 ## Code of Conduct
 

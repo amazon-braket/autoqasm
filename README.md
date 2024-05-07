@@ -1,251 +1,205 @@
-# Amazon Braket Python SDK
+# AutoQASM
 
-[![Latest Version](https://img.shields.io/pypi/v/amazon-braket-sdk.svg)](https://pypi.python.org/pypi/amazon-braket-sdk)
-[![Supported Python Versions](https://img.shields.io/pypi/pyversions/amazon-braket-sdk.svg)](https://pypi.python.org/pypi/amazon-braket-sdk)
-[![Build status](https://github.com/amazon-braket/amazon-braket-sdk-python/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/amazon-braket/amazon-braket-sdk-python/actions/workflows/python-package.yml)
-[![codecov](https://codecov.io/gh/amazon-braket/amazon-braket-sdk-python/branch/main/graph/badge.svg?token=1lsqkZL3Ll)](https://codecov.io/gh/amazon-braket/amazon-braket-sdk-python)
-[![Documentation Status](https://img.shields.io/readthedocs/amazon-braket-sdk-python.svg?logo=read-the-docs)](https://amazon-braket-sdk-python.readthedocs.io/en/latest/?badge=latest)
+**AutoQASM is not an officially supported AWS product.**
 
-The Amazon Braket Python SDK is an open source library that provides a framework that you can use to interact with quantum computing hardware devices through Amazon Braket.
+This experimental module offers a new quantum-imperative programming experience embedded in Python
+for developing quantum programs.
 
-## Prerequisites
-Before you begin working with the Amazon Braket SDK, make sure that you've installed or configured the following prerequisites.
+All of the code in the `experimental` module is _experimental_ software. We may change, remove, or
+deprecate parts of the AutoQASM API without notice. The name AutoQASM is a working title and is
+also subject to change.
 
-### Python 3.9 or greater
-Download and install Python 3.9 or greater from [Python.org](https://www.python.org/downloads/).
+For a fully supported quantum developer experience,
+please continue to use the rest of the Amazon Braket Python SDK by following
+[these instructions](https://github.com/amazon-braket/amazon-braket-sdk-python#installing-the-amazon-braket-python-sdk).
+If you are interested in our active development efforts, and you are not
+afraid of a few bugs, please keep on reading!
 
-### Git
-Install Git from https://git-scm.com/downloads. Installation instructions are provided on the download page.
+## Why AutoQASM?
 
-### IAM user or role with required permissions
-As a managed service, Amazon Braket performs operations on your behalf on the AWS hardware that is managed by Amazon Braket. Amazon Braket can perform only operations that the user permits. You can read more about which permissions are necessary in the AWS Documentation.
+AutoQASM provides a Pythonic developer experience for writing quantum programs. The working title "AutoQASM" is derived from the name of the [AutoGraph module of TensorFlow](https://www.tensorflow.org/api_docs/python/tf/autograph). AutoQASM uses AutoGraph to construct quantum assembly (QASM) programs rather than TensorFlow graphs.
 
-The Braket Python SDK should not require any additional permissions aside from what is required for using Braket. However, if you are using an IAM role with a path in it, you should grant permission for iam:GetRole.
+AutoQASM provides a natural interface for expressing quantum programs with mid-circuit measurements
+and classical control flow using native Python language features. It allows the construction of
+modular programs consisting of common programming constructs such as loops and subroutines. This
+enables a more imperative programming style than constructing programs via a series of function calls
+on a circuit object.
 
-To learn more about IAM user, roles, and policies, see [Adding and Removing IAM Identity Permissions](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_manage-attach-detach.html).
+AutoQASM programs can be serialized to OpenQASM. This textual representation for quantum programs is widely supported and enables interoperability among various frameworks. A crucial part of our serialization process is that modular structures within the program, such as loops and subroutines, are preserved when serializing to OpenQASM.
 
-### Boto3 and setting up AWS credentials
+Although it is still a work in progress, the intent is that AutoQASM will support any quantum programming paradigm which falls into the [OpenQASM 3.0](https://openqasm.com) language scope. AutoQASM supports serializing quantum programs to OpenQASM, which allows the programs to interoperate with any library or service that supports OpenQASM programs, such as Amazon Braket.
 
-Follow the installation [instructions](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html) for Boto3 and setting up AWS credentials.
+See the [Quick Start](#quick-start) section below, as well as the AutoQASM [example notebooks](../../../../examples/autoqasm), for examples of AutoQASM usage.
 
-**Note:** Make sure that your AWS region is set to one supported by Amazon Braket. You can check this in your AWS configuration file, which is located by default at `~/.aws/config`.
 
-### Configure your AWS account with the resources necessary for Amazon Braket
-If you are new to Amazon Braket, onboard to the service and create the resources necessary to use Amazon Braket using the [AWS console](https://console.aws.amazon.com/braket/home ).
+## Installation
 
-## Installing the Amazon Braket Python SDK
-
-The Amazon Braket Python SDK can be installed with pip as follows:
-
-```bash
-pip install amazon-braket-sdk
+AutoQASM is an experimental module and is not yet part of the released Amazon Braket SDK.
+To use AutoQASM, you'll need to install directly from the `feature/autoqasm` branch:
 ```
-
-You can also install from source by cloning this repository and running a pip install command in the root directory of the repository:
-
-```bash
 git clone https://github.com/amazon-braket/amazon-braket-sdk-python.git
 cd amazon-braket-sdk-python
-pip install .
+git checkout feature/autoqasm
+pip install -e .
 ```
 
-### Check the version you have installed
-You can view the version of the amazon-braket-sdk you have installed by using the following command:
-```bash
-pip show amazon-braket-sdk
+## Quick start
+
+In this section, we will show how to get started with AutoQASM. AutoQASM allows you to build
+quantum programs with a simplified syntax and run the programs on the service. It uses the circuit
+model programming paradigm that is also used in the Amazon Braket SDK.
+
+First, import the following modules and functions:
+```
+import autoqasm as aq
+from autoqasm.instructions import h, cnot, measure
 ```
 
-You can also check your version of `amazon-braket-sdk` from within Python:
+To create a quantum program using the AutoQASM experience, you decorate a function with `@aq.main`.
+This allows AutoQASM to hook into the program definition and generate an output format that is accepted
+by quantum devices.
 
+For instance, we can create a Bell state like so:
 ```
->>> import braket._sdk as braket_sdk
->>> braket_sdk.__version__
-```
-
-### Updating the Amazon Braket Python SDK
-You can update the version of the amazon-braket-sdk you have installed by using the following command:
-```bash
-pip install amazon-braket-sdk --upgrade --upgrade-strategy eager
-```
-
-## Usage
-
-### Running a circuit on an AWS simulator
-
-```python
-import boto3
-from braket.aws import AwsDevice
-from braket.circuits import Circuit
-
-device = AwsDevice("arn:aws:braket:::device/quantum-simulator/amazon/sv1")
-
-bell = Circuit().h(0).cnot(0, 1)
-task = device.run(bell, shots=100)
-print(task.result().measurement_counts)
+# A program that generates a maximally entangled state
+@aq.main
+def bell_state() -> None:
+    h(0)
+    cnot(0, 1)
 ```
 
-The code sample imports the Amazon Braket framework, then defines the device to use (the SV1 AWS simulator). It then creates a Bell Pair circuit, executes the circuit on the simulator and prints the results of the hybrid job. This example can be found in `../examples/bell.py`.
+You can view the output format, which is OpenQASM, by running `bell_state.display()`.
 
-### Running multiple quantum tasks at once
+AutoQASM enables users to use more complicated program constructs with a compact and readable
+structure. We can demonstrate this with a program that conditionally prepares multiple Bell states
+on qubit pairs (1, 2) and (3, 4).
+```
+@aq.main(num_qubits=5)
+def conditional_multi_bell_states() -> None:
+    h(0)
+    if measure(0):
+        for i in aq.range(2):
+            qubit = 2 * i + 1
+            h(qubit)
+            cnot(qubit, qubit+1)
 
-Many quantum algorithms need to run multiple independent circuits, and submitting the circuits in parallel can be faster than submitting them one at a time. In particular, parallel quantum task processing provides a significant speed up when using simulator devices. The following example shows how to run a batch of quantum tasks on SV1:
-
-```python
-circuits = [bell for _ in range(5)]
-batch = device.run_batch(circuits, shots=100)
-# The result of the first quantum task in the batch
-print(batch.results()[0].measurement_counts)  
+    measure([0,1,2,3,4])
 ```
 
-### Running a hybrid job
+AutoQASM can support subroutines and complex control flow. You can use the Python runtime
+and quantum runtime side-by-side. There are rough edges at the moment, but we're actively smoothing
+them out!
 
-```python
-from braket.aws import AwsQuantumJob
+The Amazon Braket local simulator supports AutoQASM programs as input.
+Let's simulate the `conditional_multi_bell_states` program:
 
-job = AwsQuantumJob.create(
-    device="arn:aws:braket:::device/quantum-simulator/amazon/sv1",
-    source_module="job.py",
-    entry_point="job:run_job",
-    wait_until_complete=True,
-)
-print(job.result())
 ```
-where `run_job` is a function in the file `job.py`.
+from braket.devices.local_simulator import LocalSimulator
 
-
-The code sample imports the Amazon Braket framework, then creates a hybrid job with the entry point being the `run_job` function. The hybrid job creates quantum tasks against the SV1 AWS Simulator. The hybrid job runs synchronously, and prints logs until it completes. The complete example can be found in `../examples/job.py`.
-
-### Available Simulators
-Amazon Braket provides access to two types of simulators: fully managed simulators, available through the Amazon Braket service, and the local simulators that are part of the Amazon Braket SDK.
-
-- Fully managed simulators offer high-performance circuit simulations. These simulators can handle circuits larger than circuits that run on quantum hardware. For example, the SV1 state vector simulator shown in the previous examples requires approximately 1 or 2 hours to complete a 34-qubit, dense, and square circuit (circuit depth = 34), depending on the type of gates used and other factors.
-- The Amazon Braket Python SDK includes an implementation of quantum simulators that can run circuits on your local, classic hardware. For example the braket_sv local simulator is well suited for rapid prototyping on small circuits up to 25 qubits, depending on the hardware specifications of your Braket notebook instance or your local environment. An example of how to execute the quantum task locally is included in the repository  `../examples/local_bell.py`.
-
-For a list of available simulators and their features, consult the [Amazon Braket Developer Guide](https://docs.aws.amazon.com/braket/latest/developerguide/braket-devices.html).
-
-### Debugging logs
-
-Quantum tasks sent to QPUs don't always run right away. To view quantum task status, you can enable debugging logs. An example of how to enable these logs is included in repo: `../examples/debug_bell.py`. This example enables quantum task logging so that status updates are continuously printed to the terminal after a quantum task is executed. The logs can also be configured to save to a file or output to another stream. You can use the debugging example to get information on the quantum tasks you submit, such as the current status, so that you know when your quantum task completes.
-
-### Running a Quantum Algorithm on a Quantum Computer
-With Amazon Braket, you can run your quantum circuit on a physical quantum computer.
-
-The following example executes the same Bell Pair example described to validate your configuration on a Rigetti quantum computer.
-
-```python
-import boto3
-from braket.circuits import Circuit
-from braket.aws import AwsDevice
-
-device = AwsDevice("arn:aws:braket:::device/qpu/rigetti/Aspen-8")
-
-bell = Circuit().h(0).cnot(0, 1)
-task = device.run(bell)
-print(task.result().measurement_counts)
+device = LocalSimulator()
+task = device.run(conditional_multi_bell_states, shots=100)
+result = task.result()
 ```
 
-When you execute your task, Amazon Braket polls for a result. By default, Braket polls for 5 days; however, it is possible to change this by modifying the `poll_timeout_seconds` parameter in `AwsDevice.run`, as in the example below. Keep in mind that if your polling timeout is too short, results may not be returned within the polling time, such as when a QPU is unavailable, and a local timeout error is returned. You can always restart the polling by using `task.result()`.
+Read more about AutoQASM decorators like `@aq.main` [here](doc/decorators.md).
 
-```python
-task = device.run(bell, poll_timeout_seconds=86400)  # 1 day
-print(task.result().measurement_counts)
+For more example usage of AutoQASM, visit the [example notebooks](../../../../examples/autoqasm).
+
+## Architecture
+
+AutoQASM is built on top of the `autograph` component of TensorFlow. A quantum program is
+written as a Python function which is decorated with `@aq.main`. When calling this
+decorated function, the user’s Python function is converted into a transformed Python function
+by `autograph`. This transformed function is then executed to produce an AutoQASM `Program`
+object which can be simulated and/or serialized to OpenQASM.
+
+The conversion process allows AutoQASM to provide custom handling for native Python control
+flow keywords such as `if`, `for`, and `while` and to preserve this control flow in the resulting
+quantum program in order to realize functionality such as classical feedback on mid-circuit
+measurement, efficient representation of loops, and modularity of subroutine definitions.
+
+## Plans
+
+The AutoQASM project is undergoing rapid development.
+The current status and future plans are tracked in
+the [AutoQASM GitHub project](https://github.com/orgs/amazon-braket/projects/2/).
+
+## Contributing and sharing feedback
+
+We welcome feature requests, bug reports, or
+general feedback, which you can share with us by
+[opening up an issue](https://github.com/amazon-braket/amazon-braket-sdk-python/issues/new/choose). We also
+welcome pull requests, examples, and documentation -- please open an issue describing your work
+when you get started, or comment on an existing issue with your intentions. Pull requests should be
+targeted to the `feature/autoqasm` branch of the https://github.com/amazon-braket/amazon-braket-sdk-python
+repository. For more details on contributing to the Amazon Braket SDK, please read the
+[contributing guidelines](../../../../CONTRIBUTING.md).
+
+For questions, you can get help via the Quantum Technologies section of
+[AWS RePost](https://repost.aws/topics/TAxin6L9GYR5a3NElq8AHIqQ/quantum-technologies).
+Please tag your question with "Amazon Braket" and mention AutoQASM in the question title.
+
+## Tests
+
+To run only AutoQASM tests (and skip the rest of the Amazon Braket SDK unit tests), run:
+```
+tox -e unit-tests -- test/unit_test/braket/experimental/autoqasm
 ```
 
-To select a quantum hardware device, specify its ARN as the value of the `device_arn` argument. A list of available quantum devices and their features can be found in the [Amazon Braket Developer Guide](https://docs.aws.amazon.com/braket/latest/developerguide/braket-devices.html).
+Note that you may first need to run `pip install -e .[test]`. More information on running tests
+can be found in the [top-level README](../../../../README.md).
 
-**Important** Quantum tasks may not run immediately on the QPU. The QPUs only execute quantum tasks during execution windows. To find their execution windows, please refer to the [AWS console](https://console.aws.amazon.com/braket/home) in the "Devices" tab.
+## Frequently asked questions
 
-## Sample Notebooks
-Sample Jupyter notebooks can be found in the [amazon-braket-examples](https://github.com/amazon-braket/amazon-braket-examples/) repo.
+###  1. Will AutoQASM be extended to contain a library of quantum algorithms or quantum applications?
 
-## Braket Python SDK API Reference Documentation
+No, we are focused on AutoQASM as an interface for low-level expression of
+quantum programs: circuits, gates and pulses. Higher-level algorithm
+libraries could be implemented using AutoQASM and benefit from modular
+AutoQASM functionality such as subroutines.
 
-The API reference, can be found on [Read the Docs](https://amazon-braket-sdk-python.readthedocs.io/en/latest/).
+### 2. What is the relationship between AutoQASM and OpenQASM?
 
-**To generate the API Reference HTML in your local environment**
+AutoQASM is a quantum programming interface built in Python.
+OpenQASM is a quantum assembly language, often used as a serialization format
+for quantum programming frameworks and quantum hardware providers. We can
+represent a quantum program equivalently in either format, but using AutoQASM
+allows one to also make use of Python, including the Amazon Braket SDK.
 
-To generate the HTML, first change directories (`cd`) to position the cursor in the `amazon-braket-sdk-python` directory. Then, run the following command to generate the HTML documentation files:
+AutoQASM can be seen as implementing a builder pattern for OpenQASM. It
+allows you serialize your program to OpenQASM by calling `to_ir()` on the
+built program. The interface is not strongly tied to OpenQASM, so we could
+serialize to other formats in the future.
 
-```bash
-pip install tox
-tox -e docs
-```
+### 3. What is the relationship between AutoQASM and the Amazon Braket SDK?
 
-To view the generated documentation, open the following file in a browser:
-`../amazon-braket-sdk-python/build/documentation/html/index.html`
+AutoQASM lives alongside the Amazon Braket SDK as an experimental feature
+branch. It supplements the program building experience and integrates with
+Amazon Braket SDK features. For instance, one can build a program through
+AutoQASM, and then use the SDK to run the program on a local simulator or on
+an Amazon Braket device.
 
-## Testing
+### 4. Does AutoQASM support other providers beyond Amazon Braket?
 
-This repository has both unit and integration tests.
+Yes. AutoQASM serializes to OpenQASM, and so it is applicable to any library
+or QPU that supports OpenQASM. We do have features that use the Amazon Braket
+SDK, such as [device-specific validation](../../../../examples/autoqasm/4_Native_programming.ipynb).
+Because AutoQASM is open-source, anyone could
+build similar integrations for another service. Reach out if you're
+interested in doing this and would like support.
 
-To run the tests, make sure to install test dependencies first:
 
-```bash
-pip install -e "amazon-braket-sdk-python[test]"
-```
+### 5. Does AutoQASM offer special support for device-specific programming?
 
-### Unit Tests
+Yes, AutoQASM has device-specific validation to support native programming.
+We plan to expand this functionality in the future. Learn more with our
+[native programming example notebook](../../../../examples/autoqasm/4_Native_programming.ipynb).
 
-To run the unit tests:
+### 6. Do the devices available through Amazon Braket support all of AutoQASM's features?
 
-```bash
-tox -e unit-tests
-```
-
-You can also pass in various pytest arguments to run selected tests:
-
-```bash
-tox -e unit-tests -- your-arguments
-```
-
-For more information, please see [pytest usage](https://docs.pytest.org/en/stable/usage.html).
-
-To run linters and doc generators and unit tests:
-
-```bash
-tox
-```
-
-### Integration Tests
-
-First, configure a profile to use your account to interact with AWS. To learn more, see [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
-
-After you create a profile, use the following command to set the `AWS_PROFILE` so that all future commands can access your AWS account and resources.
-
-```bash
-export AWS_PROFILE=YOUR_PROFILE_NAME
-```
-To run the integration tests for local hybrid jobs, you need to have Docker installed and running. To install Docker follow these instructions: [Install Docker](https://docs.docker.com/get-docker/)
-
-Run the tests:
-
-```bash
-tox -e integ-tests
-```
-
-As with unit tests, you can also pass in various pytest arguments:
-
-```bash
-tox -e integ-tests -- your-arguments
-```
-
-## Support
-
-### Issues and Bug Reports
-
-If you encounter bugs or face issues while using the SDK, please let us know by posting
-the issue on our [Github issue tracker](https://github.com/amazon-braket/amazon-braket-sdk-python/issues/).
-For other issues or general questions, please ask on the [Quantum Computing Stack Exchange](https://quantumcomputing.stackexchange.com/questions/ask?Tags=amazon-braket).
-
-### Feedback and Feature Requests
-
-If you have feedback or features that you would like to see on Amazon Braket, we would love to hear from you!
-[Github issues](https://github.com/amazon-braket/amazon-braket-sdk-python/issues/) is our preferred mechanism for collecting feedback and feature requests, allowing other users
-to engage in the conversation, and +1 issues to help drive priority.
-
-### Code contributors
-
-[![Contributors](https://contrib.rocks/image?repo=amazon-braket/amazon-braket-sdk-python)](https://github.com/amazon-braket/amazon-braket-sdk-python/graphs/contributors)
-
-## License
-This project is licensed under the Apache-2.0 License.
+No, for example, the `reset` instruction is not supported by all devices. In
+general, different QPUs and QHPs support different sets of features, so
+AutoQASM will often support features that a particular device doesn't
+support. We intend that AutoQASM will eventually be able to generate any
+program representable by OpenQASM 3.0, with additional Python-side features
+such as validation and visualization.

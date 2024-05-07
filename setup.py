@@ -13,39 +13,33 @@
 
 from setuptools import find_namespace_packages, setup
 
-with open("README.md") as fh:
+with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open("src/braket/_sdk/_version.py") as f:
+with open("src/autoqasm/_sdk/_version.py") as f:
     version = f.readlines()[-1].split()[-1].strip("\"'")
 
 setup(
-    name="amazon-braket-sdk",
+    name="autoqasm",
     version=version,
     license="Apache License 2.0",
     python_requires=">= 3.9",
     packages=find_namespace_packages(where="src", exclude=("test",)),
     package_dir={"": "src"},
     install_requires=[
-        "amazon-braket-schemas>=1.21.3",
-        # Pin the latest commit of mcm-sim branch of the amazon-braket-default-simulator repo
+        # Pin the latest commit of feature/autoqasm branch of amazon-braket/amazon-braket-sdk-python.git  # noqa E501
+        "amazon-braket-sdk @ git+https://github.com/amazon-braket/amazon-braket-sdk-python.git@d62e288961af1b9a42b14667e1167fca301e2708#egg=amazon-braket-sdk",  # noqa E501
+        # Pin the latest commit of mcm-sim branch of amazon-braket/amazon-braket-default-simulator-python.git  # noqa E501
         # to get the version of the simulator that supports the mcm=True argument for Monte Carlo
         # simulation of mid-circuit measurement, which AutoQASM requires.
-        # NOTE: This change should remain in the feature/autoqasm branch; do not merge to main.
-        "amazon-braket-default-simulator @ git+https://github.com/amazon-braket/amazon-braket-default-simulator-python.git@ab068c860963c29842d7649c741f88da669597eb#egg=amazon-braket-default-simulator",  # noqa E501
+        # NOTE: This is currently installed automatically due to feature/autoqasm requirements
+        # "amazon-braket-default-simulator @ git+https://github.com/amazon-braket/amazon-braket-default-simulator-python.git@f17d3070a4f87a3bbef677e385a2e94dd386af78#egg=amazon-braket-default-simulator",  # noqa E501
         "oqpy~=0.3.5",
-        "backoff",
-        "boltons",
-        "boto3>=1.28.53",
-        "cloudpickle==2.2.1",
         "diastatic-malt",
-        "nest-asyncio",
-        "networkx",
-        "numpy<2",
+        "numpy",
         "openpulse",
         "openqasm3",
         "sympy",
-        "backports.entry-points-selectable",
         "astunparse",
         "gast",
         "termcolor",
@@ -71,14 +65,12 @@ setup(
         ],
     },
     include_package_data=True,
-    url="https://github.com/amazon-braket/amazon-braket-sdk-python",
+    url="https://github.com/amazon-braket/autoqasm",
     author="Amazon Web Services",
-    description=(
-        "An open source library for interacting with quantum computing devices on Amazon Braket"
-    ),
+    description=("Python-native programming library for developing quantum programs"),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    keywords="Amazon AWS Quantum",
+    keywords="Amazon AWS Braket Quantum",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
