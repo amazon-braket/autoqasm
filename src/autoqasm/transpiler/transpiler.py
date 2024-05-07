@@ -48,12 +48,7 @@ from malt.pyct.static_analysis import activity, reaching_definitions
 from malt.utils import ag_logging as logging
 
 from autoqasm import operators, program, types
-from autoqasm.converters import (
-    assignments,
-    break_statements,
-    comparisons,
-    return_statements,
-)
+from autoqasm.converters import assignments, break_statements, comparisons, return_statements
 
 
 class PyToOqpy(transpiler.PyToPy):

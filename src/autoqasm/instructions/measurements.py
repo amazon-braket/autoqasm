@@ -28,11 +28,7 @@ from collections.abc import Iterable
 
 from autoqasm import program
 from autoqasm import types as aq_types
-from autoqasm.instructions.qubits import (
-    GlobalQubitRegister,
-    _qubit,
-    global_qubit_register,
-)
+from autoqasm.instructions.qubits import GlobalQubitRegister, _qubit, global_qubit_register
 
 
 def measure(

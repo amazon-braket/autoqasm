@@ -25,29 +25,25 @@ from typing import Any
 
 import oqpy.base
 import pygments
+from braket.aws.aws_device import AwsDevice
+from braket.circuits.free_parameter_expression import FreeParameterExpression
+from braket.circuits.serialization import IRType, SerializableProgram
+from braket.device_schema import DeviceActionType
+from braket.devices.device import Device
+from braket.pulse.ast.qasm_parser import ast_to_qasm
 from openpulse import ast
 from openqasm_pygments import OpenQASM3Lexer
 from pygments.formatters.terminal import TerminalFormatter
 from sympy import Symbol
 
 import autoqasm.types as aq_types
-from braket.aws.aws_device import AwsDevice
-from braket.circuits.free_parameter_expression import FreeParameterExpression
-from braket.circuits.serialization import IRType, SerializableProgram
-from braket.device_schema import DeviceActionType
-from braket.devices.device import Device
 from autoqasm import constants, errors
-from autoqasm.instructions.qubits import (
-    GlobalQubitRegister,
-    _get_physical_qubit_indices,
-    _qubit,
-)
+from autoqasm.instructions.qubits import GlobalQubitRegister, _get_physical_qubit_indices, _qubit
 from autoqasm.program.serialization_properties import (
     OpenQASMSerializationProperties,
     SerializationProperties,
 )
 from autoqasm.types import QubitIdentifierType as Qubit
-from braket.pulse.ast.qasm_parser import ast_to_qasm
 
 # Create the thread-local object for the program conversion context.
 _local = threading.local()

@@ -19,9 +19,9 @@ from unittest.mock import patch
 
 import oqpy.base
 import pytest
+from braket.circuits.serialization import IRType
 
 import autoqasm as aq
-from braket.circuits.serialization import IRType
 from autoqasm.instructions import cnot, measure, rx
 
 
