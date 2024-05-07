@@ -16,8 +16,8 @@ and running them on simulators and quantum hardware using Amazon Braket.
 
 The basic usage of AutoQASM is as follows:
 
-    import braket.experimental.autoqasm as aq
-    from braket.experimental.autoqasm.instructions import h, cnot, measure
+    import autoqasm as aq
+    from autoqasm.instructions import h, cnot, measure
 
     @aq.main
     def my_program():

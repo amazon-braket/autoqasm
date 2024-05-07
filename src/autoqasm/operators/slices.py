@@ -19,8 +19,8 @@ from typing import Any
 
 import oqpy.base
 
-from braket.experimental.autoqasm import program
-from braket.experimental.autoqasm.types import is_qasm_type, wrap_value
+from autoqasm import program
+from autoqasm.types import is_qasm_type, wrap_value
 
 
 class GetItemOpts(collections.namedtuple("GetItemOpts", ("element_dtype",))):

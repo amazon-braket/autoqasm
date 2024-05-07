@@ -23,8 +23,8 @@ import numpy as np
 import oqpy
 from openpulse import ast
 
-from braket.experimental.autoqasm import errors
-from braket.experimental.autoqasm import types as aq_types
+from autoqasm import errors
+from autoqasm import types as aq_types
 
 
 def map_parameter_type(python_type: type) -> type:

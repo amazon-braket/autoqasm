@@ -17,9 +17,9 @@ import textwrap
 
 import pytest
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm import errors, pulse
-from braket.experimental.autoqasm.instructions import h, rx
+import autoqasm as aq
+from autoqasm import errors, pulse
+from autoqasm.instructions import h, rx
 
 
 def test_gate_calibrations_fixed_args():

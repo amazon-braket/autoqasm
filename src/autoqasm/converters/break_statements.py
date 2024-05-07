@@ -19,7 +19,7 @@ import ast
 from malt.converters import break_statements
 from malt.core import ag_ctx, converter
 
-from braket.experimental.autoqasm import errors
+from autoqasm import errors
 
 
 class BreakValidator(converter.Base):

@@ -15,8 +15,8 @@
 
 import pytest
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm.instructions import (
+import autoqasm as aq
+from autoqasm.instructions import (
     ccnot,
     cnot,
     cphaseshift,

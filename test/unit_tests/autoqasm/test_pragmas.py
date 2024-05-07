@@ -15,9 +15,9 @@
 
 import pytest
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm import errors
-from braket.experimental.autoqasm.instructions import cnot, h
+import autoqasm as aq
+from autoqasm import errors
+from autoqasm.instructions import cnot, h
 
 
 def test_basic_box() -> None:

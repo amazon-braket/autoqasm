@@ -22,10 +22,10 @@ from typing import Any
 import oqpy
 
 from braket.circuits.basis_state import BasisState, BasisStateInput
-from braket.experimental.autoqasm import program as aq_program
-from braket.experimental.autoqasm import types as aq_types
-from braket.experimental.autoqasm.instructions.qubits import _qubit
-from braket.experimental.autoqasm.types import QubitIdentifierType
+from autoqasm import program as aq_program
+from autoqasm import types as aq_types
+from autoqasm.instructions.qubits import _qubit
+from autoqasm.types import QubitIdentifierType
 
 
 def _qubit_instruction(

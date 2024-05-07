@@ -19,8 +19,8 @@ from typing import Union
 import oqpy
 
 from braket.circuits.free_parameter_expression import FreeParameterExpression
-from braket.experimental.autoqasm.instructions.instructions import _qubit_instruction
-from braket.experimental.autoqasm.types import QubitIdentifierType
+from autoqasm.instructions.instructions import _qubit_instruction
+from autoqasm.types import QubitIdentifierType
 
 GateParameterType = Union[float, FreeParameterExpression, oqpy._ClassicalVar]
 

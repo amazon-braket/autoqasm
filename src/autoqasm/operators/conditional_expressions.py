@@ -21,9 +21,9 @@ from typing import Any
 
 import oqpy.base
 
-from braket.experimental.autoqasm import program as aq_program
-from braket.experimental.autoqasm import types as aq_types
-from braket.experimental.autoqasm.errors import UnsupportedConditionalExpressionError
+from autoqasm import program as aq_program
+from autoqasm import types as aq_types
+from autoqasm.errors import UnsupportedConditionalExpressionError
 
 
 def if_exp(

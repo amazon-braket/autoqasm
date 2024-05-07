@@ -18,11 +18,11 @@ the local simulator.
 
 import pytest
 
-import braket.experimental.autoqasm as aq
+import autoqasm as aq
 from braket.default_simulator import StateVectorSimulator
 from braket.devices.local_simulator import LocalSimulator
-from braket.experimental.autoqasm import errors
-from braket.experimental.autoqasm.instructions import cnot, h, measure, rx, x
+from autoqasm import errors
+from autoqasm.instructions import cnot, h, measure, rx, x
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
 

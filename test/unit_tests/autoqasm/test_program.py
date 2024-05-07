@@ -20,9 +20,9 @@ from unittest.mock import patch
 import oqpy.base
 import pytest
 
-import braket.experimental.autoqasm as aq
+import autoqasm as aq
 from braket.circuits.serialization import IRType
-from braket.experimental.autoqasm.instructions import cnot, measure, rx
+from autoqasm.instructions import cnot, measure, rx
 
 
 def test_program_conversion_context() -> None:

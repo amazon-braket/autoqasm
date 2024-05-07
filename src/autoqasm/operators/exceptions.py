@@ -16,7 +16,7 @@
 
 from collections.abc import Callable
 
-from braket.experimental.autoqasm.types import is_qasm_type
+from autoqasm.types import is_qasm_type
 
 
 def assert_stmt(test: bool, message: Callable) -> None:

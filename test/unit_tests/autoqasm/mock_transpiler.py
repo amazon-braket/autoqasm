@@ -18,7 +18,7 @@ from typing import Union
 import gast
 from malt.core import ag_ctx
 
-from braket.experimental.autoqasm.transpiler import PyToOqpy
+from autoqasm.transpiler import PyToOqpy
 
 # TODO: Implement a converter abstract class for better type hinting.
 

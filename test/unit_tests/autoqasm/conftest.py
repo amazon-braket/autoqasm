@@ -17,8 +17,8 @@ from collections.abc import Callable
 
 import pytest
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm.instructions import cnot, h
+import autoqasm as aq
+from autoqasm.instructions import cnot, h
 
 
 @pytest.fixture

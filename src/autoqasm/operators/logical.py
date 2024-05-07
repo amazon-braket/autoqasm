@@ -21,8 +21,8 @@ from typing import Any, Callable
 import oqpy.base
 from openpulse import ast
 
-from braket.experimental.autoqasm import program
-from braket.experimental.autoqasm import types as aq_types
+from autoqasm import program
+from autoqasm import types as aq_types
 
 from .utils import _register_and_convert_parameters
 

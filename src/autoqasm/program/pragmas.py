@@ -35,7 +35,7 @@ from enum import Enum
 from typing import Iterable
 
 from braket.device_schema import DeviceActionType
-from braket.experimental.autoqasm import errors, program
+from autoqasm import errors, program
 
 
 class PragmaType(str, Enum):

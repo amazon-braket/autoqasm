@@ -16,8 +16,8 @@
 import oqpy
 import pytest
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm.types import Range
+import autoqasm as aq
+from autoqasm.types import Range
 
 
 @pytest.mark.parametrize(

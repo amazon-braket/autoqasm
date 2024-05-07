@@ -18,9 +18,9 @@ import numpy as np
 import pytest
 from test_api import _test_on_local_sim
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm import errors
-from braket.experimental.autoqasm.instructions import h, measure, reset, rx, rz, x
+import autoqasm as aq
+from autoqasm import errors
+from autoqasm.instructions import h, measure, reset, rx, rz, x
 
 
 @aq.gate

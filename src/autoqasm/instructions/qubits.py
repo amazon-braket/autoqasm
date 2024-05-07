@@ -24,7 +24,7 @@ from typing import Any
 import oqpy.base
 from openpulse.printer import dumps
 
-from braket.experimental.autoqasm import constants, errors, program
+from autoqasm import constants, errors, program
 
 
 def _get_physical_qubit_indices(qids: list[str]) -> list[int]:

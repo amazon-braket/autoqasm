@@ -26,9 +26,9 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from braket.experimental.autoqasm import program
-from braket.experimental.autoqasm import types as aq_types
-from braket.experimental.autoqasm.instructions.qubits import (
+from autoqasm import program
+from autoqasm import types as aq_types
+from autoqasm.instructions.qubits import (
     GlobalQubitRegister,
     _qubit,
     global_qubit_register,

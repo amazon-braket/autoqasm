@@ -21,8 +21,8 @@ from typing import Any
 
 import oqpy.base
 
-from braket.experimental.autoqasm import program
-from braket.experimental.autoqasm.types import Range, is_qasm_type
+from autoqasm import program
+from autoqasm.types import Range, is_qasm_type
 
 
 def for_stmt(

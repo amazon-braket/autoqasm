@@ -1,7 +1,7 @@
 import numpy as np
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm.instructions import gpi, gpi2, ms
+import autoqasm as aq
+from autoqasm.instructions import gpi, gpi2, ms
 
 
 @aq.gate

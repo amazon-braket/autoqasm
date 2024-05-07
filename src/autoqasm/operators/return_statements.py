@@ -17,8 +17,8 @@
 from collections.abc import Iterable
 from typing import Any
 
-from braket.experimental.autoqasm import program
-from braket.experimental.autoqasm import types as aq_types
+from autoqasm import program
+from autoqasm import types as aq_types
 
 
 def return_output_from_main(name: str, value: Any) -> Any:

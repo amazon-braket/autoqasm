@@ -23,7 +23,7 @@ import oqpy.base
 from openpulse import ast
 
 from braket.circuits import FreeParameterExpression
-from braket.experimental.autoqasm import errors, program
+from autoqasm import errors, program
 from braket.registers import Qubit
 
 

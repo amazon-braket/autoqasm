@@ -22,8 +22,8 @@ import oqpy
 import oqpy.base
 from malt.operators.variables import UndefinedReturnValue
 
-from braket.experimental.autoqasm import constants, errors, program, types
-from braket.experimental.autoqasm.types.conversions import var_type_from_oqpy
+from autoqasm import constants, errors, program, types
+from autoqasm.types.conversions import var_type_from_oqpy
 
 
 def assign_for_output(target_name: str, value: Any) -> Any:

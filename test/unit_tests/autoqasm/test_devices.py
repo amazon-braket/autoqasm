@@ -19,13 +19,13 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import braket.experimental.autoqasm as aq
+import autoqasm as aq
 from braket.aws import AwsDevice
 from braket.device_schema import DeviceActionType
 from braket.device_schema.simulators import GateModelSimulatorDeviceCapabilities
 from braket.devices import Devices
-from braket.experimental.autoqasm import errors
-from braket.experimental.autoqasm.instructions import cnot, cphaseshift00, h, rx, x
+from autoqasm import errors
+from autoqasm.instructions import cnot, cphaseshift00, h, rx, x
 from braket.parametric import FreeParameter
 
 RIGETTI_REGION = "us-west-1"

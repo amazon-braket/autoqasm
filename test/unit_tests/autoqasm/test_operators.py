@@ -20,10 +20,10 @@ import numpy as np
 import oqpy.base
 import pytest
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm import errors
-from braket.experimental.autoqasm.errors import UnsupportedConditionalExpressionError
-from braket.experimental.autoqasm.instructions import cnot, h, measure, rx, x
+import autoqasm as aq
+from autoqasm import errors
+from autoqasm.errors import UnsupportedConditionalExpressionError
+from autoqasm.instructions import cnot, h, measure, rx, x
 
 
 @pytest.fixture

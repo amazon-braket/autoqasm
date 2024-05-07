@@ -19,9 +19,9 @@ import pytest
 from malt.core.ag_ctx import ControlStatusCtx, Status
 from malt.utils import ag_logging
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm.errors import UnknownQubitCountError
-from braket.experimental.autoqasm.instructions import cnot, h, measure, x
+import autoqasm as aq
+from autoqasm.errors import UnknownQubitCountError
+from autoqasm.instructions import cnot, h, measure, x
 
 
 def test_convert_invalid_main_object() -> None:

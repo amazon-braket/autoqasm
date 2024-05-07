@@ -17,9 +17,9 @@ import textwrap
 
 import pytest
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm.instructions import rx
-from braket.experimental.autoqasm.pulse import (
+import autoqasm as aq
+from autoqasm.instructions import rx
+from autoqasm.pulse import (
     barrier,
     capture_v0,
     delay,

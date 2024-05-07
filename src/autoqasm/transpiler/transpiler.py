@@ -47,8 +47,8 @@ from malt.pyct import anno, cfg, qual_names, transpiler
 from malt.pyct.static_analysis import activity, reaching_definitions
 from malt.utils import ag_logging as logging
 
-from braket.experimental.autoqasm import operators, program, types
-from braket.experimental.autoqasm.converters import (
+from autoqasm import operators, program, types
+from autoqasm.converters import (
     assignments,
     break_statements,
     comparisons,

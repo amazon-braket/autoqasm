@@ -27,13 +27,13 @@ import oqpy.base
 from malt.core import converter
 from malt.impl.api import autograph_artifact, is_autograph_artifact
 
-import braket.experimental.autoqasm.instructions as aq_instructions
-import braket.experimental.autoqasm.program as aq_program
-import braket.experimental.autoqasm.transpiler as aq_transpiler
-import braket.experimental.autoqasm.types as aq_types
-from braket.experimental.autoqasm import errors
-from braket.experimental.autoqasm.program.gate_calibrations import GateCalibration
-from braket.experimental.autoqasm.types import QubitIdentifierType as Qubit
+import autoqasm.instructions as aq_instructions
+import autoqasm.program as aq_program
+import autoqasm.transpiler as aq_transpiler
+import autoqasm.types as aq_types
+from autoqasm import errors
+from autoqasm.program.gate_calibrations import GateCalibration
+from autoqasm.types import QubitIdentifierType as Qubit
 
 
 def main(

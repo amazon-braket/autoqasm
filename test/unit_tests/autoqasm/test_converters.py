@@ -17,8 +17,8 @@ import pytest
 from malt.core import ag_ctx, converter
 from mock_transpiler import MockTranspiler
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm.converters import assignments
+import autoqasm as aq
+from autoqasm.converters import assignments
 
 
 @pytest.fixture(autouse=True)

@@ -15,9 +15,9 @@
 
 import pytest
 
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm.instructions import measure
-from braket.experimental.autoqasm.pulse import capture_v0
+import autoqasm as aq
+from autoqasm.instructions import measure
+from autoqasm.pulse import capture_v0
 from braket.pulse import Frame, Port
 
 

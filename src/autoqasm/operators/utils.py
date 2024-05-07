@@ -18,8 +18,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from braket.experimental.autoqasm import program
-from braket.experimental.autoqasm import types as aq_types
+from autoqasm import program
+from autoqasm import types as aq_types
 
 
 def _register_and_convert_parameters(

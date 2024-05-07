@@ -16,12 +16,12 @@
 import numpy as np
 import pytest
 
-import braket.experimental.autoqasm as aq
+import autoqasm as aq
 from braket.circuits import FreeParameter
 from braket.default_simulator import StateVectorSimulator
 from braket.devices.local_simulator import LocalSimulator
-from braket.experimental.autoqasm import pulse
-from braket.experimental.autoqasm.instructions import (
+from autoqasm import pulse
+from autoqasm.instructions import (
     cnot,
     cphaseshift,
     gpi,

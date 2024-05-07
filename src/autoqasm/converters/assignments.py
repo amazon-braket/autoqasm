@@ -20,7 +20,7 @@ import gast
 from malt.core import ag_ctx, converter
 from malt.pyct import templates
 
-from braket.experimental.autoqasm.operators.assignments import assign_for_output
+from autoqasm.operators.assignments import assign_for_output
 
 
 class AssignTransformer(converter.Base):

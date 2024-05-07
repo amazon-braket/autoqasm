@@ -51,8 +51,8 @@ model programming paradigm that is also used in the Amazon Braket SDK.
 
 First, import the following modules and functions:
 ```
-import braket.experimental.autoqasm as aq
-from braket.experimental.autoqasm.instructions import h, cnot, measure
+import autoqasm as aq
+from autoqasm.instructions import h, cnot, measure
 ```
 
 To create a quantum program using the AutoQASM experience, you decorate a function with `@aq.main`.
