@@ -3,16 +3,13 @@
 **AutoQASM is not an officially supported AWS product.**
 
 This experimental module offers a new quantum-imperative programming experience embedded in Python
-for developing quantum programs.
-
-All of the code in the `experimental` module is _experimental_ software. We may change, remove, or
+for developing quantum programs. AutoQASM is _experimental_ software. We may change, remove, or
 deprecate parts of the AutoQASM API without notice. The name AutoQASM is a working title and is
 also subject to change.
 
-For a fully supported quantum developer experience,
-please continue to use the rest of the Amazon Braket Python SDK by following
+For a fully supported quantum development experience, please use the Amazon Braket Python SDK by following
 [these instructions](https://github.com/amazon-braket/amazon-braket-sdk-python#installing-the-amazon-braket-python-sdk).
-If you are interested in our active development efforts, and you are not
+If you are interested in our active development efforts on AutoQASM, and you are not
 afraid of a few bugs, please keep on reading!
 
 ## Why AutoQASM?
@@ -29,17 +26,20 @@ AutoQASM programs can be serialized to OpenQASM. This textual representation for
 
 Although it is still a work in progress, the intent is that AutoQASM will support any quantum programming paradigm which falls into the [OpenQASM 3.0](https://openqasm.com) language scope. AutoQASM supports serializing quantum programs to OpenQASM, which allows the programs to interoperate with any library or service that supports OpenQASM programs, such as Amazon Braket.
 
-See the [Quick Start](#quick-start) section below, as well as the AutoQASM [example notebooks](../../../../examples/autoqasm), for examples of AutoQASM usage.
+See the [Quick Start](#quick-start) section below, as well as the AutoQASM [example notebooks](examples), for examples of AutoQASM usage.
 
 
 ## Installation
 
-AutoQASM is an experimental module and is not yet part of the released Amazon Braket SDK.
-To use AutoQASM, you'll need to install directly from the `feature/autoqasm` branch:
+To install the latest experimental release of AutoQASM, use `pip`:
 ```
-git clone https://github.com/amazon-braket/amazon-braket-sdk-python.git
-cd amazon-braket-sdk-python
-git checkout feature/autoqasm
+pip install autoqasm
+```
+
+Alternatively, to use AutoQASM in development mode, install from a local clone of this GitHub repository:
+```
+git clone https://github.com/amazon-braket/autoqasm.git
+cd autoqasm
 pip install -e .
 ```
 
@@ -63,7 +63,7 @@ For instance, we can create a Bell state like so:
 ```
 # A program that generates a maximally entangled state
 @aq.main
-def bell_state() -> None:
+def bell_state():
     h(0)
     cnot(0, 1)
 ```
@@ -103,7 +103,7 @@ result = task.result()
 
 Read more about AutoQASM decorators like `@aq.main` [here](doc/decorators.md).
 
-For more example usage of AutoQASM, visit the [example notebooks](../../../../examples/autoqasm).
+For more example usage of AutoQASM, visit the [example notebooks](examples).
 
 ## Architecture
 
@@ -128,12 +128,11 @@ the [AutoQASM GitHub project](https://github.com/orgs/amazon-braket/projects/2/)
 
 We welcome feature requests, bug reports, or
 general feedback, which you can share with us by
-[opening up an issue](https://github.com/amazon-braket/amazon-braket-sdk-python/issues/new/choose). We also
+[opening up an issue](https://github.com/amazon-braket/autoqasm/issues/new/choose). We also
 welcome pull requests, examples, and documentation -- please open an issue describing your work
-when you get started, or comment on an existing issue with your intentions. Pull requests should be
-targeted to the `feature/autoqasm` branch of the https://github.com/amazon-braket/amazon-braket-sdk-python
-repository. For more details on contributing to the Amazon Braket SDK, please read the
-[contributing guidelines](../../../../CONTRIBUTING.md).
+when you get started, or comment on an existing issue with your intentions.
+For more details on contributing to AutoQASM, please read the
+[contributing guidelines](CONTRIBUTING.md).
 
 For questions, you can get help via the Quantum Technologies section of
 [AWS RePost](https://repost.aws/topics/TAxin6L9GYR5a3NElq8AHIqQ/quantum-technologies).
@@ -141,13 +140,10 @@ Please tag your question with "Amazon Braket" and mention AutoQASM in the questi
 
 ## Tests
 
-To run only AutoQASM tests (and skip the rest of the Amazon Braket SDK unit tests), run:
+To run AutoQASM unit tests, run:
 ```
-tox -e unit-tests -- test/unit_test/braket/experimental/autoqasm
+tox -e unit-tests
 ```
-
-Note that you may first need to run `pip install -e .[test]`. More information on running tests
-can be found in the [top-level README](../../../../README.md).
 
 ## Frequently asked questions
 
@@ -173,8 +169,8 @@ serialize to other formats in the future.
 
 ### 3. What is the relationship between AutoQASM and the Amazon Braket SDK?
 
-AutoQASM lives alongside the Amazon Braket SDK as an experimental feature
-branch. It supplements the program building experience and integrates with
+AutoQASM lives alongside the Amazon Braket SDK as an experimental package.
+It supplements the program building experience and integrates with
 Amazon Braket SDK features. For instance, one can build a program through
 AutoQASM, and then use the SDK to run the program on a local simulator or on
 an Amazon Braket device.
@@ -182,18 +178,16 @@ an Amazon Braket device.
 ### 4. Does AutoQASM support other providers beyond Amazon Braket?
 
 Yes. AutoQASM serializes to OpenQASM, and so it is applicable to any library
-or QPU that supports OpenQASM. We do have features that use the Amazon Braket
-SDK, such as [device-specific validation](../../../../examples/autoqasm/4_Native_programming.ipynb).
-Because AutoQASM is open-source, anyone could
-build similar integrations for another service. Reach out if you're
-interested in doing this and would like support.
-
+or QPU that supports OpenQASM. AutoQASM does have some features that use the Amazon Braket
+SDK, such as [device-specific validation](examples/4_Native_programming.ipynb).
+Because AutoQASM is open-source, anyone could build similar integrations for another service.
+Reach out if you're interested in doing this and would like support.
 
 ### 5. Does AutoQASM offer special support for device-specific programming?
 
 Yes, AutoQASM has device-specific validation to support native programming.
 We plan to expand this functionality in the future. Learn more with our
-[native programming example notebook](../../../../examples/autoqasm/4_Native_programming.ipynb).
+[native programming example notebook](examples/4_Native_programming.ipynb).
 
 ### 6. Do the devices available through Amazon Braket support all of AutoQASM's features?
 
