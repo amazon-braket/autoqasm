@@ -4,11 +4,6 @@ branch = True
 source =
     src
 omit =
-    **/braket/ir/*
-    **/braket/device_schema/*
-    **/braket/schema_common/*
-    **/braket/task_result/*
-    **/braket/simulator/*
     */site-packages/braket/*
 
 [paths]
