@@ -186,7 +186,7 @@ If a parameter of a function has a default value, please note what the default i
 If that default value is `None`, it can also be helpful to explain what happens when the parameter is `None`.
 If `**kwargs` is part of the function signature, link to the parent class(es) or method(s) so that the reader knows where to find the available parameters.
 
-For an example file with docstrings, see [the `gates` module](https://github.com/amazon-braket/autoqasm/blob/main/src/autoqasm/instructions/gates.py).
+For an example file with docstrings, see [the `measurements` module](https://github.com/amazon-braket/autoqasm/blob/main/src/autoqasm/instructions/measurements.py).
 
 
 ### Build and Test Documentation
