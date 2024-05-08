@@ -14,17 +14,17 @@ is hosted on GitHub at https://github.com/amazon-braket/autoqasm. The project
 includes the source code, installation instructions, and other information.
 
 
-***************
+*****************************
 Getting Started with AutoQASM
-***************
+*****************************
 
 For details on how to get started with AutoQASM, see the project
 readme at https://github.com/amazon-braket/autoqasm/blob/main/README.md.
 
 
-***************
+*******************
 AutoQASM Decorators
-***************
+*******************
 
 For details on usage of AutoQASM decorators such as `@aq.main`, see
 the decorators documentation at https://github.com/amazon-braket/autoqasm/blob/main/doc/decorators.md
@@ -38,9 +38,9 @@ There are several example notebooks available in the AutoQASM repo at
 https://github.com/amazon-braket/autoqasm/tree/main/examples.
 
 
-******************************
+**************************
 AutoQASM API Documentation
-******************************
+**************************
 
 .. toctree::
     :maxdepth: 2
