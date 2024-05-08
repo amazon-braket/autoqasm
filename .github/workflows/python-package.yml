@@ -1,0 +1,50 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python package
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - feature/**
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        pip install tox
+    - name: Run unit tests
+      run: |
+        tox -e unit-tests
+    - name: Run AutoQASM example notebooks
+      run: |
+        pip install -e .
+        pip install notebook matplotlib
+        jupyter nbconvert --to html --execute --ExecutePreprocessor.kernel_name=python3 ./examples/1_Getting_started_with_AutoQASM.ipynb
+        jupyter nbconvert --to html --execute --ExecutePreprocessor.kernel_name=python3 ./examples/2_Expressing_classical_control_flow.ipynb
+        jupyter nbconvert --to html --execute --ExecutePreprocessor.kernel_name=python3 ./examples/3_1_Iterative_phase_estimation.ipynb
+        jupyter nbconvert --to html --execute --ExecutePreprocessor.kernel_name=python3 ./examples/3_2_magic_state_distillation.ipynb
+    - name: Upload coverage report to Codecov
+      uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+      if: ${{ strategy.job-index }} == 0
