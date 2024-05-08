@@ -16,11 +16,11 @@ from pathlib import Path
 
 # Here we replace the `autoqasm` dependency to point to the file system; otherwise
 # pip will install them separately, allowing it to override the version of
-# any mutual dependencies with autoqasm. By pointing to the file system, pip will be
-# forced to reconcile the dependencies in setup.py with the dependencies of autoqasm,
+# any mutual dependencies with AutoQASM. By pointing to the file system, pip will be
+# forced to reconcile the dependencies in setup.py with the dependencies of AutoQASM,
 # and raise an error if there are conflicts. While we can't do this for every upstream
-# dependency, we can do this for the ones we own to make sure that when autoqasm updates
-# its dependencies, these upstream github repos will not be impacted.
+# dependency, we can do this for the ones we own to make sure that when AutoQASM updates
+# its dependencies, these upstream GitHub repos will not be impacted.
 
 package = "autoqasm"
 path = Path.cwd().parent.resolve()
