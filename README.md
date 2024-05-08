@@ -1,5 +1,11 @@
 # AutoQASM
 
+[![Latest Version](https://img.shields.io/pypi/v/autoqasm.svg)](https://pypi.python.org/pypi/autoqasm)
+[![Supported Python Versions](https://img.shields.io/pypi/pyversions/autoqasm.svg)](https://pypi.python.org/pypi/autoqasm)
+[![Build status](https://github.com/amazon-braket/autoqasm/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/amazon-braket/autoqasm/actions/workflows/python-package.yml)
+[![codecov](https://codecov.io/gh/amazon-braket/autoqasm/graph/badge.svg?token=oO44oCLtPu)](https://codecov.io/gh/amazon-braket/autoqasm)
+[![Documentation Status](https://readthedocs.org/projects/autoqasm/badge/?version=latest)](https://autoqasm.readthedocs.io/en/latest/?badge=latest)
+
 **AutoQASM is not an officially supported AWS product.**
 
 This experimental module offers a new quantum-imperative programming experience embedded in Python

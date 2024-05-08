@@ -16,6 +16,8 @@ and running them on simulators and quantum hardware using Amazon Braket.
 
 The basic usage of AutoQASM is as follows:
 
+.. code-block:: python
+
     import autoqasm as aq
     from autoqasm.instructions import h, cnot, measure
 
@@ -30,6 +32,8 @@ The basic usage of AutoQASM is as follows:
     print(program.build().to_ir())
 
 The Python code above outputs the following OpenQASM program:
+
+.. code-block::
 
     OPENQASM 3.0;
     qubit[2] __qubits__;

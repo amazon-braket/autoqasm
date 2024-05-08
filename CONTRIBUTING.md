@@ -186,7 +186,7 @@ If a parameter of a function has a default value, please note what the default i
 If that default value is `None`, it can also be helpful to explain what happens when the parameter is `None`.
 If `**kwargs` is part of the function signature, link to the parent class(es) or method(s) so that the reader knows where to find the available parameters.
 
-For an example file with docstrings, see [the `circuit` module](https://github.com/amazon-braket/amazon-braket-sdk-python/blob/main/src/braket/circuits/circuit.py).
+For an example file with docstrings, see [the `measurements` module](https://github.com/amazon-braket/autoqasm/blob/main/src/autoqasm/instructions/measurements.py).
 
 
 ### Build and Test Documentation
@@ -219,6 +219,6 @@ If you discover a potential security issue in this project we ask that you notif
 
 ## Licensing
 
-See the [LICENSE](https://github.com/amazon-braket/amazon-braket-sdk-python/blob/main/LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
+See the [LICENSE](https://github.com/amazon-braket/autoqasm/blob/main/LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
 
 We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikipedia.org/wiki/Contributor_License_Agreement) for larger changes.

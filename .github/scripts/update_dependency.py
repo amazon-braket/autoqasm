@@ -14,21 +14,19 @@
 import fileinput
 from pathlib import Path
 
-# Here we replace the `amazon-braket-sdk` dependency to point to the file system; otherwise
+# Here we replace the `autoqasm` dependency to point to the file system; otherwise
 # pip will install them separately, allowing it to override the version of
-# any mutual dependencies with the sdk. By pointing to the file system, pip will be
-# forced to reconcile the dependencies in setup.py with the dependencies of the sdk,
+# any mutual dependencies with AutoQASM. By pointing to the file system, pip will be
+# forced to reconcile the dependencies in setup.py with the dependencies of AutoQASM,
 # and raise an error if there are conflicts. While we can't do this for every upstream
-# dependency, we can do this for the ones we own to make sure that when the sdk updates
-# its dependencies, these upstream github repos will not be impacted.
+# dependency, we can do this for the ones we own to make sure that when AutoQASM updates
+# its dependencies, these upstream GitHub repos will not be impacted.
 
-package = "amazon-braket-sdk"
+package = "autoqasm"
 path = Path.cwd().parent.resolve()
 
 for line in fileinput.input("setup.py", inplace=True):
-    # Update the amazon-braket-sdk dependency in setup.py to use the local path. This
+    # Update the autoqasm dependency in setup.py to use the local path. This
     # would help catch conflicts during the installation process.
-    replaced_line = (
-        line if package not in line else f'"{package} @ file://{path}/{package}-python",\n'
-    )
+    replaced_line = line if package not in line else f'"{package} @ file://{path}/{package}",\n'
     print(replaced_line, end="")
