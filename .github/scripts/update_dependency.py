@@ -28,7 +28,5 @@ path = Path.cwd().parent.resolve()
 for line in fileinput.input("setup.py", inplace=True):
     # Update the autoqasm dependency in setup.py to use the local path. This
     # would help catch conflicts during the installation process.
-    replaced_line = (
-        line if package not in line else f'"{package} @ file://{path}/{package}",\n'
-    )
+    replaced_line = line if package not in line else f'"{package} @ file://{path}/{package}",\n'
     print(replaced_line, end="")
