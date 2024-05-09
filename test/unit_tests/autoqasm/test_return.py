@@ -214,8 +214,8 @@ def test_return_inputs():
         return val1 + val2
 
     expected = """OPENQASM 3.0;
-input float val1;
-input float val2;
+input float[64] val1;
+input float[64] val2;
 output float[64] return_value;
 return_value = val1 + val2;"""
 
