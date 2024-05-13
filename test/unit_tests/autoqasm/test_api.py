@@ -17,17 +17,17 @@ the local simulator.
 """
 
 import pytest
-from braket.default_simulator import StateVectorSimulator
 from braket.devices.local_simulator import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
 import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
+from autoqasm.simulator import McmSimulator
 
 
 def _test_on_local_sim(program: aq.Program, inputs=None) -> None:
-    device = LocalSimulator(backend=StateVectorSimulator())
+    device = LocalSimulator(backend=McmSimulator())
     task = device.run(program, shots=10, inputs=inputs or {})
     assert isinstance(task, LocalQuantumTask)
     assert isinstance(task.result().measurements, dict)
