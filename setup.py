@@ -57,6 +57,11 @@ setup(
             "tox",
         ],
     },
+    entry_points={
+        "braket.simulators": [
+            "autoqasm = autoqasm.simulator.simulator:McmSimulator",
+        ]
+    },
     include_package_data=True,
     url="https://github.com/amazon-braket/autoqasm",
     author="Amazon Web Services",

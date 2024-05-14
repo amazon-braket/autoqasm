@@ -23,7 +23,7 @@ from autoqasm.simulator.simulation import Simulation
 
 
 class McmSimulator(StateVectorSimulator):
-    DEVICE_ID = "autoqasm_mcm"
+    DEVICE_ID = "autoqasm"
 
     def initialize_simulation(self, **kwargs) -> Simulation:
         """
