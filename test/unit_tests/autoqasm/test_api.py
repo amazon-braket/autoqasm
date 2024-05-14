@@ -952,11 +952,11 @@ def test_double_decorated_function():
 def test_to_ir_implicit_build(empty_program) -> None:
     """Test that to_ir works as expected with and without implicit build."""
     expected = """OPENQASM 3.0;"""
-    assert empty_program.build().to_ir(allow_implicit_build=False) == expected
-    assert empty_program.build().to_ir(allow_implicit_build=True) == expected
-    assert empty_program.to_ir(allow_implicit_build=True) == expected
+    assert empty_program.build().to_ir(build_if_necessary=False) == expected
+    assert empty_program.build().to_ir(build_if_necessary=True) == expected
+    assert empty_program.to_ir(build_if_necessary=True) == expected
     with pytest.raises(RuntimeError):
-        empty_program.to_ir(allow_implicit_build=False)
+        empty_program.to_ir(build_if_necessary=False)
 
 
 def test_main_no_return():

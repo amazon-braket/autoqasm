@@ -25,7 +25,7 @@ setup(
     package_dir={"": "src"},
     install_requires=[
         # Pin the latest commit of mcm-sim branch of amazon-braket/amazon-braket-sdk-python.git
-        "amazon-braket-sdk @ git+https://github.com/amazon-braket/amazon-braket-sdk-python.git@fe601096b7bba2a1bd8700896080d93672732c4c#egg=amazon-braket-sdk",  # noqa E501
+        "amazon-braket-sdk @ git+https://github.com/amazon-braket/amazon-braket-sdk-python.git@da74ee713c200ac0803704bb0b4c87f9d0100682#egg=amazon-braket-sdk",  # noqa E501
         "amazon-braket-default-simulator>=1.23.2",
         "oqpy~=0.3.5",
         "diastatic-malt",
