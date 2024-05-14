@@ -16,6 +16,8 @@ import pytest
 from autoqasm.simulator.native_interpreter import NativeInterpreter
 from autoqasm.simulator.simulation import Simulation
 
+INPUTS_QASM = "test/resources/inputs.qasm"
+
 
 @pytest.mark.parametrize(
     "reset_instructions",
@@ -28,15 +30,59 @@ from autoqasm.simulator.simulation import Simulation
 )
 def test_reset(reset_instructions):
     qasm = f"""
-    OPENQASM 3.0;
-    qubit[2] __qubits__;
-    x __qubits__[0];
-    x __qubits__[1];
-    {reset_instructions}
-    bit[2] __bit_0__ = "00";
-    __bit_0__[0] = measure __qubits__[0];
-    __bit_0__[1] = measure __qubits__[1];
+        OPENQASM 3.0;
+        qubit[2] __qubits__;
+        x __qubits__[0];
+        {reset_instructions}
+        bit[2] __bit_0__ = "00";
+        __bit_0__[0] = measure __qubits__[0];
+        __bit_0__[1] = measure __qubits__[1];
     """
-
     result = NativeInterpreter(Simulation(0, 0, 1)).simulate(qasm)
     assert result["__bit_0__"] == ["00"]
+
+
+def test_inputs_outputs():
+    with open(INPUTS_QASM, encoding="utf-8", mode="r") as f:
+        qasm = f.read()
+
+    result = NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm, inputs={"theta": 0.0})
+    assert result["return_value"] == [0]
+
+
+def test_inputs_outputs_from_file():
+    result = NativeInterpreter(Simulation(1, 1, 1)).simulate(
+        INPUTS_QASM, inputs={"theta": 0.0}, is_file=True
+    )
+    assert result["return_value"] == [0]
+
+
+def test_missing_input():
+    qasm = """
+        OPENQASM 3.0;
+        input float theta;
+    """
+    with pytest.raises(NameError, match="Missing input variable"):
+        NativeInterpreter(Simulation(0, 0, 1)).simulate(qasm)
+
+
+def test_repeated_output_declaration():
+    qasm = """
+        OPENQASM 3.0;
+        output bit return_value;
+        output bit return_value;
+        return_value = 0;
+    """
+    result = NativeInterpreter(Simulation(0, 0, 1)).simulate(qasm)
+    assert result["return_value"] == [0]
+
+
+def test_qubit_register():
+    qasm = """
+        OPENQASM 3.0;
+        qubit[2] __qubits__;
+        x __qubits__[1];
+        bit[2] __bit_0__ = measure __qubits__;
+    """
+    result = NativeInterpreter(Simulation(2, 1, 1)).simulate(qasm)
+    assert result["__bit_0__"] == ["01"]
