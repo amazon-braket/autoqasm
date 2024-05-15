@@ -12,11 +12,28 @@
 # language governing permissions and limitations under the License.
 
 import pytest
+from braket.ir.openqasm import Program as OpenQASMProgram
+from braket.tasks import GateModelQuantumTaskResult
 
+from autoqasm.simulator import McmSimulator
 from autoqasm.simulator.native_interpreter import NativeInterpreter
+from autoqasm.simulator.program_context import McmProgramContext
 from autoqasm.simulator.simulation import Simulation
 
 INPUTS_QASM = "test/resources/inputs.qasm"
+
+
+def test_simulator_run():
+    program = OpenQASMProgram(source="OPENQASM 3.0;")
+    simulator = McmSimulator()
+    result = simulator.run(program)
+    assert isinstance(result, GateModelQuantumTaskResult)
+
+
+def test_simulator_create_program_context():
+    simulator = McmSimulator()
+    program_context = simulator.create_program_context()
+    assert isinstance(program_context, McmProgramContext)
 
 
 @pytest.mark.parametrize(
@@ -123,14 +140,14 @@ def test_physical_qubit_identifier():
 def test_qubit_register_indexing():
     qasm = """
         OPENQASM 3.0;
+        input int index;
         qubit[2] __qubits__;
-        int a = 0;
-        x __qubits__[a+1];
+        x __qubits__[index];
         h __qubits__[0:1];
-        h __qubits__[{a, 1}];
+        h __qubits__[{0, index}];
         bit[2] __bit_0__ = measure __qubits__;
     """
-    result = NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm)
+    result = NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm, inputs={"index": 1})
     assert result["__bit_0__"] == ["01"]
 
 

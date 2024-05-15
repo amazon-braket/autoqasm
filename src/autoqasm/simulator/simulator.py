@@ -12,7 +12,6 @@
 # language governing permissions and limitations under the License.
 
 from braket.default_simulator import StateVectorSimulator
-from braket.default_simulator.openqasm.circuit import Circuit
 from braket.ir.openqasm import Program as OpenQASMProgram
 from braket.task_result import AdditionalMetadata, TaskMetadata
 from braket.tasks import GateModelQuantumTaskResult
@@ -85,30 +84,3 @@ class McmSimulator(StateVectorSimulator):
             additional_metadata=AdditionalMetadata.construct(),
             measurements=context,
         )
-
-    def _validate_input_provided(self, circuit: Circuit) -> None:
-        """
-        Validate that requested circuit has all input parameters provided.
-
-        Args:
-            circuit (Circuit): IR for the simulator.
-
-        Raises:
-            NameError: If any the specified input parameters are not provided
-        """
-        for instruction in circuit.instructions:
-            possible_parameters = "_angle", "_angle_1", "_angle_2"
-            for parameter_name in possible_parameters:
-                param = getattr(instruction, parameter_name, None)
-                if param is not None:
-                    try:
-                        float(param)
-                    except TypeError:
-                        missing_input = param.free_symbols.pop()
-                        raise NameError(f"Missing input variable '{missing_input}'.")
-            for qubit in instruction.targets:
-                try:
-                    float(qubit)
-                except TypeError:
-                    missing_input = qubit.free_symbols.pop()
-                    raise NameError(f"Missing input variable '{missing_input}'.")
