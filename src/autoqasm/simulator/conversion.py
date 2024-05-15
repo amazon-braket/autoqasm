@@ -29,7 +29,7 @@ LiteralType = Union[BooleanLiteral, IntegerLiteral, FloatLiteral, ArrayLiteral, 
 
 @singledispatch
 def convert_to_output(value: LiteralType) -> Any:
-    raise TypeError(f"converting {value} to output")
+    raise NotImplementedError(f"converting {value} to output")
 
 
 @convert_to_output.register(IntegerLiteral)
@@ -38,11 +38,6 @@ def convert_to_output(value: LiteralType) -> Any:
 @convert_to_output.register(BitstringLiteral)
 def _(value):
     return value.value
-
-
-@convert_to_output.register(BitstringLiteral)
-def _(value):
-    return np.array(np.binary_repr(value.value, value.width))
 
 
 @convert_to_output.register
