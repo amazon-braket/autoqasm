@@ -32,45 +32,6 @@ def measurement_sample(prob: float, target_count: int) -> tuple[int]:
     return tuple(basis_states[outcome_idx])
 
 
-def measurement_collapse_dm(
-    dm_tensor: np.ndarray, targets: Iterable[int], outcomes: np.ndarray
-) -> np.ndarray:
-    """_summary_
-
-    Args:
-        dm_tensor (np.ndarray): _description_
-        targets (Iterable[int]): _description_
-        outcomes (np.ndarray): _description_
-
-    Returns:
-        np.ndarray: _description_
-    """
-    # TODO: This needs to be modified to not delete qubits
-
-    # move the target qubit to the front of axes
-    qubit_count = int(np.log2(dm_tensor.shape[0]))
-    unused_idxs = [idx for idx in range(qubit_count) if idx not in targets]
-    unused_idxs = [
-        p + i * qubit_count for i in range(2) for p in unused_idxs
-    ]  # convert indices to dm form
-    target_indx = [
-        p + i * qubit_count for i in range(2) for p in targets
-    ]  # convert indices to dm form
-    permutation = target_indx + unused_idxs
-    inverse_permutation = np.argsort(permutation)
-
-    # collapse the density matrix based on measuremnt outcome
-    outcomes = tuple(i for _ in range(2) for i in outcomes)
-    new_dm_tensor = np.zeros_like(dm_tensor)
-    new_dm_tensor[outcomes] = np.transpose(dm_tensor, permutation)[outcomes]
-    new_dm_tensor = np.transpose(new_dm_tensor, inverse_permutation)
-
-    # normalize
-    new_trace = np.trace(np.reshape(new_dm_tensor, (2**qubit_count, 2**qubit_count)))
-    new_dm_tensor = new_dm_tensor / new_trace
-    return new_dm_tensor
-
-
 def measurement_collapse_sv(
     state_vector: np.ndarray, targets: Iterable[int], outcome: np.ndarray
 ) -> np.ndarray:
