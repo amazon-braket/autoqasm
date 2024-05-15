@@ -86,3 +86,59 @@ def test_qubit_register():
     """
     result = NativeInterpreter(Simulation(2, 1, 1)).simulate(qasm)
     assert result["__bit_0__"] == ["01"]
+
+
+def test_qubit_index_out_of_range():
+    qasm = """
+        OPENQASM 3.0;
+        qubit[2] __qubits__;
+        x __qubits__[4];
+    """
+    with pytest.raises(IndexError, match="qubit register index `4` out of range"):
+        NativeInterpreter(Simulation(2, 1, 1)).simulate(qasm)
+
+
+def test_qubit_index_out_of_range_symbolic():
+    qasm = """
+        OPENQASM 3.0;
+        qubit[2] __qubits__;
+        for int[32] i in [0:3] {
+            x __qubits__[i];
+        }
+    """
+    with pytest.raises(IndexError, match="qubit register index `2` out of range"):
+        NativeInterpreter(Simulation(2, 1, 1)).simulate(qasm)
+
+
+def test_physical_qubit_identifier():
+    qasm = """
+        OPENQASM 3.0;
+        x $0;
+        bit __bit_0__ = measure $0;
+    """
+    result = NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm)
+    assert result["__bit_0__"] == [1]
+
+
+def test_qubit_register_indexing():
+    qasm = """
+        OPENQASM 3.0;
+        qubit[2] __qubits__;
+        int a = 0;
+        x __qubits__[a+1];
+        h __qubits__[0:1];
+        h __qubits__[{a, 1}];
+        bit[2] __bit_0__ = measure __qubits__;
+    """
+    result = NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm)
+    assert result["__bit_0__"] == ["01"]
+
+
+def test_qubit_register_indexing_multi_dimensions():
+    qasm = """
+        OPENQASM 3.0;
+        qubit[2] __qubits__;
+        x __qubits__[0, 1];
+    """
+    with pytest.raises(IndexError, match="Cannot index multiple dimensions for qubits."):
+        NativeInterpreter(Simulation(2, 1, 1)).simulate(qasm)

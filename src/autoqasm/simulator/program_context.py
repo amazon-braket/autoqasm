@@ -83,7 +83,7 @@ class QubitTable(Table):
 
         if isinstance(primary_index, (IntegerLiteral, SymbolLiteral)):
             if isinstance(primary_index, IntegerLiteral):
-                self._validate_qubit_in_range(primary_index.value)
+                self._validate_qubit_in_range(primary_index.value, name)
             target = (self[name][0] + primary_index.value,)
         elif isinstance(primary_index, RangeDefinition):
             target = tuple(np.array(self[name])[convert_range_def_to_slice(primary_index)])
@@ -92,7 +92,7 @@ class QubitTable(Table):
             index_list = convert_discrete_set_to_list(primary_index)
             for index in index_list:
                 if isinstance(index, int):
-                    self._validate_qubit_in_range(index)
+                    self._validate_qubit_in_range(index, name)
             target = tuple([self[name][0] + index for index in index_list])
 
         if len(indices) == 2:
@@ -157,6 +157,8 @@ class QubitTable(Table):
             return (stop - start) // step
         elif isinstance(last_index, DiscreteSet):
             return len(last_index.values)
+        else:
+            raise NotImplementedError
 
     def get_qubit_size(self, identifier: Union[Identifier, IndexedIdentifier]) -> int:
         """_summary_
@@ -180,9 +182,10 @@ class McmProgramContext(ProgramContext):
             circuit (Optional[Circuit]): A partially-built circuit to continue building with this
                 context. Default: None.
         """
+        super(ProgramContext, self).__init__()
+        self.qubit_mapping = QubitTable()
         self.outputs = {}
         self._circuit = circuit or Circuit()
-        super(ProgramContext, self).__init__()
 
     def pop_instructions(self) -> list[GateOperation]:
         """_summary_
