@@ -34,6 +34,7 @@ from braket.default_simulator.openqasm.parser.openqasm_ast import (
 )
 from braket.default_simulator.openqasm.program_context import ProgramContext, Table
 from braket.default_simulator.operation import GateOperation
+from sympy import Integer
 
 from autoqasm.simulator.conversion import convert_to_output
 
@@ -103,7 +104,9 @@ class QubitTable(Table):
         # validate indices manually, since we use addition instead of indexing to
         # accommodate symbolic indices
         for q in target:
-            if isinstance(q, int) and (relative_index := q - self[name][0]) >= len(self[name]):
+            if isinstance(q, (int, Integer)) and (relative_index := q - self[name][0]) >= len(
+                self[name]
+            ):
                 raise IndexError(
                     f"qubit register index `{relative_index}` out of range for qubit register "
                     f"of length {len(self[name])} `{name}`."
@@ -158,7 +161,7 @@ class QubitTable(Table):
         elif isinstance(last_index, DiscreteSet):
             return len(last_index.values)
         else:
-            raise NotImplementedError
+            raise TypeError(f"tuple indices must be integers or slices, not {type(last_index)}")
 
     def get_qubit_size(self, identifier: Union[Identifier, IndexedIdentifier]) -> int:
         """_summary_

@@ -119,9 +119,8 @@ def test_qubit_index_out_of_range_symbolic():
     qasm = """
         OPENQASM 3.0;
         qubit[2] __qubits__;
-        for int[32] i in [0:3] {
-            x __qubits__[i];
-        }
+        h __qubits__[2+pi-pi];
+        bit[2] __bit_0__ = measure __qubits__;
     """
     with pytest.raises(IndexError, match="qubit register index `2` out of range"):
         NativeInterpreter(Simulation(2, 1, 1)).simulate(qasm)
@@ -151,11 +150,24 @@ def test_qubit_register_indexing():
     assert result["__bit_0__"] == ["01"]
 
 
-def test_qubit_register_indexing_multi_dimensions():
-    qasm = """
+@pytest.mark.parametrize("invalid_index", ("1.23", "pi", "{0, pi}"))
+def test_qubit_register_invalid_index(invalid_index):
+    qasm = f"""
         OPENQASM 3.0;
         qubit[2] __qubits__;
-        x __qubits__[0, 1];
+        x __qubits__[{invalid_index}];
+        bit[2] __bit_0__ = measure __qubits__;
+    """
+    with pytest.raises(TypeError, match="tuple indices must be integers or slices"):
+        NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm)
+
+
+@pytest.mark.parametrize("multi_dimension_index", ("[0, 1]", "[0][1][2]"))
+def test_qubit_register_indexing_multi_dimensions(multi_dimension_index):
+    qasm = f"""
+        OPENQASM 3.0;
+        qubit[2] __qubits__;
+        x __qubits__{multi_dimension_index};
     """
     with pytest.raises(IndexError, match="Cannot index multiple dimensions for qubits."):
         NativeInterpreter(Simulation(2, 1, 1)).simulate(qasm)
