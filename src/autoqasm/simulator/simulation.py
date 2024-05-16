@@ -21,10 +21,10 @@ from autoqasm.simulator.linalg_utils import measurement_collapse_sv, measurement
 
 class Simulation(StateVectorSimulation):
     def add_qubits(self, num_qubits: int) -> None:
-        """_summary_
+        """Adds the given number of qubits to the simulation.
 
         Args:
-            num_qubits (int): _description_
+            num_qubits (int): The number of qubits to add.
         """
         expanded_dims = np.expand_dims(self.state_vector, -1)
         expanded_qubits = np.append(
@@ -34,13 +34,13 @@ class Simulation(StateVectorSimulation):
         self._qubit_count += num_qubits
 
     def measure(self, targets: tuple[int]) -> tuple[int]:
-        """_summary_
+        """Measures the specified qubits and returns the outcome.
 
         Args:
-            targets (tuple[int]): _description_
+            targets (tuple[int]): The qubit indices to measure.
 
         Returns:
-            tuple[int]: _description_
+            tuple[int]: The measurement outcomes 0 or 1 for each measured qubit.
         """
         mprob = marginal_probability(self.probabilities, targets)
         outcome = measurement_sample(mprob, len(targets))
@@ -52,14 +52,14 @@ class Simulation(StateVectorSimulation):
         return outcome
 
     def reset(self) -> None:
-        """_summary_"""
+        """Resets the simulation and resets the qubit count to 0."""
         self._state_vector = np.array([1], dtype=complex)
         self._qubit_count = 0
 
     def flip(self, target: int) -> None:
-        """_summary_
+        """Performs a bit flip (PauliX operation) on the specified qubit.
 
         Args:
-            target (int): _description_
+            target (int): The qubit index on which to perform a bit flip.
         """
         self.evolve([PauliX([target])])

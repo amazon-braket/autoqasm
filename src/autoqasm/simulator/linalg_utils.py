@@ -17,15 +17,17 @@ from collections.abc import Iterable
 import numpy as np
 
 
-def measurement_sample(prob: float, target_count: int) -> tuple[int]:
-    """_summary_
+def measurement_sample(prob: Iterable[float], target_count: int) -> tuple[int]:
+    """Draws a random measurement sample.
 
     Args:
-        prob (float): _description_
-        target_count (int): _description_
+        prob (Iterable[float]): Probabilities of each measurement outcome.
+            Possible measurement outcomes range from 0 to 2**target_count-1,
+            meaning that len(prob) must be equal to 2**target_count.
+        target_count (int): Number of bits in the resulting measurement.
 
     Returns:
-        tuple[int]: _description_
+        tuple[int]: Measurement outcomes 0 or 1 for each of the target_count bits.
     """
     basis_states = np.array(list(itertools.product([0, 1], repeat=target_count)))
     outcome_idx = np.random.choice(list(range(2**target_count)), p=prob)
@@ -35,15 +37,15 @@ def measurement_sample(prob: float, target_count: int) -> tuple[int]:
 def measurement_collapse_sv(
     state_vector: np.ndarray, targets: Iterable[int], outcome: np.ndarray
 ) -> np.ndarray:
-    """_summary_
+    """Collapses the state vector according to the given measurement outcome.
 
     Args:
-        state_vector (np.ndarray): _description_
-        targets (Iterable[int]): _description_
-        outcome (np.ndarray): _description_
+        state_vector (np.ndarray): The state vector prior to measurement.
+        targets (Iterable[int]): The qubit indices that were measured.
+        outcome (np.ndarray): Array of measurement outcomes 0 or 1.
 
     Returns:
-        np.ndarray: _description_
+        np.ndarray: The collapsed state vector after measurement.
     """
     qubit_count = int(np.log2(state_vector.size))
     state_tensor = state_vector.reshape([2] * qubit_count)

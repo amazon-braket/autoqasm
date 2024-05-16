@@ -55,10 +55,10 @@ class QubitTable(Table):
         """Convenience method to get an element with a possibly indexed identifier.
 
         Args:
-            identifier (Union[Identifier, IndexedIdentifier]): _description_
+            identifier (Union[Identifier, IndexedIdentifier]): The identifier to retrieve.
 
         Returns:
-            tuple[int]: _description_
+            tuple[int]: The qubit indices associated with the given identifier.
         """
         if identifier.name.startswith("$"):
             return (int(identifier.name[1:]),)
@@ -70,13 +70,13 @@ class QubitTable(Table):
         corresponding to the elements referenced by the indexed identifier.
 
         Args:
-            identifier (IndexedIdentifier): _description_
+            identifier (IndexedIdentifier): The indexed identifier to retrieve.
 
         Raises:
             IndexError: Qubit register index out of range for specified register.
 
         Returns:
-            tuple[int]: _description_
+            tuple[int]: The qubit indices associated with the given identifier.
         """
         name = identifier.name.name
         indices = self.get_qubit_indices(identifier)
@@ -117,16 +117,18 @@ class QubitTable(Table):
     def get_qubit_indices(
         identifier: IndexedIdentifier,
     ) -> list[IntegerLiteral | RangeDefinition | DiscreteSet]:
-        """_summary_
+        """Gets the qubit indices from a given indexed identifier.
 
         Args:
-            identifier (IndexedIdentifier): _description_
+            identifier (IndexedIdentifier): The identifier representing the
+                qubit indices.
 
         Raises:
             IndexError: Index consists of multiple dimensions.
 
         Returns:
-            list[IntegerLiteral | RangeDefinition | DiscreteSet]: _description_
+            list[IntegerLiteral | RangeDefinition | DiscreteSet]: The qubit indices
+            corresponding to the given indexed identifier.
         """
         primary_index = identifier.indices[0]
 
@@ -164,13 +166,14 @@ class QubitTable(Table):
             raise TypeError(f"tuple indices must be integers or slices, not {type(last_index)}")
 
     def get_qubit_size(self, identifier: Union[Identifier, IndexedIdentifier]) -> int:
-        """_summary_
+        """Gets the number of qubit indices for the given identifier.
 
         Args:
-            identifier (Union[Identifier, IndexedIdentifier]): _description_
+            identifier (Union[Identifier, IndexedIdentifier]): The identifier representing
+                the qubit indices.
 
         Returns:
-            int: _description_
+            int: The number of qubit indices contained in the given identifier.
         """
         if isinstance(identifier, IndexedIdentifier):
             indices = self.get_qubit_indices(identifier)
@@ -191,25 +194,26 @@ class McmProgramContext(ProgramContext):
         self._circuit = circuit or Circuit()
 
     def pop_instructions(self) -> list[GateOperation]:
-        """_summary_
+        """Returns the list of instructions and removes them from the context.
 
         Returns:
-            list[GateOperation]: _description_
+            list[GateOperation]: The list of instructions from the context.
         """
         instructions = self.circuit.instructions
         self.circuit.instructions = []
         return instructions
 
     def add_output(self, output_name: str) -> None:
-        """_summary_
+        """Adds an output with the given name.
 
         Args:
-            output_name (str): _description_
+            output_name (str): The output name to add.
         """
         self.outputs[output_name] = []
 
     def save_output_values(self) -> None:
-        """_summary_"""
+        """Saves the shot data to the outputs list. If no outputs have been added
+        explicitly, all symbols in the current scope are added to the outputs list."""
         if not self.outputs:
             self.outputs = {
                 v: []

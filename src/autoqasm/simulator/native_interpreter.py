@@ -57,16 +57,18 @@ class NativeInterpreter(Interpreter):
         is_file: bool = False,
         shots: int = 1,
     ) -> dict[str, Any]:
-        """_summary_
+        """Simulates the given program.
 
         Args:
-            source (str): _description_
-            inputs (Optional[dict[str, Any]]): _description_. Defaults to None.
-            is_file (bool): _description_. Defaults to False.
-            shots (int): _description_. Defaults to 1.
+            source (str): The OpenQASM source program, or a filename containing the
+                OpenQASM source program.
+            inputs (Optional[dict[str, Any]]): The input parameter values to the OpenQASM
+                source program. Defaults to None.
+            is_file (bool): Whether `source` is a filename. Defaults to False.
+            shots (int): Number of shots of the program to simulate. Defaults to 1.
 
         Returns:
-            dict[str, Any]: _description_
+            dict[str, Any]: Outputs of the program.
         """
         if inputs:
             self.context.load_inputs(inputs)
