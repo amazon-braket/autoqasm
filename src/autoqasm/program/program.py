@@ -121,7 +121,7 @@ class MainProgram(SerializableProgram):
     def to_ir(
         self,
         ir_type: IRType = IRType.OPENQASM,
-        build_if_necessary: bool = False,
+        build_if_necessary: bool = True,
         serialization_properties: SerializationProperties = OpenQASMSerializationProperties(),
     ) -> str:
         """Serializes the program into an intermediate representation.
@@ -130,7 +130,7 @@ class MainProgram(SerializableProgram):
             ir_type (IRType): The IRType to use for converting the program to its
                 IR representation. Defaults to IRType.OPENQASM.
             build_if_necessary (bool): Whether to allow the program to be implicitly
-                built as a side effect of calling this function. Defaults to False.
+                built as a side effect of calling this function. Defaults to True.
             serialization_properties (SerializationProperties): IR serialization configuration.
                 Default to OpenQASMSerializationProperties().
 
