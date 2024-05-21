@@ -12,13 +12,26 @@
 # language governing permissions and limitations under the License.
 
 """
-TODO: Module description
+This module contains a local simulator implementation which can be used to
+simulate AutoQASM programs at the full OpenQASM 3.0 scope of functionality,
+including programs which contain mid-circuit measurement and classical control flow.
 
-TODO: Example usage
+The recommended usage of this simulator is by instantiating the Braket LocalSimulator
+object with the "autoqasm" backend:
 
 .. code-block:: python
 
-    # Python code here
+    import autoqasm as aq
+    from braket.devices.local_simulator import LocalSimulator
+
+    @aq.main
+    def bell_state():
+        h(0)
+        cnot(0, 1)
+        return measure([0, 1])
+
+    device = LocalSimulator("autoqasm")
+    result = device.run(bell_state, shots=100).result()
 """
 
 from .simulator import McmSimulator  # noqa: F401
