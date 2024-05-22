@@ -17,17 +17,17 @@ the local simulator.
 """
 
 import pytest
-from braket.default_simulator import StateVectorSimulator
-from braket.devices.local_simulator import LocalSimulator
+from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
 import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
+from autoqasm.simulator import McmSimulator
 
 
 def _test_on_local_sim(program: aq.Program, inputs=None) -> None:
-    device = LocalSimulator(backend=StateVectorSimulator())
+    device = LocalSimulator(backend=McmSimulator())
     task = device.run(program, shots=10, inputs=inputs or {})
     assert isinstance(task, LocalQuantumTask)
     assert isinstance(task.result().measurements, dict)
@@ -952,11 +952,11 @@ def test_double_decorated_function():
 def test_to_ir_implicit_build(empty_program) -> None:
     """Test that to_ir works as expected with and without implicit build."""
     expected = """OPENQASM 3.0;"""
-    assert empty_program.build().to_ir(allow_implicit_build=False) == expected
-    assert empty_program.build().to_ir(allow_implicit_build=True) == expected
-    assert empty_program.to_ir(allow_implicit_build=True) == expected
+    assert empty_program.build().to_ir(build_if_necessary=False) == expected
+    assert empty_program.build().to_ir(build_if_necessary=True) == expected
+    assert empty_program.to_ir(build_if_necessary=True) == expected
     with pytest.raises(RuntimeError):
-        empty_program.to_ir(allow_implicit_build=False)
+        empty_program.to_ir(build_if_necessary=False)
 
 
 def test_main_no_return():

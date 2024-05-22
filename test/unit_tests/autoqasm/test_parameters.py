@@ -16,17 +16,17 @@
 import numpy as np
 import pytest
 from braket.circuits import FreeParameter
-from braket.default_simulator import StateVectorSimulator
-from braket.devices.local_simulator import LocalSimulator
+from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
 import autoqasm as aq
 from autoqasm import pulse
 from autoqasm.instructions import cnot, cphaseshift, gpi, h, measure, ms, rx, rz, x
+from autoqasm.simulator import McmSimulator
 
 
 def _test_parametric_on_local_sim(program: aq.Program, inputs: dict[str, float]) -> np.ndarray:
-    device = LocalSimulator(backend=StateVectorSimulator())
+    device = LocalSimulator(backend=McmSimulator())
     task = device.run(program, shots=100, inputs=inputs)
     assert isinstance(task, LocalQuantumTask)
     assert isinstance(task.result().measurements, dict)

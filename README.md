@@ -96,13 +96,13 @@ AutoQASM can support subroutines and complex control flow. You can use the Pytho
 and quantum runtime side-by-side. There are rough edges at the moment, but we're actively smoothing
 them out!
 
-The Amazon Braket local simulator supports AutoQASM programs as input.
+AutoQASM includes a simulator which can be accessed using the Amazon Braket local simulator interface.
 Let's simulate the `conditional_multi_bell_states` program:
 
 ```
-from braket.devices.local_simulator import LocalSimulator
+from braket.devices import LocalSimulator
 
-device = LocalSimulator()
+device = LocalSimulator("autoqasm")
 task = device.run(conditional_multi_bell_states, shots=100)
 result = task.result()
 ```
