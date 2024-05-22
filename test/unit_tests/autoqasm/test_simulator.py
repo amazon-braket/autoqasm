@@ -171,3 +171,23 @@ def test_qubit_register_indexing_multi_dimensions(multi_dimension_index):
     """
     with pytest.raises(IndexError, match="Cannot index multiple dimensions for qubits."):
         NativeInterpreter(Simulation(2, 1, 1)).simulate(qasm)
+
+
+def test_mid_circuit_measurement():
+    qasm = """
+        OPENQASM 3.0;
+        qubit[2] __qubits__;
+        x __qubits__[1];
+        bit __bit_0__ = measure __qubits__[1];
+        if (__bit_0__) {
+            x __qubits__[0];
+            __bit_0__ = measure __qubits__[0];
+            if (__bit_0__) {
+                x __qubits__[1];
+            }
+        }
+        bit[2] __bit_1__ = measure __qubits__;
+    """
+    result = NativeInterpreter(Simulation(2, 1, 1)).simulate(qasm)
+    assert result["__bit_0__"] == [1]
+    assert result["__bit_1__"] == ["10"]
