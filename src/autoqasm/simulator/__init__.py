@@ -22,7 +22,7 @@ object with the "autoqasm" backend:
 .. code-block:: python
 
     import autoqasm as aq
-    from braket.devices.local_simulator import LocalSimulator
+    from braket.devices import LocalSimulator
 
     @aq.main
     def bell_state():

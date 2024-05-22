@@ -100,7 +100,7 @@ AutoQASM includes a simulator which can be accessed using the Amazon Braket loca
 Let's simulate the `conditional_multi_bell_states` program:
 
 ```
-from braket.devices.local_simulator import LocalSimulator
+from braket.devices import LocalSimulator
 
 device = LocalSimulator("autoqasm")
 task = device.run(conditional_multi_bell_states, shots=100)

@@ -17,7 +17,7 @@ the local simulator.
 """
 
 import pytest
-from braket.devices.local_simulator import LocalSimulator
+from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
 import autoqasm as aq

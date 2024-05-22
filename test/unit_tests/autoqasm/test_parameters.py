@@ -16,7 +16,7 @@
 import numpy as np
 import pytest
 from braket.circuits import FreeParameter
-from braket.devices.local_simulator import LocalSimulator
+from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
 import autoqasm as aq
