@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.1.0 (2024-05-09)
+## v0.1.0 (2024-05-22)
 
 This is the initial pre-release version of AutoQASM.
 
