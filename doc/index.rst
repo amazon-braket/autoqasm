@@ -26,8 +26,12 @@ readme at https://github.com/amazon-braket/autoqasm/blob/main/README.md.
 AutoQASM Decorators
 *******************
 
-For details on usage of AutoQASM decorators such as `@aq.main`, see
-the decorators documentation at https://github.com/amazon-braket/autoqasm/blob/main/doc/decorators.md
+For details on usage of AutoQASM decorators such as `@aq.main`, `@aq.subroutine`, `@aq.gate`,
+and `@aq.gate_calibration`, see the decorators documentation at
+https://github.com/amazon-braket/autoqasm/blob/main/doc/decorators.md.
+
+For details on using AutoQASM with Amazon Braket Hybrid Jobs with the `@aq.hybrid_job` decorator,
+see the documentation at https://github.com/amazon-braket/autoqasm/blob/main/doc/hybrid_jobs.md
 
 
 ********
