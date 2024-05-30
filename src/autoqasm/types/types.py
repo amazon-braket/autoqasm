@@ -104,8 +104,12 @@ class ArrayVar(oqpy.ArrayVar):
             raise errors.InvalidArrayDeclaration(
                 "Arrays may only be declared at the root scope of an AutoQASM main function."
             )
+
+        if not args:
+            raise errors.InvalidArrayDeclaration("init_expression must at least be provided.")
+        dimensions = [len(args[0])]
         super(ArrayVar, self).__init__(
-            *args, annotations=make_annotations_list(annotations), **kwargs
+            *args, annotations=make_annotations_list(annotations), dimensions=dimensions, **kwargs
         )
         self.name = program.get_program_conversion_context().next_var_name(oqpy.ArrayVar)
 

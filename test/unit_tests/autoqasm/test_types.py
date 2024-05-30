@@ -186,9 +186,9 @@ def test_declare_array():
 
     @aq.main
     def declare_array():
-        a = aq.ArrayVar([1, 2, 3], base_type=aq.IntVar, dimensions=[3])
+        a = aq.ArrayVar([1, 2, 3], base_type=aq.IntVar)
         a[0] = 11
-        b = aq.ArrayVar([4, 5, 6], base_type=aq.IntVar, dimensions=[3])
+        b = aq.ArrayVar([4, 5, 6], base_type=aq.IntVar)
         b[2] = 14
         b = a
 
@@ -207,8 +207,8 @@ def test_invalid_array_assignment():
 
     @aq.main
     def invalid():
-        a = aq.ArrayVar([1, 2, 3], base_type=aq.IntVar, dimensions=[3])
-        b = aq.ArrayVar([4, 5], base_type=aq.IntVar, dimensions=[2])
+        a = aq.ArrayVar([1, 2, 3], base_type=aq.IntVar)
+        b = aq.ArrayVar([4, 5], base_type=aq.IntVar)
         a = b  # noqa: F841
 
     with pytest.raises(aq.errors.InvalidAssignmentStatement):
@@ -221,7 +221,7 @@ def test_declare_array_in_local_scope():
     @aq.main
     def declare_array():
         if aq.BoolVar(True):
-            _ = aq.ArrayVar([1, 2, 3], base_type=aq.IntVar, dimensions=[3])
+            _ = aq.ArrayVar([1, 2, 3], base_type=aq.IntVar)
 
     with pytest.raises(aq.errors.InvalidArrayDeclaration):
         declare_array.build()
@@ -236,7 +236,7 @@ def test_declare_array_in_subroutine():
 
     @aq.subroutine
     def declare_array():
-        _ = aq.ArrayVar([1, 2, 3], dimensions=[3])
+        _ = aq.ArrayVar([1, 2, 3])
 
     with pytest.raises(aq.errors.InvalidArrayDeclaration):
         main.build()
@@ -383,7 +383,7 @@ def test_map_array():
 
     @aq.main
     def main():
-        a = aq.ArrayVar([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dimensions=[10])
+        a = aq.ArrayVar([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         annotation_test(a)
 
     with pytest.raises(aq.errors.ParameterTypeError):
@@ -724,3 +724,21 @@ def test_param_array_list_missing_arg():
 
     with pytest.raises(aq.errors.ParameterTypeError):
         main.build()
+
+
+def test_ArrayVar_does_not_need_dimensions_argument():
+    @aq.main
+    def declare_array():
+        aq.ArrayVar([1, 2, 3], base_type=aq.IntVar, dimensions=[3])
+
+    with pytest.raises(TypeError):
+        declare_array.build()
+
+
+def test_ArrayVar_requires_init_expression():
+    @aq.main
+    def declare_array():
+        aq.ArrayVar()
+
+    with pytest.raises(aq.errors.InvalidArrayDeclaration):
+        declare_array.build()
