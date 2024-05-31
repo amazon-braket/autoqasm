@@ -744,6 +744,15 @@ def test_array_requires_init_expression():
         declare_array.build()
 
 
+def test_array_init_expression_type():
+    @aq.main
+    def declare_array():
+        aq.ArrayVar(1)
+
+    with pytest.raises(aq.errors.InvalidArrayDeclaration):
+        declare_array.build()
+
+
 def test_array_supports_multidimensional_arrays():
     @aq.main
     def declare_array():
