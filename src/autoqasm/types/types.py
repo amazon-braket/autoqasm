@@ -96,7 +96,9 @@ class Range(oqpy.Range):
 
 
 class ArrayVar(oqpy.ArrayVar):
-    def __init__(self, *args, annotations: str | Iterable[str] | None = None, **kwargs):
+    def __init__(
+        self, init_expression, *args, annotations: str | Iterable[str] | None = None, **kwargs
+    ):
         if (
             program.get_program_conversion_context().subroutines_processing
             or not program.get_program_conversion_context().at_function_root_scope
@@ -105,11 +107,13 @@ class ArrayVar(oqpy.ArrayVar):
                 "Arrays may only be declared at the root scope of an AutoQASM main function."
             )
 
-        if not args:
-            raise errors.InvalidArrayDeclaration("init_expression must at least be provided.")
-        dimensions = [len(args[0])]
+        dimensions = [len(init_expression)]
         super(ArrayVar, self).__init__(
-            *args, annotations=make_annotations_list(annotations), dimensions=dimensions, **kwargs
+            init_expression=init_expression,
+            *args,
+            annotations=make_annotations_list(annotations),
+            dimensions=dimensions,
+            **kwargs,
         )
         self.name = program.get_program_conversion_context().next_var_name(oqpy.ArrayVar)
 
