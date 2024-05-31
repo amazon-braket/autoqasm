@@ -726,7 +726,7 @@ def test_param_array_list_missing_arg():
         main.build()
 
 
-def test_ArrayVar_does_not_need_dimensions_argument():
+def test_array_does_not_accept_dimensions_argument():
     @aq.main
     def declare_array():
         aq.ArrayVar([1, 2, 3], base_type=aq.IntVar, dimensions=[3])
@@ -735,10 +735,21 @@ def test_ArrayVar_does_not_need_dimensions_argument():
         declare_array.build()
 
 
-def test_ArrayVar_requires_init_expression():
+def test_array_requires_init_expression():
     @aq.main
     def declare_array():
         aq.ArrayVar()
 
-    with pytest.raises(aq.errors.InvalidArrayDeclaration):
+    with pytest.raises(TypeError):
         declare_array.build()
+
+
+def test_array_supports_multidimensional_arrays():
+    @aq.main
+    def declare_array():
+        aq.ArrayVar([[1, 2], [3, 4]])
+
+    expected = """OPENQASM 3.0;
+array[int[32], 2, 2] a = {{1, 2}, {3, 4}};"""
+
+    declare_array.build().to_ir() == expected
