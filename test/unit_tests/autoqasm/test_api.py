@@ -1240,3 +1240,29 @@ h __qubits__[1];
 h __qubits__[2];
 h __qubits__[3];"""
     assert main.build().to_ir() == expected_ir
+
+
+def test_subroutine_call_with_kwargs():
+    """Test that subroutine call works with keyword arguments"""
+
+    @aq.subroutine
+    def test(a: int, b: int) -> None:
+        aq.instructions.h(a)
+        aq.instructions.h(b)
+
+    @aq.main(num_qubits=2)
+    def main():
+        test(0, b=1)  # Test with one keyword argument
+        test(a=2, b=3)  # Test with keyword argument
+        test(b=5, a=4)  # Test with keyword argument in any order
+
+    expected = """OPENQASM 3.0;
+def test(int[32] a, int[32] b) {
+    h __qubits__[a];
+    h __qubits__[b];
+}
+qubit[2] __qubits__;
+test(0, 1);
+test(2, 3);
+test(4, 5);"""
+    assert main.build().to_ir() == expected
