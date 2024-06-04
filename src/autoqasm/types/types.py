@@ -18,6 +18,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any, List, Union, get_args
 
+import numpy as np
 import oqpy
 import oqpy.base
 from braket.circuits import FreeParameterExpression
@@ -114,7 +115,7 @@ class ArrayVar(oqpy.ArrayVar):
         if not isinstance(init_expression, Iterable):
             raise errors.InvalidArrayDeclaration("init_expression must be an iterable type.")
 
-        dimensions = [len(init_expression)]
+        dimensions = np.shape(init_expression)
         super(ArrayVar, self).__init__(
             init_expression=init_expression,
             *args,

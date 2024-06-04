@@ -756,9 +756,9 @@ def test_array_init_expression_type():
 def test_array_supports_multidimensional_arrays():
     @aq.main
     def declare_array():
-        aq.ArrayVar([[1, 2], [3, 4]])
+        a = aq.ArrayVar([[1, 2, 3], [4, 5, 6]])  # noqa: F841
 
     expected = """OPENQASM 3.0;
-array[int[32], 2, 2] a = {{1, 2}, {3, 4}};"""
+array[int[32], 2, 3] a = {{1, 2, 3}, {4, 5, 6}};"""
 
-    declare_array.build().to_ir() == expected
+    assert declare_array.build().to_ir() == expected
