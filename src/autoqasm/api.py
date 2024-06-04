@@ -339,13 +339,17 @@ def _convert_subroutine(
                 for i, param in enumerate(inspect.signature(f).parameters.values())
                 if param.annotation == aq_types.QubitIdentifierType
             }
+
+            # Map args and kwargs to function signature
+            bound_args = inspect.signature(oqpy_sub).bind(*[oqpy_program, *args], **kwargs)
+
             args = [
                 (aq_instructions.qubits._qubit(arg) if i in quantum_indices else arg)
-                for i, arg in enumerate(args)
+                for i, arg in enumerate(bound_args.args[1:])
             ]
 
             # Process the program
-            subroutine_function_call = oqpy_sub(oqpy_program, *args, **kwargs)
+            subroutine_function_call = oqpy_sub(oqpy_program, *args)
             program_conversion_context.register_args(args)
 
             # Mark that we are finished processing this function
@@ -357,8 +361,13 @@ def _convert_subroutine(
                 _wrap_for_oqpy_subroutine(_dummy_function(f), options)
             )
 
+            # Map args and kwargs to function signature
+            bound_args = inspect.signature(oqpy_sub).bind(*((oqpy_program, *args)), **kwargs)
+
+            args = bound_args.args[1:]
+
             # Process the program
-            subroutine_function_call = oqpy_sub(oqpy_program, *args, **kwargs)
+            subroutine_function_call = oqpy_sub(oqpy_program, *args)
 
         # Add the subroutine invocation to the program
         ret_type = subroutine_function_call.subroutine_decl.return_type
