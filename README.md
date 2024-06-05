@@ -74,7 +74,7 @@ def bell_state():
     cnot(0, 1)
 ```
 
-You can view the output format, which is OpenQASM, by running `bell_state.display()`.
+You can view the output format, which is OpenQASM, by running `bell_state.build().display()`.
 
 AutoQASM enables users to use more complicated program constructs with a compact and readable
 structure. We can demonstrate this with a program that conditionally prepares multiple Bell states
