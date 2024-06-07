@@ -24,18 +24,18 @@ from .utils import _register_and_convert_parameters
 def fd_(a: int, b: int) -> int | aq_types.IntVar:
     """Functional form of "//"
 
-    Args:
-    a (int) : The first integer
-    b (int) : The second integer
+        Args:
+        a (int) : The first integer
+        b (int) : The second integer
 
-    Returns :
-<<<<<<< HEAD
-     int | IntVar : where the result is floor division of a by b
-    
-=======
-    int | IntVar : where the result if floor division of a by b
+        Returns :
+    <<<<<<< HEAD
+         int | IntVar : where the result is floor division of a by b
 
->>>>>>> fd954a9 (second code-review)
+    =======
+        int | IntVar : where the result if floor division of a by b
+
+    >>>>>>> fd954a9 (second code-review)
     """
     if aq_types.is_qasm_type(a) or aq_types.is_qasm_type(b):
         return _aq_fd(a, b)
