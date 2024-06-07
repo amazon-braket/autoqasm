@@ -19,29 +19,17 @@ from typing import Any
 from autoqasm import types as aq_types
 
 
-def typecast(type_: type, argument_: Any) -> aq_types.IntVar | int:
+def int_typecast(argument_: Any) -> aq_types.IntVar | int:
     """Operator declares the `oq` variable, or sets variable's value if it's
     already declared.
 
     Args:
-        type_ (type): the type for the conversion
-        argument_ (Any): object to be converted.
+        argument_ (Any): object to be converted into an int.
 
     Returns:
-        IntVar | FloatVar | int | float: IntVar/FloatVar object if argument is QASM type, else int/float.
+        IntVar | int : IntVar object if argument is QASM type, else int.
     """
-    type_to_aq_type_map = {int: aq_types.IntVar, float: aq_types.FloatVar}
     if aq_types.is_qasm_type(argument_):
-        if (
-            argument_.size is not None
-            and argument_.size > 1
-            and isinstance(argument_, aq_types.BitVar)
-        ):
-            typecasted_arg = type_to_aq_type_map[type_](argument_[0])
-            for index in range(1, argument_.size):
-                typecasted_arg += type_to_aq_type_map[type_](argument_[index]) * 2**index
-            return typecasted_arg
-        else:
-            return type_to_aq_type_map[type_](argument_)
+        return aq_types.IntVar(argument_)
     else:
-        return type_(*argument_)
+        return int(*argument_)

@@ -31,22 +31,18 @@ class TypecastTransformer(converter.Base):
         Returns:
             ast.stmt: Transformed node.
         """
-        typecasts_supported = ["int", "float"]
-
-        template = """
-                ag__.typecast(type_, argument_)
-                """
+        typecasts_supported = ["int"]
         node = self.generic_visit(node)
+
         if (
-            len(node.args) > 1
-            and hasattr(node.args[1], "func")
-            and hasattr(node.args[1].func, "id")
-            and node.args[1].func.id in typecasts_supported
+            hasattr(node, "func")
+            and hasattr(node.func, "id")
+            and node.func.id in typecasts_supported
         ):
+            template = f"ag__.{node.func.id}_typecast(argument_)"
             new_node = templates.replace(
                 template,
-                type_=node.args[1].func.id,
-                argument_=node.args[1].args,
+                argument_=node.args,
                 original=node,
             )
             new_node = new_node[0].value
