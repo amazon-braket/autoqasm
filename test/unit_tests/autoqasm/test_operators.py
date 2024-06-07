@@ -932,7 +932,7 @@ def test_py_list_ops() -> None:
     assert test_list_ops.build().to_ir()
 
 def test_arithmetic_fd() -> None:
-    """Tests for flood division operator"""
+    """Tests for floor division operator"""
 
     @aq.subroutine
     def return_fd(a:int, b:int):
