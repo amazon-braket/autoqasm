@@ -12,6 +12,7 @@
 # language governing permissions and limitations under the License.
 
 """Converters for aritmetic operator nodes"""
+
 import ast
 
 import gast
@@ -19,22 +20,22 @@ from malt.core import ag_ctx, converter
 from malt.pyct import templates
 
 ARITHMETIC_OPERATORS = {
-    gast.Fd : "ag__.fd",
+    gast.FloorDiv: "ag__.fd",
 }
+
 
 class ArithmeticTransformer(converter.Base):
     """Transformer for arithmetic nodes."""
 
-    def visit_Arithmetic(self, node:ast.stmt) -> ast.stmt:
-        """ Trnaforms a arithmetic node.
+    def visit_Arithmetic(self, node: ast.stmt) -> ast.stmt:
+        """Transforms a arithmetic node.
 
         Args :
-          node(ast.stmt) : AST node to transform
+        node(ast.stmt) : AST node to transform
 
         Returns :
-          ast.stmt : Transformed node
+        ast.stmt : Transformed node
 
-        
         """
 
         node = self.generic_visit(node)
@@ -42,26 +43,26 @@ class ArithmeticTransformer(converter.Base):
         op_type = type(node.ops[0])
         if op_type not in ARITHMETIC_OPERATORS:
             return node
-        
+
         template = f"{ARITHMETIC_OPERATORS[op_type]}(lhs_,rhs_)"
 
         return templates.replace(
             template,
             lhs_=node.left,
             rhs_=node.comparators[0],
-            original = node,
-        )[0].value 
-    
+            original=node,
+        )[0].value
 
-def transform(node:ast.stmt, ctx : ag_ctx.ControlStatusCtx) -> ast.stmt:
+
+def transform(node: ast.stmt, ctx: ag_ctx.ControlStatusCtx) -> ast.stmt:
     """Transform arithmetic nodes.
 
     Args:
-      node(ast.stmt) : AST node to transform
-      cts (ag_ctx.ControlStatusCtx) : Transformer context
+    node(ast.stmt) : AST node to transform
+    cts (ag_ctx.ControlStatusCtx) : Transformer context
 
     Returns :
-      ast.stmt : Transformed node.
+    ast.stmt : Transformed node.
 
     """
 

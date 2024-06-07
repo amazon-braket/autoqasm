@@ -931,21 +931,22 @@ def test_py_list_ops() -> None:
 
     assert test_list_ops.build().to_ir()
 
+
 def test_arithmetic_fd() -> None:
     """Tests for floor division operator"""
 
     @aq.subroutine
-    def return_fd(a:int, b:int):
+    def return_fd(a: int, b: int):
         return a // b
 
     @aq.main
     def prog():
-        solution = return_fd(10,3)
+        return_fd(10, 3)
 
     expected = """OPENQASM 3.0;
-    def return_fd(int[32] a, int[32] b)-> int{
+    def return_fd(int a, int b)-> int{
        int ans;
-       ans = a // b
+       ans = a / b
        return ans
     }
 
@@ -954,4 +955,3 @@ def test_arithmetic_fd() -> None:
     """
 
     assert prog.build().to_ir() == expected
-

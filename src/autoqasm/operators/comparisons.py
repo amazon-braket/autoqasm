@@ -126,4 +126,3 @@ def _aq_gteq(a: Any, b: Any) -> aq_types.BoolVar:
     oqpy_program.declare(result)
     oqpy_program.set(result, a >= b)
     return result
-
