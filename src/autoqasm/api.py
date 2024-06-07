@@ -35,6 +35,63 @@ from autoqasm import errors
 from autoqasm.program.gate_calibrations import GateCalibration
 from autoqasm.types import QubitIdentifierType as Qubit
 
+reserved_keywords = [
+    "angle",
+    "array",
+    "barrier",
+    "bit",
+    "bool",
+    "box",
+    "cal",
+    "case",
+    "complex",
+    "const",
+    "creg",
+    "ctrl",
+    "default",
+    "defcal",
+    "defcalgrammar",
+    "delay",
+    "duration",
+    "durationof",
+    "end",
+    "euler",
+    "extern",
+    "false",
+    "float",
+    "frame",
+    "gate",
+    "gphase",
+    "im",
+    "include",
+    "input",
+    "int",
+    "inv",
+    "let",
+    "OPENQASM",
+    "measure",
+    "mutable",
+    "negctrl",
+    "output",
+    "pi",
+    "port",
+    "pragma",
+    "qreg",  # For backward compatibility
+    "qubit",
+    "readonly",
+    "reset",
+    "return",
+    "sizeof",
+    "stretch",
+    "switch",
+    "tau",
+    "true",
+    "U",
+    "uint",
+    "void",
+    "waveform",
+]
+
 
 def main(
     func: Callable | None = None,
@@ -400,6 +457,19 @@ def _convert_subroutine(
     return program_conversion_context.return_variable
 
 
+def is_reserved_keyword(name: str) -> bool:
+    """
+    Method to check whether or not 'name' is a reserved keyword
+
+    Args:
+        name (str): Name of the variable to be checked
+
+    Returns:
+        bool: True, if 'name' is a reserved keyword, False otherwise
+    """
+    return name in reserved_keywords
+
+
 def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions) -> Callable:
     """Wraps the given function into a callable expected by oqpy.subroutine.
 
@@ -419,6 +489,12 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
     def _func(*args, **kwargs) -> Any:
         inner_program: oqpy.Program = args[0]
         with aq_program.get_program_conversion_context().push_oqpy_program(inner_program):
+            # Bind args and kwargs to '_func' signature
+            sig = inspect.signature(_func)
+            bound_args = sig.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+            args = bound_args.args
+            kwargs = bound_args.kwargs
             result = aq_transpiler.converted_call(f, args[1:], kwargs, options=options)
         inner_program.autodeclare()
         return result
@@ -440,9 +516,15 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
                 f'Parameter "{param.name}" for subroutine "{_func.__name__}" '
                 "is missing a required type hint."
             )
+        # Check whether 'param.name' is a OpenQasm keyword
+        if is_reserved_keyword(param.name):
+            _name = f"{param.name}_"
+            _func.__annotations__.pop(param.name)
+        else:
+            _name = param.name
 
         new_param = inspect.Parameter(
-            name=param.name,
+            name=_name,
             kind=param.kind,
             annotation=aq_types.map_parameter_type(param.annotation),
         )

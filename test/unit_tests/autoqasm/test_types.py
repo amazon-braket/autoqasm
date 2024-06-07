@@ -309,7 +309,7 @@ def test_map_bool():
         annotation_test(True)
 
     expected = """OPENQASM 3.0;
-def annotation_test(bool input) {
+def annotation_test(bool input_) {
 }
 annotation_test(true);"""
 
@@ -328,7 +328,7 @@ def test_map_int():
         annotation_test(1)
 
     expected = """OPENQASM 3.0;
-def annotation_test(int[32] input) {
+def annotation_test(int[32] input_) {
 }
 annotation_test(1);"""
 
@@ -347,7 +347,7 @@ def test_map_float():
         annotation_test(1.0)
 
     expected = """OPENQASM 3.0;
-def annotation_test(float[64] input) {
+def annotation_test(float[64] input_) {
 }
 annotation_test(1.0);"""
 
@@ -366,7 +366,7 @@ def test_map_qubit():
         annotation_test(1)
 
     expected = """OPENQASM 3.0;
-def annotation_test(qubit input) {
+def annotation_test(qubit input_) {
 }
 qubit[2] __qubits__;
 annotation_test(__qubits__[1]);"""
@@ -403,7 +403,7 @@ def test_map_other():
         annotation_test(a)
 
     expected = """OPENQASM 3.0;
-def annotation_test(bit input) {
+def annotation_test(bit input_) {
 }
 bit a = 1;
 annotation_test(a);"""
@@ -423,7 +423,7 @@ def test_map_other_unnamed_arg():
         annotation_test(aq.BitVar(1))
 
     expected = """OPENQASM 3.0;
-def annotation_test(bit input) {
+def annotation_test(bit input_) {
 }
 bit __bit_0__ = 1;
 annotation_test(__bit_0__);"""
