@@ -1266,3 +1266,39 @@ test(0, 1);
 test(2, 3);
 test(4, 5);"""
     assert main.build().to_ir() == expected
+
+
+class TestTypecasting:
+    def test_int_typecasting_on_measure(self):
+        @aq.main(num_qubits=2)
+        def main():
+            test = int(measure([0, 1]))
+
+        expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;
+bit[2] __bit_0__ = "00";
+__bit_0__[0] = measure __qubits__[0];
+__bit_0__[1] = measure __qubits__[1];
+int[32] test = __bit_0__;"""
+        assert main.build().to_ir() == expected_ir
+
+    def test_int_typecasting_on_string(self):
+        @aq.main(num_qubits=2)
+        def main():
+            test = int("101", 2)
+
+        expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;"""
+        assert main.build().to_ir() == expected_ir
+
+    def test_nested_int_typecasting(self):
+        @aq.main(num_qubits=2)
+        def main():
+            test = 2 * int(measure([0, 1]))
+
+        expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;
+bit[2] __bit_0__ = "00";
+__bit_0__[0] = measure __qubits__[0];
+__bit_0__[1] = measure __qubits__[1];"""
+        assert main.build().to_ir() == expected_ir
