@@ -48,7 +48,13 @@ from malt.pyct.static_analysis import activity, reaching_definitions
 from malt.utils import ag_logging as logging
 
 from autoqasm import operators, program, types
-from autoqasm.converters import assignments, break_statements, comparisons, return_statements
+from autoqasm.converters import (
+    assignments,
+    break_statements,
+    comparisons,
+    return_statements,
+    typecast,
+)
 
 
 class PyToOqpy(transpiler.PyToPy):
@@ -131,6 +137,7 @@ class PyToOqpy(transpiler.PyToPy):
         node = assignments.transform(node, ctx)
         node = lists.transform(node, ctx)
         node = slices.transform(node, ctx)
+        node = typecast.transform(node, ctx)
         node = call_trees.transform(node, ctx)
         node = control_flow.transform(node, ctx)
         node = conditional_expressions.transform(node, ctx)
