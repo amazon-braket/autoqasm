@@ -28,7 +28,7 @@ def fd_(a: int, b: int) -> int | aq_types.IntVar:
       b (int) : The second integer
     
     Returns :
-     int | IntVar : where the result if floor division of a by b
+     int | IntVar : where the result is floor division of a by b
     
     """
     if aq_types.is_qasm_type(a) or aq_types.is_qasm_type(b):
