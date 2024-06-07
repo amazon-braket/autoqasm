@@ -19,7 +19,7 @@ from typing import Any
 from autoqasm import types as aq_types
 
 
-def int_typecast(argument_: Any) -> aq_types.IntVar | int:
+def int_typecast(argument_: Any, *args, **kwargs) -> aq_types.IntVar | int:
     """Operator declares the `oq` variable, or sets variable's value if it's
     already declared.
 
@@ -32,4 +32,4 @@ def int_typecast(argument_: Any) -> aq_types.IntVar | int:
     if aq_types.is_qasm_type(argument_):
         return aq_types.IntVar(argument_)
     else:
-        return int(*argument_)
+        return int(argument_, *args, **kwargs)
