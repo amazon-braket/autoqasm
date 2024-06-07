@@ -930,3 +930,28 @@ def test_py_list_ops() -> None:
         assert np.array_equal(c, [[2, 3, 4], [2, 3, 4]])
 
     assert test_list_ops.build().to_ir()
+
+def test_arithmetic_fd() -> None:
+    """Tests for flood division operator"""
+
+    @aq.subroutine
+    def return_fd(a:int, b:int):
+        return a // b
+
+    @aq.main
+    def prog():
+        solution = return_fd(10,3)
+
+    expected = """OPENQASM 3.0;
+    def return_fd(int[32] a, int[32] b)-> int{
+       int ans;
+       ans = a // b
+       return ans
+    }
+
+    int solution;
+    solution = return_fd(10,3);
+    """
+
+    assert prog.build().to_ir() == expected
+
