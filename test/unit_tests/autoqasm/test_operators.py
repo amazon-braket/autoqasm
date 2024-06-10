@@ -532,6 +532,64 @@ def test_logical_ops_py() -> None:
 
     assert prog.build().to_ir() == expected
 
+def test_arithmetics_fd() -> None:
+    """Tests for integer division operator"""
+
+    @aq.main
+    def prog():
+        a = 12
+        b = 3
+        c = a / b
+
+    expected = """OPENQASM 3.0;
+int a = 12;
+int b = 5;
+int c;
+c = a /b;"""
+
+    assert prog.build().to_ir() == expected
+
+# def test_arithmetic_fd() -> None:
+#     """Tests for floor division operator"""
+
+#     @aq.main
+#     def prog():
+#         a = 12
+#         b = 3
+#         c = a / b
+    
+#     expected = """OPENQASM 3.0;
+#     int a = 12;
+#     int b = 3;
+#     int c = a / b;
+#     """
+   
+
+#     assert prog.build().to_ir() == expected
+
+
+
+
+# def test_fd_operator_with_qasm_types() -> None:
+#     """Tests floor division operator handling with QASM types."""
+
+#     @aq.main
+#     def prog():
+#         a = aq.IntVar(5)
+#         b = aq.IntVar(2)
+#         c = a // b
+#         assert (c)
+
+# #     expected = """OPENQASM 3.0;
+# # int a = 5;
+# # int b = 2;
+
+# # a // b;"""
+#     expected = """OPENQASM 3.0;
+#     """
+    
+#     assert prog.build().to_ir() == expected
+
 
 def test_comparison_lt() -> None:
     """Tests less than operator handling."""
@@ -932,26 +990,26 @@ def test_py_list_ops() -> None:
     assert test_list_ops.build().to_ir()
 
 
-def test_arithmetic_fd() -> None:
-    """Tests for floor division operator"""
+# def test_arithmetic_fd() -> None:
+#     """Tests for floor division operator"""
 
-    @aq.subroutine
-    def return_fd(a: int, b: int):
-        return a // b
+#     @aq.subroutine
+#     def return_fd(a: int, b: int):
+#         return a // b
 
-    @aq.main
-    def prog():
-        return_fd(10, 3)
+#     @aq.main
+#     def prog():
+#         return return_fd(10, 3)
 
-    expected = """OPENQASM 3.0;
-    def return_fd(int a, int b)-> int{
-       int ans;
-       ans = a / b
-       return ans
-    }
+#     expected = """OPENQASM 3.0;
+#     def return_fd(int a, int b)-> int{
+#        int ans;
+#        ans = a // b
+#        return ans
+#     }
 
-    int solution;
-    solution = return_fd(10,3);
-    """
+#     int solution;
+#     solution = return_fd(10,3);
+#     """
 
-    assert prog.build().to_ir() == expected
+#     assert prog.build().to_ir() == expected

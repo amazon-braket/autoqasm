@@ -15,39 +15,35 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from autoqasm import program
 from autoqasm import types as aq_types
 
 from .utils import _register_and_convert_parameters
 
 
-def fd_(a: int, b: int) -> int | aq_types.IntVar:
+def fd_(a: Any, b: Any) -> int | aq_types.IntVar:
     """Functional form of "//"
 
-        Args:
-        a (int) : The first integer
-        b (int) : The second integer
+    Args:
+        a (Any) : The first operator can be int | IntVar
+        b (Any) : The second operator can be int | IntVar
 
-        Returns :
-    <<<<<<< HEAD
-         int | IntVar : where the result is floor division of a by b
-
-    =======
-        int | IntVar : where the result if floor division of a by b
-
-    >>>>>>> fd954a9 (second code-review)
+    Returns :
+        int | IntVar : floor division of a by b
     """
     if aq_types.is_qasm_type(a) or aq_types.is_qasm_type(b):
         return _aq_fd(a, b)
     else:
-        return a // b
+        return a / b
 
 
-def _aq_fd(a: int, b: int) -> aq_types.IntVar:
+def _aq_fd(a: Any, b: Any) -> aq_types.IntVar:
     a, b = _register_and_convert_parameters(a, b)
 
     oqpy_program = program.get_program_conversion_context().get_oqpy_program()
     result = aq_types.IntVar()
     oqpy_program.declare(result)
-    oqpy_program.set(result, a // b)
+    oqpy_program.set(result, a / b)
     return result

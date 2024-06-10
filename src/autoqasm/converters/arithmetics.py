@@ -20,7 +20,7 @@ from malt.core import ag_ctx, converter
 from malt.pyct import templates
 
 ARITHMETIC_OPERATORS = {
-    gast.FloorDiv: "ag__.fd",
+    gast.FloorDiv: "ag__.fd_",
 }
 
 
@@ -31,13 +31,11 @@ class ArithmeticTransformer(converter.Base):
         """Transforms a arithmetic node.
 
         Args :
-        node(ast.stmt) : AST node to transform
+            node(ast.stmt) : AST node to transform
 
         Returns :
-        ast.stmt : Transformed node
-
+            ast.stmt : Transformed node
         """
-
         node = self.generic_visit(node)
 
         op_type = type(node.ops[0])
@@ -58,12 +56,11 @@ def transform(node: ast.stmt, ctx: ag_ctx.ControlStatusCtx) -> ast.stmt:
     """Transform arithmetic nodes.
 
     Args:
-    node(ast.stmt) : AST node to transform
-    cts (ag_ctx.ControlStatusCtx) : Transformer context
+        node(ast.stmt) : AST node to transform
+        ctx (ag_ctx.ControlStatusCtx) : Transformer context.
 
     Returns :
-    ast.stmt : Transformed node.
-
+        ast.stmt : Transformed node.
     """
 
     return ArithmeticTransformer(ctx).visit(node)

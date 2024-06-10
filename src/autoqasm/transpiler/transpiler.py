@@ -55,7 +55,8 @@ from autoqasm.converters import (
     comparisons,
     return_statements,
 )
-from autoqasm.src.autoqasm.converters import arithmetics
+
+# from autoqasm.src.autoqasm.converters import arithmetics
 
 
 class PyToOqpy(transpiler.PyToPy):
