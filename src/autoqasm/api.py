@@ -33,64 +33,8 @@ import autoqasm.transpiler as aq_transpiler
 import autoqasm.types as aq_types
 from autoqasm import errors
 from autoqasm.program.gate_calibrations import GateCalibration
+from autoqasm.reserved_keywords import is_reserved_keyword
 from autoqasm.types import QubitIdentifierType as Qubit
-
-reserved_keywords = [
-    "angle",
-    "array",
-    "barrier",
-    "bit",
-    "bool",
-    "box",
-    "cal",
-    "case",
-    "complex",
-    "const",
-    "creg",
-    "ctrl",
-    "default",
-    "defcal",
-    "defcalgrammar",
-    "delay",
-    "duration",
-    "durationof",
-    "end",
-    "euler",
-    "extern",
-    "false",
-    "float",
-    "frame",
-    "gate",
-    "gphase",
-    "im",
-    "include",
-    "input",
-    "int",
-    "inv",
-    "let",
-    "OPENQASM",
-    "measure",
-    "mutable",
-    "negctrl",
-    "output",
-    "pi",
-    "port",
-    "pragma",
-    "qreg",  # For backward compatibility
-    "qubit",
-    "readonly",
-    "reset",
-    "return",
-    "sizeof",
-    "stretch",
-    "switch",
-    "tau",
-    "true",
-    "U",
-    "uint",
-    "void",
-    "waveform",
-]
 
 
 def main(
@@ -380,6 +324,12 @@ def _convert_subroutine(
     with aq_program.build_program() as program_conversion_context:
         oqpy_program = program_conversion_context.get_oqpy_program()
 
+        # Iterate over list of dictionary keys to avoid runtime error
+        for key in list(kwargs):
+            is_keyword, new_name = is_reserved_keyword(key)
+            if is_keyword:
+                kwargs[new_name] = kwargs.pop(key)
+
         if f not in program_conversion_context.subroutines_processing:
             # Mark that we are starting to process this function to short-circuit recursion
             program_conversion_context.subroutines_processing.add(f)
@@ -457,19 +407,6 @@ def _convert_subroutine(
     return program_conversion_context.return_variable
 
 
-def is_reserved_keyword(name: str) -> bool:
-    """
-    Method to check whether or not 'name' is a reserved keyword
-
-    Args:
-        name (str): Name of the variable to be checked
-
-    Returns:
-        bool: True, if 'name' is a reserved keyword, False otherwise
-    """
-    return name in reserved_keywords
-
-
 def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions) -> Callable:
     """Wraps the given function into a callable expected by oqpy.subroutine.
 
@@ -516,12 +453,10 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
                 f'Parameter "{param.name}" for subroutine "{_func.__name__}" '
                 "is missing a required type hint."
             )
-        # Check whether 'param.name' is a OpenQasm keyword
-        if is_reserved_keyword(param.name):
-            _name = f"{param.name}_"
+        # Check whether 'param.name' is a reserved keyword
+        is_keyword, _name = is_reserved_keyword(param.name)
+        if is_keyword:
             _func.__annotations__.pop(param.name)
-        else:
-            _name = param.name
 
         new_param = inspect.Parameter(
             name=_name,
