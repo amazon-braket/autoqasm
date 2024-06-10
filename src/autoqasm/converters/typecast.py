@@ -19,6 +19,10 @@ import ast
 from malt.core import ag_ctx, converter
 from malt.pyct import templates
 
+TYPECASTING_OPERATORS = {
+    "int": "ag__.int_",
+}
+
 
 class TypecastTransformer(converter.Base):
     def visit_Call(self, node: ast.stmt) -> ast.stmt:
@@ -30,15 +34,14 @@ class TypecastTransformer(converter.Base):
         Returns:
             ast.stmt: Transformed node.
         """
-        typecasts_supported = ["int"]
         node = self.generic_visit(node)
 
         if (
             hasattr(node, "func")
             and hasattr(node.func, "id")
-            and node.func.id in typecasts_supported
+            and node.func.id in TYPECASTING_OPERATORS
         ):
-            template = f"ag__.{node.func.id}_typecast(argument_)"
+            template = f"{TYPECASTING_OPERATORS[node.func.id]}(argument_)"
             new_node = templates.replace(
                 template,
                 argument_=node.args,

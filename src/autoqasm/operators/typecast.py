@@ -17,12 +17,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from autoqasm import program
 from autoqasm import types as aq_types
 
 
-def int_typecast(argument_: Any, *args, **kwargs) -> aq_types.IntVar | int:
-    """Operator declares the `oq` variable, or sets variable's value if it's
-    already declared.
+def int_(argument_: Any, *args, **kwargs) -> aq_types.IntVar | int:
+    """Functional form of "int".
 
     Args:
         argument_ (Any): object to be converted into an int.
@@ -31,6 +31,18 @@ def int_typecast(argument_: Any, *args, **kwargs) -> aq_types.IntVar | int:
         IntVar | int : IntVar object if argument is QASM type, else int.
     """
     if aq_types.is_qasm_type(argument_):
-        return aq_types.IntVar(argument_)
+        return _oqpy_int(argument_)
     else:
-        return int(argument_, *args, **kwargs)
+        return _py_int(argument_, *args, **kwargs)
+
+
+def _oqpy_int(argument_) -> aq_types.IntVar:
+    oqpy_program = program.get_program_conversion_context().get_oqpy_program()
+    result = aq_types.IntVar()
+    oqpy_program.declare(result)
+    oqpy_program.set(result, argument_)
+    return result
+
+
+def _py_int(argument_: Any, *args, **kwargs) -> int:
+    return int(argument_, *args, **kwargs)
