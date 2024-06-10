@@ -16,7 +16,6 @@
 
 import ast
 
-import gast
 from malt.core import ag_ctx, converter
 from malt.pyct import templates
 
