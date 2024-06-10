@@ -36,7 +36,7 @@ def int_(argument_: Any, *args, **kwargs) -> aq_types.IntVar | int:
         return _py_int(argument_, *args, **kwargs)
 
 
-def _oqpy_int(argument_) -> aq_types.IntVar:
+def _oqpy_int(argument_: Any) -> aq_types.IntVar:
     oqpy_program = program.get_program_conversion_context().get_oqpy_program()
     result = aq_types.IntVar()
     oqpy_program.declare(result)
