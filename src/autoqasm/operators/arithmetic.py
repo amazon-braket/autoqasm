@@ -48,7 +48,7 @@ def _oqpy_fd(
     num_is_float = isinstance(num_, (aq_types.FloatVar, float))
     den_is_float = isinstance(den_, (aq_types.FloatVar, float))
 
-    # if they are of different types, then one must cast to FloatVar
+    # if either is a FloatVar, then both must be FloatVar
     if num_is_float and not den_is_float:
         den_float_var = aq_types.FloatVar()
         oqpy_program.declare(den_float_var)
@@ -60,7 +60,12 @@ def _oqpy_fd(
         oqpy_program.set(num_float_var, num_)
         num_ = num_float_var
 
-    result = aq_types.IntVar()
+    # if either is a FloatVar, then the result will be a FloatVar
+    if num_is_float or den_is_float:
+        result = aq_types.FloatVar()
+    else:
+        result = aq_types.IntVar()
+
     oqpy_program.declare(result)
     oqpy_program.set(result, num_ / den_)
     return result
@@ -69,5 +74,5 @@ def _oqpy_fd(
 def _py_fd(
     num_: int | float,
     den_: int | float,
-) -> int:
+) -> int | float:
     return num_ // den_

@@ -958,15 +958,15 @@ c = __int_2__;"""
             c = a // b  # noqa: F841
 
         expected_ir = """OPENQASM 3.0;
-int[32] c;
+float[64] c;
 qubit[2] __qubits__;
 int[32] a = 5;
 float[64] b = 2.3;
 float[64] __float_2__;
 __float_2__ = a;
-int[32] __int_3__;
-__int_3__ = a / b;
-c = __int_3__;"""
+float[64] __float_3__;
+__float_3__ = __float_2__ / b;
+c = __float_3__;"""
         assert main.build().to_ir() == expected_ir
 
     def test_integer_division_on_python_types(self):
