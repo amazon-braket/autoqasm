@@ -956,17 +956,28 @@ c = __int_2__;"""
             a = aq.IntVar(5)
             b = aq.FloatVar(2.3)
             c = a // b  # noqa: F841
+            d = b // a  # noqa: F841
 
         expected_ir = """OPENQASM 3.0;
 float[64] c;
+float[64] d;
 qubit[2] __qubits__;
 int[32] a = 5;
 float[64] b = 2.3;
 float[64] __float_2__;
 __float_2__ = a;
-float[64] __float_3__;
-__float_3__ = __float_2__ / b;
-c = __float_3__;"""
+int[32] __int_3__;
+__int_3__ = __float_2__ / b;
+float[64] __float_4__;
+__float_4__ = __int_3__;
+c = __float_4__;
+float[64] __float_5__;
+__float_5__ = a;
+int[32] __int_6__;
+__int_6__ = b / __float_5__;
+float[64] __float_7__;
+__float_7__ = __int_6__;
+d = __float_7__;"""
         assert main.build().to_ir() == expected_ir
 
     def test_integer_division_on_python_types(self):
