@@ -26,7 +26,6 @@ from braket.registers import Qubit
 from openpulse import ast
 
 from autoqasm import errors, program
-from autoqasm.errors import UnsupportedFeatureError
 
 
 def is_qasm_type(val: Any) -> bool:
@@ -154,10 +153,10 @@ class FloatVar(oqpy.FloatVar):
         self.name = program.get_program_conversion_context().next_var_name(oqpy.FloatVar)
 
     def __floordiv__(self, other):
-        raise UnsupportedFeatureError("Integer division is supported by OpenQASM.")
+        raise NotImplementedError("Integer division is supported by OpenQASM.")
 
     def __rfloordiv__(self, other):
-        raise UnsupportedFeatureError("Integer division is supported by OpenQASM.")
+        raise NotImplementedError("Integer division is supported by OpenQASM.")
 
 
 class IntVar(oqpy.IntVar):
@@ -168,7 +167,7 @@ class IntVar(oqpy.IntVar):
         self.name = program.get_program_conversion_context().next_var_name(oqpy.IntVar)
 
     def __floordiv__(self, other):
-        raise UnsupportedFeatureError("Integer division is supported by OpenQASM.")
+        raise NotImplementedError("Integer division is supported by OpenQASM.")
 
     def __rfloordiv__(self, other):
-        raise UnsupportedFeatureError("Integer division is supported by OpenQASM.")
+        raise NotImplementedError("Integer division is supported by OpenQASM.")

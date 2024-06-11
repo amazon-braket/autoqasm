@@ -27,10 +27,8 @@ def fd_(
 ) -> int | aq_types.IntVar:
     """Functional form of "//".
     Args:
-        num_ (aq_types.IntVar | aq_types.FloatVar | int | float) :
-            The numerator of the integer division
-        den_ (aq_types.IntVar | aq_types.FloatVar | int | float) :
-            The denominator of the integer division
+        num_ (IntVar | FloatVar | int | float) : The numerator of the integer division
+        den_ (IntVar | FloatVar | int | float) : The denominator of the integer division
     Returns :
         int | IntVar : integer division, IntVar if either numerator or denominator
         are QASM types, else int
@@ -59,7 +57,7 @@ def _oqpy_fd(
     if den_is_float and not num_is_float:
         num_float_var = aq_types.FloatVar()
         oqpy_program.declare(num_float_var)
-        oqpy_program.set(num_float_var, num_ )
+        oqpy_program.set(num_float_var, num_)
         num_ = num_float_var
 
     result = aq_types.IntVar()
