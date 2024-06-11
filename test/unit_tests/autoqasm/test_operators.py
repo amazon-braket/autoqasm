@@ -938,7 +938,7 @@ class TestFloorDiv:
         def main():
             a = aq.IntVar(5)
             b = aq.IntVar(2)
-            c = a // b
+            c = a // b  # noqa: F841
 
         expected_ir = """OPENQASM 3.0;
 int[32] c;
@@ -955,7 +955,7 @@ c = __int_2__;"""
         def main():
             a = aq.IntVar(5)
             b = aq.FloatVar(2.3)
-            c = a // b
+            c = a // b  # noqa: F841
 
         expected_ir = """OPENQASM 3.0;
 int[32] c;
@@ -974,7 +974,7 @@ c = __int_3__;"""
         def main():
             a = 5
             b = 2.3
-            c = a // b
+            c = a // b  # noqa: F841
 
         expected_ir = """OPENQASM 3.0;
 qubit[2] __qubits__;"""
