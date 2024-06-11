@@ -42,24 +42,25 @@ def fd_(
 
 
 def _oqpy_fd(
-    num_: aq_types.IntVar | aq_types.FloatVar,
-    den_: aq_types.IntVar | aq_types.FloatVar,
+    num_: aq_types.IntVar | aq_types.FloatVar | int | float,
+    den_: aq_types.IntVar | aq_types.FloatVar | int | float,
 ) -> aq_types.IntVar:
     num_, den_ = _register_and_convert_parameters(num_, den_)
     oqpy_program = program.get_program_conversion_context().get_oqpy_program()
-    num_is_float = isinstance(num_, aq_types.FloatVar)
-    den_is_float = isinstance(den_, aq_types.FloatVar)
+    num_is_float = isinstance(num_, (aq_types.FloatVar, float))
+    den_is_float = isinstance(den_, (aq_types.FloatVar, float))
 
     # if they are of different types, then one must cast to FloatVar
-    if num_is_float or den_is_float:
-        if num_is_float:
-            float_var = aq_types.FloatVar()
-            oqpy_program.declare(float_var)
-            oqpy_program.set(float_var, den_)
-        if den_is_float:
-            float_var = aq_types.FloatVar()
-            oqpy_program.declare(float_var)
-            oqpy_program.set(float_var, num_)
+    if num_is_float and not den_is_float:
+        den_float_var = aq_types.FloatVar()
+        oqpy_program.declare(den_float_var)
+        oqpy_program.set(den_float_var, den_)
+        den_ = den_float_var
+    if den_is_float and not num_is_float:
+        num_float_var = aq_types.FloatVar()
+        oqpy_program.declare(num_float_var)
+        oqpy_program.set(num_float_var, num_ )
+        num_ = num_float_var
 
     result = aq_types.IntVar()
     oqpy_program.declare(result)
