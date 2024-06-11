@@ -21,6 +21,7 @@ This module implements operators that AutoQASM overloads or adds on top of AutoG
 from malt.impl.api import autograph_artifact  # noqa: F401
 from malt.operators.variables import Undefined, UndefinedReturnValue, ld, ldu  # noqa: F401
 
+from .arithmetic import fd_  # noqa: F401
 from .assignments import assign_for_output, assign_stmt  # noqa: F401
 from .comparisons import gt_, gteq_, lt_, lteq_  # noqa: F401
 from .conditional_expressions import if_exp  # noqa: F401
@@ -39,4 +40,3 @@ from .logical import not_eq  # noqa: F401
 from .logical import or_  # noqa: F401
 from .return_statements import return_output_from_main  # noqa: F401
 from .slices import GetItemOpts, get_item, set_item  # noqa: F401
-from .arithmetic import fd_  # noqa: F401
