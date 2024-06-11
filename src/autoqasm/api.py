@@ -33,7 +33,7 @@ import autoqasm.transpiler as aq_transpiler
 import autoqasm.types as aq_types
 from autoqasm import errors
 from autoqasm.program.gate_calibrations import GateCalibration
-from autoqasm.reserved_keywords import is_reserved_keyword
+from autoqasm.reserved_keywords import sanitize_parameter_name
 from autoqasm.types import QubitIdentifierType as Qubit
 
 
@@ -326,9 +326,8 @@ def _convert_subroutine(
 
         # Iterate over list of dictionary keys to avoid runtime error
         for key in list(kwargs):
-            is_keyword, new_name = is_reserved_keyword(key)
-            if is_keyword:
-                kwargs[new_name] = kwargs.pop(key)
+            new_name = sanitize_parameter_name(key)
+            kwargs[new_name] = kwargs.pop(key)
 
         if f not in program_conversion_context.subroutines_processing:
             # Mark that we are starting to process this function to short-circuit recursion
@@ -453,13 +452,13 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
                 f'Parameter "{param.name}" for subroutine "{_func.__name__}" '
                 "is missing a required type hint."
             )
+
         # Check whether 'param.name' is a reserved keyword
-        is_keyword, _name = is_reserved_keyword(param.name)
-        if is_keyword:
-            _func.__annotations__.pop(param.name)
+        new_name = sanitize_parameter_name(param.name)
+        _func.__annotations__.pop(param.name)
 
         new_param = inspect.Parameter(
-            name=_name,
+            name=new_name,
             kind=param.kind,
             annotation=aq_types.map_parameter_type(param.annotation),
         )
