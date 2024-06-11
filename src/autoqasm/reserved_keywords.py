@@ -57,7 +57,7 @@ reserved_keywords = {
 }
 
 
-def is_reserved_keyword(name: str) -> bool:
+def is_reserved_keyword(name: str) -> tuple[bool, str]:
     """
     Method to check whether or not 'name' is a reserved keyword
 
