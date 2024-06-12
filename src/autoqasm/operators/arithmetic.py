@@ -21,49 +21,49 @@ from autoqasm import types as aq_types
 from .utils import _register_and_convert_parameters
 
 
-def fd_(
-    num_: aq_types.IntVar | aq_types.FloatVar | int | float,
-    den_: aq_types.IntVar | aq_types.FloatVar | int | float,
+def floor_div(
+    num: aq_types.IntVar | aq_types.FloatVar | int | float,
+    den: aq_types.IntVar | aq_types.FloatVar | int | float,
 ) -> int | aq_types.IntVar:
     """Functional form of "//".
     Args:
-        num_ (IntVar | FloatVar | int | float) : The numerator of the integer division
-        den_ (IntVar | FloatVar | int | float) : The denominator of the integer division
+        num (IntVar | FloatVar | int | float) : The numerator of the integer division
+        den (IntVar | FloatVar | int | float) : The denominator of the integer division
     Returns :
         int | IntVar : integer division, IntVar if either numerator or denominator
         are QASM types, else int
     """
-    if aq_types.is_qasm_type(num_) or aq_types.is_qasm_type(den_):
-        return _oqpy_fd(num_, den_)
+    if aq_types.is_qasm_type(num) or aq_types.is_qasm_type(den):
+        return _oqpy_floor_div(num, den)
     else:
-        return _py_fd(num_, den_)
+        return _py_floor_div(num, den)
 
 
-def _oqpy_fd(
-    num_: aq_types.IntVar | aq_types.FloatVar | int | float,
-    den_: aq_types.IntVar | aq_types.FloatVar | int | float,
+def _oqpy_floor_div(
+    num: aq_types.IntVar | aq_types.FloatVar | int | float,
+    den: aq_types.IntVar | aq_types.FloatVar | int | float,
 ) -> aq_types.IntVar | aq_types.FloatVar:
-    num_, den_ = _register_and_convert_parameters(num_, den_)
+    num, den = _register_and_convert_parameters(num, den)
     oqpy_program = program.get_program_conversion_context().get_oqpy_program()
-    num_is_float = isinstance(num_, (aq_types.FloatVar, float))
-    den_is_float = isinstance(den_, (aq_types.FloatVar, float))
+    num_is_float = isinstance(num, (aq_types.FloatVar, float))
+    den_is_float = isinstance(den, (aq_types.FloatVar, float))
 
     # if either is a FloatVar, then both must be FloatVar
     if num_is_float and not den_is_float:
         den_float_var = aq_types.FloatVar()
         oqpy_program.declare(den_float_var)
-        oqpy_program.set(den_float_var, den_)
-        den_ = den_float_var
+        oqpy_program.set(den_float_var, den)
+        den = den_float_var
     if den_is_float and not num_is_float:
         num_float_var = aq_types.FloatVar()
         oqpy_program.declare(num_float_var)
-        oqpy_program.set(num_float_var, num_)
-        num_ = num_float_var
+        oqpy_program.set(num_float_var, num)
+        num = num_float_var
 
     # if either is a FloatVar, then the result will be a FloatVar
     result = aq_types.IntVar()
     oqpy_program.declare(result)
-    oqpy_program.set(result, num_ / den_)
+    oqpy_program.set(result, num / den)
 
     if num_is_float or den_is_float:
         float_result = aq_types.FloatVar()
@@ -74,8 +74,8 @@ def _oqpy_fd(
     return result
 
 
-def _py_fd(
-    num_: int | float,
-    den_: int | float,
+def _py_floor_div(
+    num: int | float,
+    den: int | float,
 ) -> int | float:
-    return num_ // den_
+    return num // den

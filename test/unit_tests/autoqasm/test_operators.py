@@ -932,15 +932,14 @@ def test_py_list_ops() -> None:
     assert test_list_ops.build().to_ir()
 
 
-class TestFloorDiv:
-    def test_integer_division_on_intvars(self):
-        @aq.main(num_qubits=2)
-        def main():
-            a = aq.IntVar(5)
-            b = aq.IntVar(2)
-            c = a // b  # noqa: F841
+def test_integer_division_on_intvars():
+    @aq.main(num_qubits=2)
+    def main():
+        a = aq.IntVar(5)
+        b = aq.IntVar(2)
+        c = a // b  # noqa: F841
 
-        expected_ir = """OPENQASM 3.0;
+    expected_ir = """OPENQASM 3.0;
 int[32] c;
 qubit[2] __qubits__;
 int[32] a = 5;
@@ -948,17 +947,18 @@ int[32] b = 2;
 int[32] __int_2__;
 __int_2__ = a / b;
 c = __int_2__;"""
-        assert main.build().to_ir() == expected_ir
+    assert main.build().to_ir() == expected_ir
 
-    def test_integer_division_on_mixed_vars(self):
-        @aq.main(num_qubits=2)
-        def main():
-            a = aq.IntVar(5)
-            b = aq.FloatVar(2.3)
-            c = a // b  # noqa: F841
-            d = b // a  # noqa: F841
 
-        expected_ir = """OPENQASM 3.0;
+def test_integer_division_on_mixed_vars():
+    @aq.main(num_qubits=2)
+    def main():
+        a = aq.IntVar(5)
+        b = aq.FloatVar(2.3)
+        c = a // b  # noqa: F841
+        d = b // a  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
 float[64] c;
 float[64] d;
 qubit[2] __qubits__;
@@ -978,15 +978,16 @@ __int_6__ = b / __float_5__;
 float[64] __float_7__;
 __float_7__ = __int_6__;
 d = __float_7__;"""
-        assert main.build().to_ir() == expected_ir
+    assert main.build().to_ir() == expected_ir
 
-    def test_integer_division_on_python_types(self):
-        @aq.main(num_qubits=2)
-        def main():
-            a = 5
-            b = 2.3
-            c = a // b  # noqa: F841
 
-        expected_ir = """OPENQASM 3.0;
+def test_integer_division_on_python_types():
+    @aq.main(num_qubits=2)
+    def main():
+        a = 5
+        b = 2.3
+        c = a // b  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
 qubit[2] __qubits__;"""
-        assert main.build().to_ir() == expected_ir
+    assert main.build().to_ir() == expected_ir
