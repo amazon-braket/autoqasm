@@ -1,5 +1,9 @@
-# Copied from: https://github.com/openqasm/openqasm/blob/main/source/grammar/qasm3Lexer.g4
+# Copied from:
+# https://github.com/openqasm/openqasm/blob/main/source/grammar/qasm3Lexer.g4
+# https://github.com/openqasm/openpulse-python/blob/main/source/grammar/openpulseLexer.g4
+
 reserved_keywords = {
+    # openQASM keywords
     "angle",
     "array",
     "barrier",
@@ -23,7 +27,6 @@ reserved_keywords = {
     "extern",
     "false",
     "float",
-    "frame",
     "gate",
     "gphase",
     "im",
@@ -38,7 +41,6 @@ reserved_keywords = {
     "negctrl",
     "output",
     "pi",
-    "port",
     "pragma",
     "qreg",
     "qubit",
@@ -53,6 +55,9 @@ reserved_keywords = {
     "U",
     "uint",
     "void",
+    # openpulse keywords
+    "frame",
+    "port",
     "waveform",
 }
 
