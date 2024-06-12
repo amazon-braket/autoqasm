@@ -932,13 +932,12 @@ def test_py_list_ops() -> None:
     assert test_list_ops.build().to_ir()
 
 
-class TestTypecasting:
-    def test_int_typecasting_on_measure(self):
-        @aq.main(num_qubits=2)
-        def main():
-            test = int(measure([0, 1]))  # noqa: F841
+def test_int_typecasting_on_measure():
+    @aq.main(num_qubits=2)
+    def main():
+        test = int(measure([0, 1]))  # noqa: F841
 
-        expected_ir = """OPENQASM 3.0;
+    expected_ir = """OPENQASM 3.0;
 int[32] test;
 qubit[2] __qubits__;
 bit[2] __bit_0__ = "00";
@@ -947,38 +946,41 @@ __bit_0__[1] = measure __qubits__[1];
 int[32] __int_1__;
 __int_1__ = __bit_0__;
 test = __int_1__;"""
-        assert main.build().to_ir() == expected_ir
+    assert main.build().to_ir() == expected_ir
 
-    def test_int_typecasting_on_string(self):
-        @aq.main(num_qubits=2)
-        def main():
-            test = int("101", 2)  # noqa: F841
 
-        expected_ir = """OPENQASM 3.0;
+def test_int_typecasting_on_string():
+    @aq.main(num_qubits=2)
+    def main():
+        test = int("101", 2)  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
 qubit[2] __qubits__;"""
-        assert main.build().to_ir() == expected_ir
+    assert main.build().to_ir() == expected_ir
 
-    def test_nested_int_typecasting_without_return(self):
-        @aq.main(num_qubits=2)
-        def main():
-            test = 2 * int(measure([0, 1]))  # noqa: F841
 
-        expected_ir = """OPENQASM 3.0;
+def test_nested_int_typecasting_without_return():
+    @aq.main(num_qubits=2)
+    def main():
+        test = 2 * int(measure([0, 1]))  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
 qubit[2] __qubits__;
 bit[2] __bit_0__ = "00";
 __bit_0__[0] = measure __qubits__[0];
 __bit_0__[1] = measure __qubits__[1];
 int[32] __int_1__;
 __int_1__ = __bit_0__;"""
-        assert main.build().to_ir() == expected_ir
+    assert main.build().to_ir() == expected_ir
 
-    def test_nested_int_typecasting_with_return(self):
-        @aq.main(num_qubits=2)
-        def main():
-            test = 2 * int(measure([0, 1]))  # noqa: F841
-            return test
 
-        expected_ir = """OPENQASM 3.0;
+def test_nested_int_typecasting_with_return():
+    @aq.main(num_qubits=2)
+    def main():
+        test = 2 * int(measure([0, 1]))  # noqa: F841
+        return test
+
+    expected_ir = """OPENQASM 3.0;
 output int[32] test;
 qubit[2] __qubits__;
 bit[2] __bit_0__ = "00";
@@ -987,4 +989,4 @@ __bit_0__[1] = measure __qubits__[1];
 int[32] __int_1__;
 __int_1__ = __bit_0__;
 test = 2 * __int_1__;"""
-        assert main.build().to_ir() == expected_ir
+    assert main.build().to_ir() == expected_ir

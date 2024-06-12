@@ -41,10 +41,10 @@ class TypecastTransformer(converter.Base):
             and hasattr(node.func, "id")
             and node.func.id in TYPECASTING_OPERATORS
         ):
-            template = f"{TYPECASTING_OPERATORS[node.func.id]}(argument_)"
+            template = f"{TYPECASTING_OPERATORS[node.func.id]}(argument)"
             new_node = templates.replace(
                 template,
-                argument_=node.args,
+                argument=node.args,
                 original=node,
             )
             new_node = new_node[0].value

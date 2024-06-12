@@ -21,28 +21,28 @@ from autoqasm import program
 from autoqasm import types as aq_types
 
 
-def int_(argument_: Any, *args, **kwargs) -> aq_types.IntVar | int:
+def int_(argument: Any, *args, **kwargs) -> aq_types.IntVar | int:
     """Functional form of "int".
 
     Args:
-        argument_ (Any): object to be converted into an int.
+        argument (Any): object to be converted into an int.
 
     Returns:
         IntVar | int : IntVar object if argument is QASM type, else int.
     """
-    if aq_types.is_qasm_type(argument_):
-        return _oqpy_int(argument_)
+    if aq_types.is_qasm_type(argument):
+        return _oqpy_int(argument)
     else:
-        return _py_int(argument_, *args, **kwargs)
+        return _py_int(argument, *args, **kwargs)
 
 
-def _oqpy_int(argument_: Any) -> aq_types.IntVar:
+def _oqpy_int(argument: Any) -> aq_types.IntVar:
     oqpy_program = program.get_program_conversion_context().get_oqpy_program()
     result = aq_types.IntVar()
     oqpy_program.declare(result)
-    oqpy_program.set(result, argument_)
+    oqpy_program.set(result, argument)
     return result
 
 
-def _py_int(argument_: Any, *args, **kwargs) -> int:
-    return int(argument_, *args, **kwargs)
+def _py_int(argument: Any, *args, **kwargs) -> int:
+    return int(argument, *args, **kwargs)
