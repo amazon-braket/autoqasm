@@ -152,12 +152,6 @@ class FloatVar(oqpy.FloatVar):
         )
         self.name = program.get_program_conversion_context().next_var_name(oqpy.FloatVar)
 
-    def __floordiv__(self, other):
-        raise NotImplementedError("Integer division is supported by OpenQASM.")
-
-    def __rfloordiv__(self, other):
-        raise NotImplementedError("Integer division is supported by OpenQASM.")
-
 
 class IntVar(oqpy.IntVar):
     def __init__(self, *args, annotations: str | Iterable[str] | None = None, **kwargs):
@@ -165,9 +159,3 @@ class IntVar(oqpy.IntVar):
             *args, annotations=make_annotations_list(annotations), **kwargs
         )
         self.name = program.get_program_conversion_context().next_var_name(oqpy.IntVar)
-
-    def __floordiv__(self, other):
-        raise NotImplementedError("Integer division is supported by OpenQASM.")
-
-    def __rfloordiv__(self, other):
-        raise NotImplementedError("Integer division is supported by OpenQASM.")
