@@ -109,6 +109,8 @@ result = task.result()
 
 Read more about AutoQASM decorators like `@aq.main` [here](doc/decorators.md).
 
+Read more about using AutoQASM with Amazon Braket Hybrid Jobs [here](doc/hybrid_jobs.md).
+
 For more example usage of AutoQASM, visit the [example notebooks](examples).
 
 ## Architecture
