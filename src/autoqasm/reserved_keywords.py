@@ -74,5 +74,4 @@ def sanitize_parameter_name(name: str) -> str:
         str: Returns a modified 'name' that has an underscore ('_') appended to it;
         otherwise, it returns the original 'name' unchanged
     """
-    is_keyword = name in reserved_keywords
-    return f"{name}_" if is_keyword else name
+    return f"{name}_" if name in reserved_keywords else name
