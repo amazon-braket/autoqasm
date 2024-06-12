@@ -989,6 +989,7 @@ __bit_0__[1] = measure __qubits__[1];
 int[32] __int_1__;
 __int_1__ = __bit_0__;
 test = 2 * __int_1__;"""
+    assert main.build().to_ir() == expected_ir
 
 
 def test_integer_division_on_intvars():
