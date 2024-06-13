@@ -54,6 +54,7 @@ from autoqasm.converters import (
     break_statements,
     comparisons,
     return_statements,
+    typecast,
 )
 
 
@@ -134,6 +135,7 @@ class PyToOqpy(transpiler.PyToPy):
         # canonicalization creates.
         node = continue_statements.transform(node, ctx)
         node = return_statements.transform(node, ctx)
+        node = typecast.transform(node, ctx)
         node = assignments.transform(node, ctx)
         node = lists.transform(node, ctx)
         node = slices.transform(node, ctx)
