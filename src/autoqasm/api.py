@@ -33,6 +33,7 @@ import autoqasm.transpiler as aq_transpiler
 import autoqasm.types as aq_types
 from autoqasm import errors
 from autoqasm.program.gate_calibrations import GateCalibration
+from autoqasm.reserved_keywords import sanitize_parameter_name
 from autoqasm.types import QubitIdentifierType as Qubit
 
 
@@ -323,6 +324,11 @@ def _convert_subroutine(
     with aq_program.build_program() as program_conversion_context:
         oqpy_program = program_conversion_context.get_oqpy_program()
 
+        # Iterate over list of dictionary keys to avoid runtime error
+        for key in list(kwargs):
+            new_name = sanitize_parameter_name(key)
+            kwargs[new_name] = kwargs.pop(key)
+
         if f not in program_conversion_context.subroutines_processing:
             # Mark that we are starting to process this function to short-circuit recursion
             program_conversion_context.subroutines_processing.add(f)
@@ -419,6 +425,12 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
     def _func(*args, **kwargs) -> Any:
         inner_program: oqpy.Program = args[0]
         with aq_program.get_program_conversion_context().push_oqpy_program(inner_program):
+            # Bind args and kwargs to '_func' signature
+            sig = inspect.signature(_func)
+            bound_args = sig.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+            args = bound_args.args
+            kwargs = bound_args.kwargs
             result = aq_transpiler.converted_call(f, args[1:], kwargs, options=options)
         inner_program.autodeclare()
         return result
@@ -441,8 +453,12 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
                 "is missing a required type hint."
             )
 
+        # Check whether 'param.name' is a reserved keyword
+        new_name = sanitize_parameter_name(param.name)
+        _func.__annotations__.pop(param.name)
+
         new_param = inspect.Parameter(
-            name=param.name,
+            name=new_name,
             kind=param.kind,
             annotation=aq_types.map_parameter_type(param.annotation),
         )
