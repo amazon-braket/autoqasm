@@ -959,6 +959,7 @@ qubit[2] __qubits__;"""
     assert main.build().to_ir() == expected_ir
 
 
+@pytest.mark.xfail(reason="Bug: assignments do not work as expected when operators are nested")
 def test_nested_int_typecasting_without_return():
     @aq.main(num_qubits=2)
     def main():
@@ -970,7 +971,8 @@ bit[2] __bit_0__ = "00";
 __bit_0__[0] = measure __qubits__[0];
 __bit_0__[1] = measure __qubits__[1];
 int[32] __int_1__;
-__int_1__ = __bit_0__;"""
+__int_1__ = __bit_0__;
+test = 2 * __int_1__;"""
     assert main.build().to_ir() == expected_ir
 
 
