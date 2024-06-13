@@ -949,7 +949,7 @@ test = __int_1__;"""
     assert main.build().to_ir() == expected_ir
 
 
-def test_int_typecasting_on_string():
+def test_int_typecasting_on_python_string_not_captured():
     @aq.main(num_qubits=2)
     def main():
         test = int("101", 2)  # noqa: F841
