@@ -401,8 +401,8 @@ def sub(float[64] alpha, float[64] theta) {
     rx(theta) __qubits__[0];
     rx(alpha) __qubits__[1];
 }
-def rx_alpha(int[32] qubit) {
-    rx(alpha) __qubits__[qubit];
+def rx_alpha(int[32] qubit_) {
+    rx(alpha) __qubits__[qubit_];
 }
 float alpha = 0.5;
 float beta = 1.5;
@@ -427,8 +427,8 @@ def test_partial_bind():
     bound_prog = parametric.build().make_bound_program({"beta": np.pi})
 
     expected = """OPENQASM 3.0;
-def rx_alpha(int[32] qubit, float[64] theta) {
-    rx(theta) __qubits__[qubit];
+def rx_alpha(int[32] qubit_, float[64] theta) {
+    rx(theta) __qubits__[qubit_];
 }
 input float alpha;
 float beta = 3.141592653589793;

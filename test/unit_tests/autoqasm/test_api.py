@@ -16,6 +16,8 @@ generating OpenQASM, and in turn verifying the OpenQASM by running against
 the local simulator.
 """
 
+import math
+
 import pytest
 from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
@@ -1266,3 +1268,27 @@ test(0, 1);
 test(2, 3);
 test(4, 5);"""
     assert main.build().to_ir() == expected
+
+
+def test_subroutine_call_with_reserved_keyword():
+    """Test that subroutine call works with reserved keyword as a variable name"""
+
+    @aq.subroutine
+    def make_input_state(input: int, theta: float):
+        rx(input, theta)
+        measure(input)
+
+    @aq.main(num_qubits=3)
+    def teleportation():
+        input, theta = 0, math.pi / 2
+        make_input_state(theta=theta, input=input)
+
+    expected = """OPENQASM 3.0;
+def make_input_state(int[32] input_, float[64] theta) {
+    rx(theta) __qubits__[input_];
+    bit __bit_0__;
+    __bit_0__ = measure __qubits__[input_];
+}
+qubit[3] __qubits__;
+make_input_state(0, 1.5707963267948966);"""
+    assert teleportation.build().to_ir() == expected
