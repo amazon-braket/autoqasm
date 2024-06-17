@@ -607,13 +607,15 @@ def _get_gate_args(f: Callable) -> aq_program.GateArgs:
                 f'Parameter "{param.name}" for gate "{f.__name__}" '
                 "is missing a required type hint."
             )
+        
+        param_name = sanitize_parameter_name(param.name)
 
         if param.annotation == aq_instructions.QubitIdentifierType:
-            gate_args.append_qubit(param.name)
+            gate_args.append_qubit(param_name)
         elif param.annotation == float or any(
             type_ == float for type_ in get_args(param.annotation)
         ):
-            gate_args.append_angle(param.name)
+            gate_args.append_angle(param_name)
         else:
             raise errors.ParameterTypeError(
                 f'Parameter "{param.name}" for gate "{f.__name__}" '
@@ -643,6 +645,10 @@ def _convert_calibration(
     Returns:
         GateCalibration: Object representing the calibration definition.
     """
+    for key in list(decorator_kwargs):
+        new_name = sanitize_parameter_name(key)
+        decorator_kwargs[new_name] = decorator_kwargs.pop(key)
+
     func_args = _get_gate_args(f)
     _validate_calibration_args(gate_function, decorator_kwargs, func_args)
 

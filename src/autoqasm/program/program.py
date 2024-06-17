@@ -36,6 +36,7 @@ from openqasm_pygments import OpenQASM3Lexer
 from pygments.formatters.terminal import TerminalFormatter
 from sympy import Symbol
 
+from autoqasm.reserved_keywords import sanitize_parameter_name
 import autoqasm.types as aq_types
 from autoqasm import constants, errors
 from autoqasm.instructions.qubits import GlobalQubitRegister, _get_physical_qubit_indices, _qubit
@@ -215,6 +216,7 @@ class Program(SerializableProgram):
         # Copy the program so that we don't modify the original program
         bound_oqpy_program = copy.deepcopy(self._oqpy_program)
         for name, value in param_values.items():
+            name = sanitize_parameter_name(name)
             if name in bound_oqpy_program.undeclared_vars:
                 target = bound_oqpy_program.undeclared_vars[name]
                 assert target.init_expression == "input", "Only free parameters can be bound."

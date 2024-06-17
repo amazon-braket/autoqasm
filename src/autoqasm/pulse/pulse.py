@@ -27,6 +27,7 @@ from braket.registers.qubit_set import QubitSet
 
 from autoqasm import program as aq_program
 from autoqasm.instructions.qubits import _get_physical_qubit_indices
+from autoqasm.reserved_keywords import sanitize_parameter_name
 from autoqasm.types import BitVar, QubitIdentifierType, is_qubit_identifier_type
 
 
@@ -159,7 +160,7 @@ def delay(
     if all(is_qubit_identifier_type(q) for q in qubits_or_frames):
         qubits_or_frames = QubitSet(_get_physical_qubit_indices(qubits_or_frames))
     if isinstance(duration, oqpy.FloatVar):
-        duration = FreeParameter(duration.name)
+        duration = FreeParameter(sanitize_parameter_name(duration.name))
     _pulse_instruction("delay", qubits_or_frames, duration)
 
 

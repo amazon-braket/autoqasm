@@ -104,8 +104,8 @@ def test_duplicate_gate_names() -> None:
         my_gate(0, np.pi / 4)
 
     expected = """OPENQASM 3.0;
-gate my_gate(angle) q {
-    rx(angle) q;
+gate my_gate(angle_) q {
+    rx(angle_) q;
 }
 qubit[1] __qubits__;
 my_gate(0.7853981633974483) __qubits__[0];"""
@@ -137,8 +137,8 @@ def test_duplicate_gate_names_in_subroutine() -> None:
 def define_gate_in_subroutine() {
     h __qubits__[1];
 }
-gate my_gate(angle) q {
-    rx(angle) q;
+gate my_gate(angle_) q {
+    rx(angle_) q;
 }
 qubit[2] __qubits__;
 my_gate(0.7853981633974483) __qubits__[0];
