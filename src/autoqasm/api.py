@@ -681,6 +681,30 @@ def _convert_calibration(
         },
     }
 
+    # TODO refactor
+    sig = inspect.signature(f)
+    new_params = []
+    for param in sig.parameters.values():
+        if param.annotation is param.empty:
+            raise errors.MissingParameterTypeError(
+                f'Parameter "{param.name}" for subroutine "{f.__name__}" '
+                "is missing a required type hint."
+            )
+
+        # Check whether 'param.name' is a reserved keyword
+        new_name = sanitize_parameter_name(param.name)
+        f.__annotations__.pop(param.name)
+
+        new_param = inspect.Parameter(
+            name=new_name,
+            kind=param.kind,
+            annotation=aq_types.map_parameter_type(param.annotation),
+        )
+        new_params.append(new_param)
+        f.__annotations__[new_param.name] = new_param.annotation
+    f.__signature__ = sig.replace(parameters=new_params)
+    # END TODO refactor
+
     with aq_program.build_program() as program_conversion_context:
         with program_conversion_context.calibration_definition(
             gate_function.__name__, gate_calibration_qubits, gate_calibration_angles
