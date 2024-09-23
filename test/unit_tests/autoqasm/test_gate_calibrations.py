@@ -29,7 +29,7 @@ def test_gate_calibrations_fixed_args():
     def cal_1():
         pulse.barrier("$0")
 
-    @aq.gate_calibration(implements=rx, target="$1", angle=1.789)
+    @aq.gate_calibration(implements=rx, target="$1", theta=1.789)
     def cal_2():
         pulse.delay("$1", 0.123)
 
@@ -59,8 +59,8 @@ def test_gate_calibrations_variable_args():
     """test gate calibrations with variable args"""
 
     @aq.gate_calibration(implements=rx, target="$1")
-    def cal_1(angle: float):
-        pulse.delay("$1", angle)
+    def cal_1(theta: float):
+        pulse.delay("$1", theta)
 
     @aq.main
     def my_program():
@@ -69,8 +69,8 @@ def test_gate_calibrations_variable_args():
     expected = textwrap.dedent(
         """
         OPENQASM 3.0;
-        defcal rx(angle[32] angle) $1 {
-            delay[angle * 1s] $1;
+        defcal rx(angle[32] theta) $1 {
+            delay[theta * 1s] $1;
         }
         rx(1.0) $1;
         """
@@ -83,8 +83,8 @@ def test_gate_calibrations_invalid_args():
     """test gate calibrations with invalid args name"""
 
     @aq.gate_calibration(implements=rx, target="$1", foo=0)
-    def cal_1(angle: float):
-        pulse.delay("$1", angle)
+    def cal_1(theta: float):
+        pulse.delay("$1", theta)
 
     @aq.main
     def my_program():
@@ -98,24 +98,24 @@ def test_gate_calibrations_invalid_type():
     """test gate calibrations with invalid args type"""
 
     @aq.gate_calibration(implements=rx, target=0.123)
-    def cal_1(angle: float):
-        pulse.delay("$1", angle)
+    def cal_1(theta: float):
+        pulse.delay("$1", theta)
 
     @aq.gate_calibration(implements=rx, target={"foo": "bar"})
-    def cal_2(angle: float):
-        pulse.delay("$1", angle)
+    def cal_2(theta: float):
+        pulse.delay("$1", theta)
 
-    @aq.gate_calibration(implements=rx, target=0, angle="$0")
+    @aq.gate_calibration(implements=rx, target=0, theta="$0")
     def cal_3():
         pulse.delay("$1", 0.123)
 
     @aq.gate_calibration(implements=rx, target=0)
-    def cal_4(angle: aq.Qubit):
-        pulse.delay("$1", angle)
+    def cal_4(theta: aq.Qubit):
+        pulse.delay("$1", theta)
 
     @aq.gate_calibration(implements=rx)
-    def cal_5(target: float, angle: aq.Qubit):
-        pulse.delay("$0", angle)
+    def cal_5(target: float, theta: aq.Qubit):
+        pulse.delay("$0", theta)
 
     @aq.main
     def my_program():
@@ -134,8 +134,8 @@ def test_gate_calibrations_insufficient_args():
         pulse.delay("$1", 0.123)
 
     @aq.gate_calibration(implements=rx)
-    def cal_2(angle: float):
-        pulse.delay("$1", angle)
+    def cal_2(theta: float):
+        pulse.delay("$1", theta)
 
     @aq.main
     def my_program():
@@ -151,9 +151,9 @@ def test_gate_calibrations_insufficient_args():
 def test_gate_calibrations_duplicated_args():
     """test gate calibrations with duplicated args"""
 
-    @aq.gate_calibration(implements=rx, target="$1", angle=0.123)
-    def cal_1(angle: float):
-        pulse.delay("$1", angle)
+    @aq.gate_calibration(implements=rx, target="$1", theta=0.123)
+    def cal_1(theta: float):
+        pulse.delay("$1", theta)
 
     @aq.main
     def my_program():
@@ -167,9 +167,9 @@ def test_gate_calibrations_invalid_instructions():
     """test gate calibrations with invalid instructions that are not pulse"""
 
     @aq.gate_calibration(implements=rx, target="$1")
-    def cal_1(angle: float):
+    def cal_1(theta: float):
         h(0)
-        pulse.delay("$1", angle)
+        pulse.delay("$1", theta)
 
     @aq.main
     def my_program():
@@ -183,8 +183,8 @@ def test_gate_calibrations_bind_calibrations_not_inplace():
     """test that bind_calibrations does not modify the original program"""
 
     @aq.gate_calibration(implements=rx, target="$1")
-    def cal_1(angle: float):
-        pulse.delay("$1", angle)
+    def cal_1(theta: float):
+        pulse.delay("$1", theta)
 
     @aq.main
     def my_program():
