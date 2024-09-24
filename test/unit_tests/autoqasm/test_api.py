@@ -1094,17 +1094,17 @@ def test_input_types():
     @aq.main
     def multiple_input_types(x: int, y: bool, z: float, u):
         if x and y:
-            rx(target=0, angle=u + z)
+            rx(target=0, theta=u + z)
 
     @aq.main()
     def multiple_input_types_parens(x: int, y: bool, z: float, u):
         if x and y:
-            rx(target=0, angle=u + z)
+            rx(target=0, theta=u + z)
 
     @aq.main(num_qubits=1)
     def multiple_input_types_params(x: int, y: bool, z: float, u):
         if x and y:
-            rx(target=0, angle=u + z)
+            rx(target=0, theta=u + z)
 
     expected_ir = """OPENQASM 3.0;
 input int[32] x;
