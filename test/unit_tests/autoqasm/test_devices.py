@@ -279,7 +279,7 @@ def test_aws_device_run(
     @aq.main
     def my_program():
         h(0)
-        rx(0, FreeParameter("angle"))
+        rx(0, FreeParameter("theta"))
 
     aws_device = AwsDevice(Devices.Amazon.SV1.value)
     _ = aws_device.run(my_program, shots=10, inputs=inputs, device_parameters=device_parameters)
