@@ -108,9 +108,9 @@ def cal_1(theta: float):
     # The calibration is applicable for any rotation angle,
     # so we accept it as an input argument
     pulse.barrier("$0")
-    pulse.shift_frequency(q0_rf_frame, -321047.14178613486)
-    pulse.play(q0_rf_frame, waveform(theta))
-    pulse.shift_frequency(q0_rf_frame, 321047.14178613486)
+    pulse.shift_frequency(control_frame, -321047.14178613486)
+    pulse.play(control_frame, waveform(theta))
+    pulse.shift_frequency(control_frame, 321047.14178613486)
     pulse.barrier("$0")
 ```
 
