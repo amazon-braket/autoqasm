@@ -39,10 +39,7 @@ setup(
     ],
     extras_require={
         "test": [
-            "black",
             "botocore",
-            "flake8<=5.0.4",
-            "isort",
             "jsonschema==3.2.0",
             "pre-commit",
             "pylint",
@@ -50,6 +47,7 @@ setup(
             "pytest-cov",
             "pytest-rerunfailures",
             "pytest-xdist[psutil]",
+            "ruff",
             "sphinx",
             "sphinx-rtd-theme",
             "sphinxcontrib-apidoc",
