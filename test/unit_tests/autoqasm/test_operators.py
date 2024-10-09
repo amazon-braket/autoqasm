@@ -850,9 +850,7 @@ def test_py_if_stmt(value: int) -> None:
 
     expected = """OPENQASM 3.0;
 qubit[1] __qubits__;
-{} __qubits__[0];""".format(
-        "h" if value else "x"
-    )
+{} __qubits__[0];""".format("h" if value else "x")
     assert test_control_flow.build().to_ir() == expected
 
 

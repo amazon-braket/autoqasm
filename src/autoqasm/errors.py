@@ -13,7 +13,6 @@
 
 """Errors raised in the AutoQASM build process."""
 
-
 from __future__ import annotations
 
 
@@ -96,9 +95,7 @@ class UnsupportedConditionalExpressionError(AutoQasmError):
         self.message = """\
 `if` clause resolves to {}, but `else` clause resolves to {}. \
 Both the `if` and `else` clauses of an inline conditional expression \
-must resolve to the same type.""".format(
-            if_type, else_type
-        )
+must resolve to the same type.""".format(if_type, else_type)
 
     def __str__(self):
         return self.message

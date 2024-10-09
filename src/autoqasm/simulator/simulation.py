@@ -12,11 +12,11 @@
 # language governing permissions and limitations under the License.
 
 import numpy as np
+
+from autoqasm.simulator.linalg_utils import measurement_collapse_sv, measurement_sample
 from braket.default_simulator import StateVectorSimulation
 from braket.default_simulator.gate_operations import PauliX
 from braket.default_simulator.linalg_utils import marginal_probability
-
-from autoqasm.simulator.linalg_utils import measurement_collapse_sv, measurement_sample
 
 
 class Simulation(StateVectorSimulation):

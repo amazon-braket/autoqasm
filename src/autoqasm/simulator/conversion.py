@@ -15,6 +15,7 @@ from functools import singledispatch
 from typing import Any, Union
 
 import numpy as np
+
 from braket.default_simulator.openqasm._helpers.casting import convert_bool_array_to_string
 from braket.default_simulator.openqasm.parser.openqasm_ast import (
     ArrayLiteral,
