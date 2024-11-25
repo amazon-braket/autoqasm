@@ -44,7 +44,7 @@ jobs:
         jupyter nbconvert --to html --execute --ExecutePreprocessor.kernel_name=python3 ./examples/3_1_Iterative_phase_estimation.ipynb
         jupyter nbconvert --to html --execute --ExecutePreprocessor.kernel_name=python3 ./examples/3_2_magic_state_distillation.ipynb
     - name: Upload coverage report to Codecov
-      uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
+      uses: codecov/codecov-action@015f24e6818733317a2da2edd6290ab26238649a # v5.0.7
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
       if: ${{ strategy.job-index }} == 0
