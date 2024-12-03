@@ -21,11 +21,11 @@ from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
+
+import autoqasm as aq
 from braket.aws import AwsQuantumJob
 from braket.devices import Devices
 from braket.jobs.local import LocalQuantumJob
-
-import autoqasm as aq
 
 
 @pytest.fixture

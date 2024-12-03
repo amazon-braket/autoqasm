@@ -14,11 +14,11 @@
 """AutoQASM tests exercising the return statement for `aq.main`."""
 
 import pytest
-from braket.pulse import Frame, Port
 
 import autoqasm as aq
 from autoqasm.instructions import measure
 from autoqasm.pulse import capture_v0
+from braket.pulse import Frame, Port
 
 
 def test_float_lit():

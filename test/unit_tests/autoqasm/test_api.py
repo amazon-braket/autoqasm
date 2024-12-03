@@ -19,13 +19,13 @@ the local simulator.
 import math
 
 import pytest
-from braket.devices import LocalSimulator
-from braket.tasks.local_quantum_task import LocalQuantumTask
 
 import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
 from autoqasm.simulator import McmSimulator
+from braket.devices import LocalSimulator
+from braket.tasks.local_quantum_task import LocalQuantumTask
 
 
 def _test_on_local_sim(program: aq.Program, inputs=None) -> None:
