@@ -610,8 +610,9 @@ def _get_gate_args(f: Callable) -> aq_program.GateArgs:
 
         if param.annotation == aq_instructions.QubitIdentifierType:
             gate_args.append_qubit(param.name)
-        elif param.annotation == float or any(
-            type_ == float for type_ in get_args(param.annotation)
+        elif param.annotation == float or any(  # noqa: E721
+            type_ == float  # noqa: E721
+            for type_ in get_args(param.annotation)
         ):
             gate_args.append_angle(param.name)
         else:

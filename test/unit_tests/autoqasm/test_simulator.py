@@ -12,13 +12,13 @@
 # language governing permissions and limitations under the License.
 
 import pytest
-from braket.ir.openqasm import Program as OpenQASMProgram
-from braket.tasks import GateModelQuantumTaskResult
 
 from autoqasm.simulator import McmSimulator
 from autoqasm.simulator.native_interpreter import NativeInterpreter
 from autoqasm.simulator.program_context import McmProgramContext
 from autoqasm.simulator.simulation import Simulation
+from braket.ir.openqasm import Program as OpenQASMProgram
+from braket.tasks import GateModelQuantumTaskResult
 
 INPUTS_QASM = "test/resources/inputs.qasm"
 

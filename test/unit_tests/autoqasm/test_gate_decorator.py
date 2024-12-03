@@ -11,8 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-"""AutoQASM tests exercising the @aq.gate decorator and related functionality.
-"""
+"""AutoQASM tests exercising the @aq.gate decorator and related functionality."""
 
 import numpy as np
 import pytest

@@ -11,14 +11,13 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+from autoqasm.simulator.native_interpreter import NativeInterpreter
+from autoqasm.simulator.program_context import McmProgramContext
+from autoqasm.simulator.simulation import Simulation
 from braket.default_simulator import StateVectorSimulator
 from braket.ir.openqasm import Program as OpenQASMProgram
 from braket.task_result import AdditionalMetadata, TaskMetadata
 from braket.tasks import GateModelQuantumTaskResult
-
-from autoqasm.simulator.native_interpreter import NativeInterpreter
-from autoqasm.simulator.program_context import McmProgramContext
-from autoqasm.simulator.simulation import Simulation
 
 
 class McmSimulator(StateVectorSimulator):

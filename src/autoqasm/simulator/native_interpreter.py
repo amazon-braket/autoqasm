@@ -16,6 +16,9 @@ from functools import singledispatchmethod
 from logging import Logger
 from typing import Any, List, Optional, Union
 
+from openqasm3.ast import IntegerLiteral
+
+from autoqasm.simulator.program_context import McmProgramContext
 from braket.default_simulator.openqasm._helpers.casting import cast_to, wrap_value_into_literal
 from braket.default_simulator.openqasm.interpreter import Interpreter
 from braket.default_simulator.openqasm.parser.openqasm_ast import (
@@ -34,9 +37,6 @@ from braket.default_simulator.openqasm.parser.openqasm_ast import (
 )
 from braket.default_simulator.openqasm.parser.openqasm_parser import parse
 from braket.default_simulator.simulation import Simulation
-from openqasm3.ast import IntegerLiteral
-
-from autoqasm.simulator.program_context import McmProgramContext
 
 
 class NativeInterpreter(Interpreter):

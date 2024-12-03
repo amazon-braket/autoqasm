@@ -16,8 +16,6 @@
 import textwrap
 
 import pytest
-from braket.parametric import FreeParameter
-from braket.pulse import ArbitraryWaveform, Frame, Port
 
 import autoqasm as aq
 from autoqasm.instructions import rx
@@ -32,6 +30,8 @@ from autoqasm.pulse import (
     shift_frequency,
     shift_phase,
 )
+from braket.parametric import FreeParameter
+from braket.pulse import ArbitraryWaveform, Frame, Port
 
 PORT = Port(port_id="device_port_x0", dt=1e-9, properties={})
 FRAME1 = Frame(frame_id="predefined_frame_1", frequency=2e9, port=PORT, phase=0, is_predefined=True)
