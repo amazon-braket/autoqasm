@@ -45,20 +45,21 @@ job = AwsQuantumJob.create(
 )
 ```
 
-## Using the `@aq.hybrid_job` decorator
+## Using the `@hybrid_job` decorator
 
-Alternatively, you can use the `@aq.hybrid_job` decorator to create a hybrid job with AutoQASM. Because AutoQASM is currently not installed in the default job container, be sure to include AutoQASM in the `dependencies` keyword of the `@aq.hybrid_job` decorator, or add AutoQASM as a dependency when you build your own container.
+Alternatively, you can use the `@hybrid_job` decorator to create a hybrid job with AutoQASM. Because AutoQASM is currently not installed in the default job container, be sure to include AutoQASM in the `dependencies` keyword of the `@hybrid_job` decorator, or add AutoQASM as a dependency when you build your own container.
 
-One of the core mechanisms of AutoQASM is source code analysis. When calling an AutoQASM decorated function, the source code of the function is analyzed and converted into a transformed Python function by AutoGraph. With the the `@aq.hybrid_job` decorator, the source code of a function defined inside the `@aq.hybrid_job` decorated function is separately saved as input data to the job. When [AutoQASM decorators](decorators.md) wrap these functions, the source code is retrieved from the input data. Because of this, if you use an AutoQASM decorator to convert a function that is defined outside of the `@aq.hybrid_job` decorated function, it may not work properly. If your application requires AutoQASM decorated functions to be defined outside of the `@aq.hybrid_job` decorated function, we recommend that you use the option described in the "Using `AwsQuantumJob.create`" section above to create the hybrid job.
+One of the core mechanisms of AutoQASM is source code analysis. When calling an AutoQASM decorated function, the source code of the function is analyzed and converted into a transformed Python function by AutoGraph. With the the `@hybrid_job` decorator, the source code of a function defined inside the `@hybrid_job` decorated function is separately saved as input data to the job. When [AutoQASM decorators](decorators.md) wrap these functions, the source code is retrieved from the input data. Because of this, if you use an AutoQASM decorator to convert a function that is defined outside of the `@hybrid_job` decorated function, it may not work properly. If your application requires AutoQASM decorated functions to be defined outside of the `@hybrid_job` decorated function, we recommend that you use the option described in the "Using `AwsQuantumJob.create`" section above to create the hybrid job.
 
-Below is a working example to create an AutoQASM job with the `@aq.hybrid_job` decorator.
+Below is a working example to create an AutoQASM job with the `@hybrid_job` decorator.
 ```python
 from braket.devices import LocalSimulator
+from braket.jobs import hybrid_job
 
 import autoqasm as aq
 from autoqasm.instructions import measure, h, cnot
 
-@aq.hybrid_job(
+@hybrid_job(
     device="local:braket/simulator",
     dependencies=["autoqasm"],
 ) 

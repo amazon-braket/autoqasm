@@ -46,7 +46,6 @@ The Python code above outputs the following OpenQASM program:
 
 from . import errors, instructions, operators  # noqa: F401
 from .api import gate, gate_calibration, main, subroutine  # noqa: F401
-from .hybrid_job import hybrid_job  # noqa: F401
 from .instructions import QubitIdentifierType as Qubit  # noqa: F401
 from .program import Program, build_program, verbatim  # noqa: F401
 from .transpiler import transpiler  # noqa: F401

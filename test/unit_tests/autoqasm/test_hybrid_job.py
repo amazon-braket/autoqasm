@@ -22,9 +22,9 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-import autoqasm as aq
 from braket.aws import AwsQuantumJob
 from braket.devices import Devices
+from braket.jobs import hybrid_job
 from braket.jobs.local import LocalQuantumJob
 
 
@@ -44,9 +44,18 @@ def aws_session():
 @patch("tempfile.TemporaryDirectory")
 @patch.object(LocalQuantumJob, "create")
 def test_decorator_persist_inner_function_source(
-    mock_create, mock_tempdir, mock_time, mock_retrieve, mock_mkdir, mock_file, aws_session
+    mock_create,
+    mock_tempdir,
+    mock_time,
+    mock_retrieve,
+    mock_mkdir,
+    mock_file,
+    aws_session,
 ):
-    from autoqasm.hybrid_job import INNER_SOURCE_INPUT_CHANNEL, INNER_SOURCE_INPUT_FOLDER
+    from braket.jobs.hybrid_job import (
+        INNER_FUNCTION_SOURCE_INPUT_CHANNEL,
+        INNER_FUNCTION_SOURCE_INPUT_FOLDER,
+    )
 
     mock_retrieve.return_value = "00000000.dkr.ecr.us-west-2.amazonaws.com/latest"
 
@@ -68,15 +77,13 @@ def test_decorator_persist_inner_function_source(
     source_module = mock_tempdir_name
     entry_point = f"{mock_tempdir_name}.entry_point:my_entry"
 
-    my_entry = aq.hybrid_job(device=Devices.Amazon.SV1, local=True, aws_session=aws_session)(
-        my_entry
-    )
+    my_entry = hybrid_job(device=Devices.Amazon.SV1, local=True, aws_session=aws_session)(my_entry)
     my_entry()
 
     expected_source = "".join(inspect.findsource(inner1)[0])
     assert mock_file().write.call_args_list[0][0][0] == expected_source
 
-    expect_source_path = f"{mock_tempdir_name}/{INNER_SOURCE_INPUT_FOLDER}/source_0.py"
+    expect_source_path = f"{mock_tempdir_name}/{INNER_FUNCTION_SOURCE_INPUT_FOLDER}/source_0.py"
     assert mock_file.call_args_list[0][0][0] == expect_source_path
 
     mock_create.assert_called_with(
@@ -86,12 +93,14 @@ def test_decorator_persist_inner_function_source(
         job_name="my-entry-123000",
         hyperparameters={},
         aws_session=aws_session,
-        input_data={INNER_SOURCE_INPUT_CHANNEL: f"{mock_tempdir_name}/{INNER_SOURCE_INPUT_FOLDER}"},
+        input_data={
+            INNER_FUNCTION_SOURCE_INPUT_CHANNEL: f"{mock_tempdir_name}/{INNER_FUNCTION_SOURCE_INPUT_FOLDER}"
+        },
     )
     assert mock_tempdir.return_value.__exit__.called
 
 
-@patch.object(sys.modules["autoqasm.hybrid_job"], "persist_inner_function_source")
+@patch.object(sys.modules["braket.jobs.hybrid_job"], "persist_inner_function_source")
 @patch.object(sys.modules["braket.jobs.hybrid_job"], "retrieve_image")
 @patch("time.time", return_value=123.0)
 @patch("builtins.open")
@@ -106,12 +115,14 @@ def test_decorator_conflict_channel_name(
     mock_persist_source,
     aws_session,
 ):
-    from autoqasm.hybrid_job import INNER_SOURCE_INPUT_CHANNEL
+    from braket.jobs.hybrid_job import INNER_FUNCTION_SOURCE_INPUT_CHANNEL
 
     mock_retrieve.return_value = "00000000.dkr.ecr.us-west-2.amazonaws.com/latest"
 
-    @aq.hybrid_job(
-        device=None, aws_session=aws_session, input_data={INNER_SOURCE_INPUT_CHANNEL: "foo-bar"}
+    @hybrid_job(
+        device=None,
+        aws_session=aws_session,
+        input_data={INNER_FUNCTION_SOURCE_INPUT_CHANNEL: "foo-bar"},
     )
     def my_entry(c=0, d: float = 1.0, **extras):
         return "my entry return value"
@@ -120,12 +131,12 @@ def test_decorator_conflict_channel_name(
     mock_tempdir.return_value.__enter__.return_value = mock_tempdir_name
     mock_persist_source.return_value.__enter__.return_value = {}
 
-    expect_error_message = f"input channel cannot be {INNER_SOURCE_INPUT_CHANNEL}"
+    expect_error_message = f"input channel cannot be {INNER_FUNCTION_SOURCE_INPUT_CHANNEL}"
     with pytest.raises(ValueError, match=expect_error_message):
         my_entry()
 
 
-@patch.object(sys.modules["autoqasm.hybrid_job"], "persist_inner_function_source")
+@patch.object(sys.modules["braket.jobs.hybrid_job"], "persist_inner_function_source")
 @patch("braket.jobs.image_uris.retrieve_image")
 @patch("sys.stdout")
 @patch("time.time", return_value=123.0)
@@ -169,7 +180,7 @@ def test_decorator_non_defaults(
             "my_s3_prefix": "s3://bucket/path/to/prefix",
         }
 
-        @aq.hybrid_job(
+        @hybrid_job(
             device=Devices.Amazon.SV1,
             dependencies=dependencies,
             image_uri=image_uri,
@@ -230,13 +241,14 @@ def test_decorator_non_defaults(
         reservation_arn=reservation_arn,
     )
     mock_copy.assert_called_with(
-        Path("my_requirements.txt").resolve(), Path(mock_tempdir_name, "requirements.txt")
+        Path("my_requirements.txt").resolve(),
+        Path(mock_tempdir_name, "requirements.txt"),
     )
     assert mock_tempdir.__exit__.called
     mock_stdout.write.assert_any_call(s3_not_linked)
 
 
-@patch.object(sys.modules["autoqasm.hybrid_job"], "persist_inner_function_source")
+@patch.object(sys.modules["braket.jobs.hybrid_job"], "persist_inner_function_source")
 @patch.object(sys.modules["braket.jobs.hybrid_job"], "retrieve_image")
 @patch("time.time", return_value=123.0)
 @patch("builtins.open")
@@ -254,7 +266,7 @@ def test_decorator_non_dict_input(
     mock_retrieve.return_value = "00000000.dkr.ecr.us-west-2.amazonaws.com/latest"
     input_prefix = "my_input"
 
-    @aq.hybrid_job(device=None, input_data=input_prefix, aws_session=aws_session)
+    @hybrid_job(device=None, input_data=input_prefix, aws_session=aws_session)
     def my_entry():
         return "my entry return value"
 
@@ -277,7 +289,7 @@ def test_decorator_non_dict_input(
         wait_until_complete=wait_until_complete,
         job_name="my-entry-123000",
         hyperparameters={},
-        logger=getLogger("autoqasm.hybrid_job"),
+        logger=getLogger("braket.jobs.hybrid_job"),
         input_data={"input": input_prefix},
         aws_session=aws_session,
     )
