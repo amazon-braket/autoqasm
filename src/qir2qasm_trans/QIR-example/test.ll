@@ -1,0 +1,41 @@
+; ModuleID = 'bell'
+source_filename = "bell"
+
+%Qubit = type opaque
+%Result = type opaque
+
+define void @main() #0 {
+entry:
+  %0 = call %Result* @__quantum__qis__m__body(%Qubit* null)
+  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
+  call void @__quantum__qis__cz__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
+  call void @__quantum__qis__rzz__body(double 1.000000e+01, %Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
+  call void @__quantum__qis__h__body(%Qubit* null)
+  call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
+  %1 = call i1 @__quantum__qis__read_result__body(%Result* %0)
+  ret void
+}
+
+declare i1 @__quantum__qis__read_result__body(%Result*)
+
+declare %Result* @__quantum__qis__m__body(%Qubit*)
+
+declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*)
+
+declare void @__quantum__qis__cz__body(%Qubit*, %Qubit*)
+
+declare void @__quantum__qis__rzz__body(double, %Qubit*, %Qubit*)
+
+declare void @__quantum__qis__h__body(%Qubit*)
+
+declare void @__quantum__qis__mz__body(%Qubit*, %Result* writeonly) #1
+
+attributes #0 = { "entry_point" "output_labeling_schema" "qir_profiles"="custom" "required_num_qubits"="2" "required_num_results"="2" }
+attributes #1 = { "irreversible" }
+
+!llvm.module.flags = !{!0, !1, !2, !3}
+
+!0 = !{i32 1, !"qir_major_version", i32 1}
+!1 = !{i32 7, !"qir_minor_version", i32 0}
+!2 = !{i32 1, !"dynamic_qubit_management", i1 false}
+!3 = !{i32 1, !"dynamic_result_management", i1 false}
