@@ -9,9 +9,7 @@ binding.initialize_native_target()
 binding.initialize_native_asmprinter()
 
 
-def load(
-    filename: str
-) -> ModuleRef:
+def load(filename: str) -> ModuleRef:
     """Load a QIR program from the file ``filename``.
 
     Args:
@@ -41,14 +39,12 @@ def load(
     return module_ref
 
 
-def loads_bc(
-    bitcode: bytes
-) -> ModuleRef:
+def loads_bc(bitcode: bytes) -> ModuleRef:
     """Load a QIR program from the given string.
 
     Args:
         program: the QIR program.
-        
+
     Returns:
         Module: --
 
@@ -60,14 +56,12 @@ def loads_bc(
     return module
 
 
-def loads_ll(
-    ir_text: str
-) -> ModuleRef:
+def loads_ll(ir_text: str) -> ModuleRef:
     """Load a QIR program from the given string.
 
     Args:
         program: the QIR program.
-        
+
     Returns:
         Module: --
 

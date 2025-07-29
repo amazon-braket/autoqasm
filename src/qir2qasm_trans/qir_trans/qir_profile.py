@@ -1,37 +1,33 @@
-from typing import List, Dict, Optional, Union
-from openqasm3 import ast
+from typing import Dict, List, Optional, Union
 
 from llvmlite.ir import (
-    Type,
-    VoidType,
-    IntType,
+    Context,
     DoubleType,
     FunctionType,
     IdentifiedStructType,
-    Context,
+    IntType,
+    Type,
+    VoidType,
 )
+from openqasm3 import ast
 
 from .builder import (
-    FunctionBuilder, 
+    BinaryExpressionBuilder,
+    ConstantBuilder,
+    DeclBuilder,
+    FunctionBuilder,
     FunctionInfo,
+    GateBuilder,
     InstructionBuilder,
     InstructionInfo,
-    DeclBuilder,
-    StructureInfo,
-
-    QubitDeclarationBuilder,
-    ResultDeclarationBuilder,
-
     InttoptrBuilder,
-
-    GateBuilder,
-    ResetBuilder,
-    MeasurementBuilder,
     LoadBuilder,
-    ConstantBuilder,
-    BinaryExpressionBuilder,
-
-    build_rotation_2Q_definition
+    MeasurementBuilder,
+    QubitDeclarationBuilder,
+    ResetBuilder,
+    ResultDeclarationBuilder,
+    StructureInfo,
+    build_rotation_2Q_definition,
 )
 
 
@@ -46,24 +42,32 @@ class Profile:
         self._define_structs()
         self._define_functions()
         self._define_classical_instructions()
-    
+
     def get_function_info(self, name: str) -> Optional[FunctionType]:
         info = self.standard_functions.get(name)
         return info if info else None
 
-    def register_function(self, func_name: str, ret_type: Type, arg_types: List[Type], def_statement: ast.QuantumGateDefinition, func_builder: FunctionBuilder):
+    def register_function(
+        self,
+        func_name: str,
+        ret_type: Type,
+        arg_types: List[Type],
+        def_statement: ast.QuantumGateDefinition,
+        func_builder: FunctionBuilder,
+    ):
         fn_type = FunctionType(ret_type, arg_types)
         self.standard_functions[func_name] = FunctionInfo(fn_type, def_statement, func_builder)
-    
+
     def register_classical_instruction(self, name: str, inst_builder: InstructionBuilder):
         self.classical_instruction[name] = InstructionInfo(builder=inst_builder)
 
     def register_structure(
-            self, 
-            name: str, 
-            type_qir: IdentifiedStructType, 
-            type_ast: Union[ast.ClassicalType, str],
-            decl_builder: DeclBuilder):
+        self,
+        name: str,
+        type_qir: IdentifiedStructType,
+        type_ast: Union[ast.ClassicalType, str],
+        decl_builder: DeclBuilder,
+    ):
         # self.structures[name] = StructureInfo(type_qir, None, decl_builder)
         self.structures[name] = StructureInfo(type_qir, type_ast, decl_builder)
 
@@ -82,8 +86,15 @@ class BaseProfile(Profile):
         super().__init__("base_profile")
 
     def _define_structs(self):
-        self.register_structure("Qubit", self.context.get_identified_type("Qubit"), "Qubit", QubitDeclarationBuilder())
-        self.register_structure("Result", self.context.get_identified_type("Result"), ast.BitType(), ResultDeclarationBuilder())
+        self.register_structure(
+            "Qubit", self.context.get_identified_type("Qubit"), "Qubit", QubitDeclarationBuilder()
+        )
+        self.register_structure(
+            "Result",
+            self.context.get_identified_type("Result"),
+            ast.BitType(),
+            ResultDeclarationBuilder(),
+        )
 
     def _define_functions(self):
         qubit_ptr = self.structures["Qubit"].type_qir.as_pointer()
@@ -91,7 +102,9 @@ class BaseProfile(Profile):
         void_type = VoidType()
         double_type = DoubleType()
 
-        def register_qis_std_gate_functions(gates: List[str], ret_type: Type, arg_types: List[Type], adjoint: bool = False):
+        def register_qis_std_gate_functions(
+            gates: List[str], ret_type: Type, arg_types: List[Type], adjoint: bool = False
+        ):
             for gate in gates:
                 suffix = "adj" if adjoint else "body"
                 func_name = f"__quantum__qis__{gate}__{suffix}"
@@ -101,7 +114,13 @@ class BaseProfile(Profile):
         register_qis_std_gate_functions(["h", "s", "t", "x", "y", "z"], void_type, [qubit_ptr])
         register_qis_std_gate_functions(["s", "t"], void_type, [qubit_ptr], adjoint=True)
 
-        self.register_function(f"__quantum__qis__cnot__body", void_type, [qubit_ptr, qubit_ptr], None, GateBuilder("cx"))
+        self.register_function(
+            "__quantum__qis__cnot__body",
+            void_type,
+            [qubit_ptr, qubit_ptr],
+            None,
+            GateBuilder("cx"),
+        )
         register_qis_std_gate_functions(["cy", "cz", "swap"], void_type, [qubit_ptr, qubit_ptr])
 
         register_qis_std_gate_functions(["rx", "ry", "rz"], void_type, [double_type, qubit_ptr])
@@ -109,18 +128,32 @@ class BaseProfile(Profile):
 
         for gate in ["rxx", "ryy", "rzz"]:
             func_name = f"__quantum__qis__{gate}__body"
-            self.register_function(func_name, void_type, [double_type, qubit_ptr, qubit_ptr], build_rotation_2Q_definition(gate, False), GateBuilder(gate))
+            self.register_function(
+                func_name,
+                void_type,
+                [double_type, qubit_ptr, qubit_ptr],
+                build_rotation_2Q_definition(gate, False),
+                GateBuilder(gate),
+            )
 
         # register_qis_std_gate_functions(["barrier"], void_type, [])
-        
-        self.register_function(f"__quantum__qis__reset__body", void_type, [qubit_ptr], None, ResetBuilder())
 
-        self.register_function(f"__quantum__qis__m__body", result_ptr, [qubit_ptr], None, MeasurementBuilder('m'))
+        self.register_function(
+            "__quantum__qis__reset__body", void_type, [qubit_ptr], None, ResetBuilder()
+        )
+
+        self.register_function(
+            "__quantum__qis__m__body", result_ptr, [qubit_ptr], None, MeasurementBuilder("m")
+        )
         for op in ["mz", "mresetz"]:
             func_name = f"__quantum__qis__{op}__body"
-            self.register_function(func_name, void_type, [qubit_ptr, result_ptr], None, MeasurementBuilder(op))
+            self.register_function(
+                func_name, void_type, [qubit_ptr, result_ptr], None, MeasurementBuilder(op)
+            )
 
-        self.register_function("__quantum__qis__read_result__body", IntType(1), [result_ptr], None, LoadBuilder())
+        self.register_function(
+            "__quantum__qis__read_result__body", IntType(1), [result_ptr], None, LoadBuilder()
+        )
 
         # def register_rt_functions(ops: List[str], ret_type: Type, arg_types: List[Type]):
         #     for op in ops:
@@ -130,12 +163,22 @@ class BaseProfile(Profile):
         # register_rt_functions(["initialize"], void_type, [IntType(8).as_pointer()])
         # register_rt_functions([f"{x}_record_output" for x in ["tuple", "arry"]], void_type, [IntType(64), IntType(8).as_pointer()])
         # register_rt_functions(["result_record_output"], void_type, [result_ptr, IntType(8).as_pointer()])
-        
-        # Others
-        self.register_function("__quantum__rt__result_get_one", result_ptr, [], None, ConstantBuilder(constant=ast.BooleanLiteral(value=True)))
-        self.register_function("__quantum__rt__result_equal", IntType(1), [result_ptr, result_ptr], None, BinaryExpressionBuilder("=="))
 
+        # Others
+        self.register_function(
+            "__quantum__rt__result_get_one",
+            result_ptr,
+            [],
+            None,
+            ConstantBuilder(constant=ast.BooleanLiteral(value=True)),
+        )
+        self.register_function(
+            "__quantum__rt__result_equal",
+            IntType(1),
+            [result_ptr, result_ptr],
+            None,
+            BinaryExpressionBuilder("=="),
+        )
 
     def _define_classical_instructions(self):
-        self.register_classical_instruction('inttoptr', InttoptrBuilder())
-
+        self.register_classical_instruction("inttoptr", InttoptrBuilder())

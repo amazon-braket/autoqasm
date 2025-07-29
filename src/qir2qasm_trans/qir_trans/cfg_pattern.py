@@ -1,12 +1,13 @@
 from collections import OrderedDict
-from typing import Iterable, List, Dict, Sequence, Union, Tuple, Optional, Set, Any
+from typing import Dict, List, Optional, Tuple
 
 import networkx as nx
 from networkx.algorithms import isomorphism
 
 from .builder import SymbolTable
 
-class CFGPattern():
+
+class CFGPattern:
     def __init__(self):
         self.patterns: List[nx.DiGraph] = []
         self.degrees: List[OrderedDict[str, Tuple[Optional[int], Optional[int]]]] = []

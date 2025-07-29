@@ -7,7 +7,7 @@ from autoqasm.qir2qasm_trans.qir_trans.translator import Exporter
 
 def test_bell_pair_qir_to_qasm_conversion():
     """Test end-to-end conversion of a Bell pair QIR program to QASM."""
-    
+
     # Sample QIR content for a Bell pair circuit
     qir_content = """
         ; ModuleID = 'bell'
@@ -59,17 +59,17 @@ def test_bell_pair_qir_to_qasm_conversion():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.ll', delete=True) as temp_file:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
         temp_file.write(textwrap.dedent(qir_content))
         temp_file.flush()  # Ensure content is written to disk
-        
+
         # Load the QIR module
         module = load(temp_file.name)
-        
+
         # Convert to QASM using the Exporter
         exporter = Exporter()
         qasm_output = exporter.dumps(module)
-        
+
         # Validate the complete output
         assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
     # File automatically deleted here
@@ -77,7 +77,7 @@ def test_bell_pair_qir_to_qasm_conversion():
 
 def test_simple_hadamard_qir_to_qasm():
     """Test conversion of a simple Hadamard gate QIR program."""
-    
+
     # Simple QIR content with just a Hadamard gate
     qir_content = """
         ; ModuleID = 'simple'
@@ -118,15 +118,15 @@ def test_simple_hadamard_qir_to_qasm():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.ll', delete=True) as temp_file:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
         temp_file.write(textwrap.dedent(qir_content))
         temp_file.flush()  # Ensure content is written to disk
-        
+
         # Load and convert
         module = load(temp_file.name)
         exporter = Exporter()
         qasm_output = exporter.dumps(module)
-        
+
         # Validate the complete output
         assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
     # File automatically deleted here
@@ -134,15 +134,15 @@ def test_simple_hadamard_qir_to_qasm():
 
 def test_existing_qir_file_conversion():
     """Test conversion using an existing QIR example file."""
-    
+
     # Use the existing bell_pair.ll file
     qir_file_path = "src/qir2qasm_trans/QIR-example/bell_pair.ll"
-    
+
     # Check if the file exists
     if not os.path.exists(qir_file_path):
         # Skip test if example file doesn't exist
         return
-    
+
     # Expected QASM output (should match the bell_pair.ll file content)
     expected_qasm = """
         OPENQASM 3.0;
@@ -156,11 +156,11 @@ def test_existing_qir_file_conversion():
         Result[0] = measure Qubit[0];
         Result[1] = measure Qubit[1];
     """
-    
+
     # Load and convert
     module = load(qir_file_path)
     exporter = Exporter()
     qasm_output = exporter.dumps(module)
-    
+
     # Validate the complete output
     assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()

@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import enum
-from typing import Optional, List, Union, Iterable, Tuple, Sequence
+from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 
 class ASTNode:

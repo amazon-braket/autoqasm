@@ -1,4 +1,3 @@
-
 class BasicPrinter:
     """An OpenQASM 3 AST visitor which writes the tree out in text mode to a stream, where the only
     formatting is simple block indentation."""
