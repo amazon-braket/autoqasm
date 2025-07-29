@@ -52,6 +52,14 @@ from .transpiler import transpiler  # noqa: F401
 from .types import ArrayVar, BitVar, BoolVar, FloatVar, IntVar  # noqa: F401
 from .types import Range as range  # noqa: F401
 
+# Import qir2qasm_trans module to make it available as autoqasm.qir2qasm_trans
+import qir2qasm_trans  # noqa: F401
+
+# Create an alias so it can be accessed as autoqasm.qir2qasm_trans
+import sys
+
+sys.modules[__name__ + ".qir2qasm_trans"] = qir2qasm_trans
+
 
 def __getattr__(name):
     if name == "qubits":
