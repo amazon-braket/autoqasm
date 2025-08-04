@@ -30,7 +30,8 @@ from .builder import (
     LoadBuilder,
     ConstantBuilder,
     BinaryExpressionBuilder,
-
+    RecordBuilder,
+    
     build_rotation_2Q_definition
 )
 
@@ -129,7 +130,7 @@ class BaseProfile(Profile):
 
         # register_rt_functions(["initialize"], void_type, [IntType(8).as_pointer()])
         # register_rt_functions([f"{x}_record_output" for x in ["tuple", "arry"]], void_type, [IntType(64), IntType(8).as_pointer()])
-        # register_rt_functions(["result_record_output"], void_type, [result_ptr, IntType(8).as_pointer()])
+        self.register_function("__quantum__rt__result_record_output", void_type, [result_ptr, IntType(8).as_pointer()], None, RecordBuilder())
         
         # Others
         self.register_function("__quantum__rt__result_get_one", result_ptr, [], None, ConstantBuilder(constant=ast.BooleanLiteral(value=True)))

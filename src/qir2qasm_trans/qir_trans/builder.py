@@ -11,7 +11,9 @@ from llvmlite.ir import FunctionType, IdentifiedStructType
 class FunctionBuilder:
     def building(
         self,
-        **kwargs,
+        symbols, 
+        ret_type: TypeRef,
+        operands: List[ValueRef]
     ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
         return None, []
 
@@ -526,6 +528,10 @@ class BinaryExpressionBuilder(FunctionBuilder):
         )
 
         return ret_ident, [statement]
+
+
+class RecordBuilder(FunctionBuilder):
+    pass
 
 
 # Declaration Builder
