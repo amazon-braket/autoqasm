@@ -31,7 +31,9 @@ from .builder import (
     ConstantBuilder,
     BinaryExpressionBuilder,
     RecordBuilder,
-    
+    InputBuilder,
+    OutputBuilder,
+
     build_rotation_2Q_definition
 )
 
@@ -47,10 +49,6 @@ class Profile:
         self._define_structs()
         self._define_functions()
         self._define_classical_instructions()
-    
-    def get_function_info(self, name: str) -> Optional[FunctionType]:
-        info = self.standard_functions.get(name)
-        return info if info else None
 
     def register_function(self, func_name: str, ret_type: Type, arg_types: List[Type], def_statement: ast.QuantumGateDefinition, func_builder: FunctionBuilder):
         fn_type = FunctionType(ret_type, arg_types)
@@ -135,7 +133,9 @@ class BaseProfile(Profile):
         # Others
         self.register_function("__quantum__rt__result_get_one", result_ptr, [], None, ConstantBuilder(constant=ast.BooleanLiteral(value=True)))
         self.register_function("__quantum__rt__result_equal", IntType(1), [result_ptr, result_ptr], None, BinaryExpressionBuilder("=="))
-
+        self.register_function("get_int", IntType(32), [], None, InputBuilder())
+        self.register_function("take_int", void_type, [IntType(32)], None, OutputBuilder())
+        
 
     def _define_classical_instructions(self):
         self.register_classical_instruction('inttoptr', InttoptrBuilder())

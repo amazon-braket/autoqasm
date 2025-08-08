@@ -1,24 +1,23 @@
-import collections
-import contextlib
-import dataclasses
 import io
-import itertools
-import math
-import numbers
 import re
-from typing import Iterable, List, OrderedDict, Sequence, Union, Tuple, Optional
+from typing import List, Sequence, Tuple
+
 # from pyqir import Module, FunctionType, PointerType, StructType, Type
-
 import networkx as nx
-from networkx.algorithms import isomorphism
-
+from llvmlite.binding.module import ModuleRef, ValueRef
 from openqasm3 import ast
 from openqasm3.printer import Printer
-from llvmlite.binding.module import ModuleRef, ValueRef
-from llvmlite.binding.typeref import TypeRef, TypeKind
 
-from .qir_profile import Profile, BaseProfile
-from .builder import FunctionInfo, InstructionInfo, BranchInfo, SymbolTable, DefCalBuilder, DeclBuilder, ClassicalDeclarationBuilder
+from .builder import (
+    BranchInfo,
+    ClassicalDeclarationBuilder,
+    DeclBuilder,
+    DefCalBuilder,
+    FunctionInfo,
+    SymbolTable,
+)
+from .qir_profile import BaseProfile, Profile
+from .builder import BinaryExpressionBuilder
 
 _RESERVED_KEYWORDS = frozenset(
     {
@@ -72,14 +71,17 @@ _RESERVED_KEYWORDS = frozenset(
     }
 )
 
+_LLVM_INSTRUCTIONS = {
+    "add": BinaryExpressionBuilder("+"),
+    "sub": BinaryExpressionBuilder("-"),
+    "mul": BinaryExpressionBuilder("*"),
+}
 
 class Exporter:
     """QASM3 exporter main class."""
 
     def __init__(
-        self,
-        includes: Sequence[str] = ("stdgates.inc",),
-        profile: Profile = BaseProfile()
+        self, includes: Sequence[str] = ("stdgates.inc",), profile: Profile = BaseProfile()
     ):
         self.includes = list(includes)
         self.profile = profile
@@ -92,24 +94,14 @@ class Exporter:
 
     def dump(self, module, stream):
         """Convert the module to OpenQASM 3, dumping the result to a file or text stream."""
-        builder = QASM3Builder(
-            module,
-            includeslist=self.includes,
-            profile=self.profile
-        )
-        Printer(stream).visit(
-            builder.build_program()
-        )
+        builder = QASM3Builder(module, includeslist=self.includes, profile=self.profile)
+        Printer(stream).visit(builder.build_program())
 
 
 class QASM3Builder:
     """QASM3 builder constructs an AST from a Module."""
-    def __init__(
-        self,
-        module: ModuleRef,
-        includeslist,
-        profile: Profile 
-    ):
+
+    def __init__(self, module: ModuleRef, includeslist, profile: Profile):
         self.module = module
         self.symbols = SymbolTable()
         self.includes = includeslist
@@ -124,17 +116,19 @@ class QASM3Builder:
         func_decl_statements = self.build_func_declarations()
         main_statements = self.build_main()
         var_decl_statements = self.build_var_declarations()
-        
-        statements = include_statements + var_decl_statements + func_decl_statements + main_statements
+
+        statements = (
+            include_statements + var_decl_statements + func_decl_statements + main_statements
+        )
         return ast.Program(version="3.0", statements=statements)
-    
+
     def build_var_declarations(self) -> List[ast.Statement]:
-        building_task: List[Tuple[DeclBuilder, str, int]]= []
+        building_task: List[Tuple[DeclBuilder, str, int]] = []
         for name, struct_info in self.symbols.structures.items():
             builder = struct_info.decl_builder
-            building_task.append((builder, name, self.symbols.structures_num[name]))
-            building_task.append((builder, f"{name}_tmp", self.symbols.structures_tmp_num[name]))
-        
+            building_task.append((builder, f"{name}s", self.symbols.structures_num[name]))
+            building_task.append((builder, f"{name}s_tmp", self.symbols.structures_tmp_num[name]))
+
         for name, type_ast in self.symbols.classical_tmp.items():
             builder = ClassicalDeclarationBuilder(type_ast)
             building_task.append((builder, f"{name}_tmp", self.symbols.classical_tmp_num[name]))
@@ -143,6 +137,16 @@ class QASM3Builder:
         for builder, name, size in building_task:
             if size > 0:
                 statements.append(builder.building(name, size))
+        
+        for io_key in ["input", "output"]:
+            for type_ast, ident_ast in self.symbols.io_variables[io_key]:
+                statements.append(
+                    ast.IODeclaration(
+                        io_identifier = ast.IOKeyword[io_key],
+                        type = type_ast,
+                        identifier = ident_ast
+                    )
+                )
 
         return statements
 
@@ -151,12 +155,12 @@ class QASM3Builder:
 
         statements_declaration = []
         statements_definition = []
-        
+
         for name, struct_info in self.profile.structures.items():
             self.symbols.register_structure(name, struct_info)  # Register Structure in SymbolTable
 
         for name, inst_info in self.profile.classical_instruction.items():
-            self.symbols.instructions[name] = inst_info     # Register Instruction in SymbolTable
+            self.symbols.instructions[name] = inst_info  # Register Instruction in SymbolTable
 
         for func in module.functions:
             if func.is_declaration:
@@ -164,7 +168,9 @@ class QASM3Builder:
 
                 if func_info:
                     # If func is defined in QIR Profile
-                    self.symbols.functions[func.name] = func_info   # Register Function in SymbolTable
+                    self.symbols.functions[func.name] = (
+                        func_info  # Register Function in SymbolTable
+                    )
                     def_statement = func_info.def_statement
                     if def_statement:
                         statements_definition.append(def_statement)
@@ -173,13 +179,13 @@ class QASM3Builder:
                     func_name = func.name
                     func_type = func.type.element_type
 
-                    # Build the "defcal" QASM ast node  
+                    # Build the "defcal" QASM ast node
                     arguments = []
                     qubits = []
                     num_qubits = 0
 
                     arg_types = [arg_type for arg_type in func_type.elements]
-                    
+
                     # Return Type
                     ret_type = arg_types[0]
                     _, ret_type_ast = self.symbols.type_qir2qasm(ret_type)
@@ -200,12 +206,14 @@ class QASM3Builder:
                         else:
                             arguments.append(op_type_ast)
 
-                        if (op_type_str == "pointer") and isinstance(op_type_ast, ast.ClassicalType):
+                        if (op_type_str == "pointer") and isinstance(
+                            op_type_ast, ast.ClassicalType
+                        ):
                             if ret_type_ast is None:
                                 # void func(typeA*, ...) => typeA func(type_A, ...)
                                 ret_type_ast = op_type_ast
                             else:
-                                raise Exception(f"Too much return value!")
+                                raise Exception("Too much return value!")
 
                     if num_qubits == 1:
                         qubits.append(ast.Identifier(name="q"))
@@ -215,8 +223,14 @@ class QASM3Builder:
 
                     ident = ast.Identifier(name=func_name)
                     func_builder = DefCalBuilder(func_name)
-                    func_info = FunctionInfo(type=func_type.as_ir(self.profile.context), def_statement=None, builder=func_builder)
-                    self.symbols.functions[func.name] = func_info   # Register Function in SymbolTable
+                    func_info = FunctionInfo(
+                        type=func_type.as_ir(self.profile.context),
+                        def_statement=None,
+                        builder=func_builder,
+                    )
+                    self.symbols.functions[func.name] = (
+                        func_info  # Register Function in SymbolTable
+                    )
 
                     statements_declaration.append(
                         ast.CalibrationDefinition(
@@ -224,12 +238,11 @@ class QASM3Builder:
                             arguments=arguments,
                             qubits=qubits,
                             return_type=ret_type_ast,
-                            body=''
+                            body="",
                         )
                     )
 
         return statements_declaration + statements_definition
-
 
     def build_main(self) -> List[ast.Statement]:
         main_func = None
@@ -239,24 +252,25 @@ class QASM3Builder:
             for attr in func.attributes:
                 matches = re.findall(r'"(\w+)"(?:="([^"]*)")?', attr.decode())
                 for k, v in matches:
-                    if v != '':
+                    if v != "":
                         attr_dict[k] = v
                     else:
                         attr_dict[k] = True
 
-            if 'entry_point' in attr_dict.keys():
+            if "entry_point" in attr_dict.keys():
                 main_func = func
                 break
+        else:
+            raise Exception("No main function defined!")
 
         statements = []
         self.entry_block = main_func.name
         for block in main_func.blocks:
             # self.build_block(block)
-            statements.extend(self.build_block(block)) 
+            statements.extend(self.build_block(block))
 
         self.build_control()
         return statements
-    
 
     def build_block(self, block: ValueRef) -> List[ast.Statement]:
         statements = []
@@ -265,14 +279,12 @@ class QASM3Builder:
             statements.extend(self.build_instruction(inst, block_name))
         self.symbols.block_statements[block_name] = statements
         return statements
-    
 
     def build_control(self):
         is_updated = True
         while is_updated:
             cfg = self.create_CFG()
             is_updated = False
-    
 
     def create_CFG(self) -> nx.DiGraph:
         cfg = nx.DiGraph()
@@ -280,18 +292,20 @@ class QASM3Builder:
             for tgt_block in block_info.br_tgt:
                 cfg.add_edge(block, tgt_block)
         return cfg
-        
 
     def build_instruction(self, instruction: ValueRef, block_name: str):
         statements = []
-        if instruction.opcode == "call":
+        if instruction.opcode in _LLVM_INSTRUCTIONS.keys():
+            statements.extend(self.build_llvm_inst(instruction))
+        elif instruction.opcode == "call":
             statements.extend(self.build_func_call(instruction))
         elif instruction.opcode == "br":
             self.symbols.block_branchs[block_name] = self.build_branch(instruction)
         elif instruction.opcode == "ret":
             self.symbols.block_branchs[block_name] = BranchInfo(None, [])
+        else:
+            raise Exception(f"Undefined llvm instruction: {instruction.opcode}")
         return statements
-    
 
     def build_func_call(self, inst: ValueRef) -> List[ast.Statement]:
         operands = list(inst.operands)
@@ -300,16 +314,22 @@ class QASM3Builder:
         func_info = self.symbols.functions[func_name]
         func_builder = func_info.builder
         ret_type = inst.type
-
         # print(func_type.as_ir(self.profile.context), '==', func_info.type)
         assert func.type.element_type.as_ir(self.profile.context) == func_info.type
-
         ret_ident, statements = func_builder.building(self.symbols, ret_type, operands)
         if ret_ident:
             self.symbols.record_variables(inst, ret_ident)
-        
         return statements
     
+    def build_llvm_inst(self, inst: ValueRef) -> List[ast.Statement]:
+        operands = list(inst.operands)
+        func_builder = _LLVM_INSTRUCTIONS[inst.opcode]
+        ret_type = inst.type
+        ret_ident, statements = func_builder.building(self.symbols, ret_type, operands)
+        # if ret_ident:
+        #     self.symbols.record_variables(inst, ret_ident)
+        self.symbols.record_variables(inst, ret_ident)
+        return statements
 
     def build_branch(self, inst: ValueRef) -> BranchInfo:
         operands = list(inst.operands)
@@ -317,8 +337,9 @@ class QASM3Builder:
         if l == 1:
             br_info = BranchInfo(None, [operands[0].name])
         elif l == 3:
-            br_info = BranchInfo(self.symbols.value_qir2qasm(operands[0]), [operands[1].name, operands[2].name])
+            br_info = BranchInfo(
+                self.symbols.value_qir2qasm(operands[0]), [operands[1].name, operands[2].name]
+            )
         else:
             raise Exception
         return br_info
-

@@ -1,32 +1,23 @@
-; ModuleID = 'bell'
-source_filename = "bell"
-
-%Qubit = type opaque
-%Result = type opaque
+; ModuleID = 'arithmetic'
+source_filename = "arithmetic"
 
 define void @main() #0 {
 entry:
-  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
-  call void @__quantum__qis__cz__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
-  call void @__quantum__qis__rz__body(double 1.000000e+01, %Qubit* null)
-  call void @__quantum__qis__h__body(%Qubit* null)
-  call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
-  call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
+  %0 = call i32 @get_int()
+  %1 = add i32 3, %0
+  %2 = mul i32 2, %1
+  %3 = call i32 @get_int()
+  %4 = sub i32 0, %3
+  call void @take_int(i32 %2)
+  call void @take_int(i32 %4)
   ret void
 }
 
-declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*)
+declare i32 @get_int()
 
-declare void @__quantum__qis__cz__body(%Qubit*, %Qubit*)
+declare void @take_int(i32)
 
-declare void @__quantum__qis__rz__body(double, %Qubit*)
-
-declare void @__quantum__qis__h__body(%Qubit*)
-
-declare void @__quantum__qis__mz__body(%Qubit*, %Result* writeonly) #1
-
-attributes #0 = { "entry_point" "output_labeling_schema" "qir_profiles"="custom" "required_num_qubits"="2" "required_num_results"="2" }
-attributes #1 = { "irreversible" }
+attributes #0 = { "entry_point" "output_labeling_schema" "qir_profiles"="custom" "required_num_qubits"="0" "required_num_results"="0" }
 
 !llvm.module.flags = !{!0, !1, !2, !3}
 
