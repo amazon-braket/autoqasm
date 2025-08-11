@@ -1,5 +1,5 @@
-; ModuleID = 'bell'
-source_filename = "bell"
+; ModuleID = 'rxx'
+source_filename = "rxx"
 
 %Qubit = type opaque
 %Result = type opaque
