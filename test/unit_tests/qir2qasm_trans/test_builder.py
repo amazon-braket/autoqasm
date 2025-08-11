@@ -11,6 +11,24 @@ from autoqasm.qir2qasm_trans.qir_trans.translator import Exporter
 from autoqasm.qir2qasm_trans.qir_trans.builder import FunctionBuilder, InstructionBuilder, DeclBuilder, SymbolTable
 
 
+def test_mresetz_qir_to_qasm():
+    file_path = "test/resources/qir_test_file"
+    benchmark_name = "mresetz"
+    qir_file_path = os.path.join(file_path, f"{benchmark_name}.ll")
+    qasm_file_path = os.path.join(file_path, f"{benchmark_name}.qasm")
+
+    # Load and convert
+    module = load(qir_file_path)
+    exporter = Exporter()
+    qasm_output = exporter.dumps(module)
+
+    with open(qasm_file_path, "r") as f:
+        expected_qasm = f.read()
+
+    # Validate the complete output
+    assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
+
+
 def test_FunctionBuilder_building():
     qir_content = """
         ; ModuleID = 'bell'

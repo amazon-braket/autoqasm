@@ -108,7 +108,7 @@ class BaseProfile(Profile):
 
         for gate in ["rxx", "ryy", "rzz"]:
             func_name = f"__quantum__qis__{gate}__body"
-            self.register_function(func_name, void_type, [double_type, qubit_ptr, qubit_ptr], build_rotation_2Q_definition(gate, False), GateBuilder(gate))
+            self.register_function(func_name, void_type, [double_type, qubit_ptr, qubit_ptr], build_rotation_2Q_definition(gate), GateBuilder(gate))
 
         # register_qis_std_gate_functions(["barrier"], void_type, [])
         

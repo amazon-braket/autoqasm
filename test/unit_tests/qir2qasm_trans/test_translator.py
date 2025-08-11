@@ -27,7 +27,7 @@ def test_rxx_qir_to_qasm():
     assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
 
 
-def test_rxx_qir_to_qasm():
+def test_arguments_qir_to_qasm():
     file_path = "test/resources/qir_test_file"
     benchmark_name = "arguments"
     qir_file_path = os.path.join(file_path, f"{benchmark_name}.ll")

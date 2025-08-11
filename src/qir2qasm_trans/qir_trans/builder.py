@@ -322,8 +322,8 @@ class InttoptrBuilder(InstructionBuilder):
 #     return type_str, type_ast
 
 
-def get_return_type(func_type: TypeRef) -> TypeRef:
-    return [tp for tp in func_type.element_type.elements][0]
+# def get_return_type(func_type: TypeRef) -> TypeRef:
+#     return [tp for tp in func_type.element_type.elements][0]
 
 
 def identifier2expression(ident: Union[ast.IndexedIdentifier, ast.Identifier, ast.Expression]) -> ast.Expression:
@@ -547,14 +547,11 @@ class OutputBuilder(FunctionBuilder):
     
 
 # Declaration Builder
-def build_rotation_2Q_definition(name: str, adjoint: bool) -> ast.QuantumGateDefinition:
-    # ident = gate_table[(name, adjoint)]
+def build_rotation_2Q_definition(name: str) -> ast.QuantumGateDefinition:
     ident = ast.Identifier(name=name)
 
     # Define the parameter θ (negated if adjoint)
     theta = ast.Identifier(name="θ")
-    if adjoint:
-        theta = ast.UnaryExpression(op="-", expression=theta)
 
     # Qubit identifiers
     q0 = ast.Identifier(name="q0")

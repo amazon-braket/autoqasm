@@ -336,10 +336,9 @@ class QASM3Builder:
         l = len(operands)
         if l == 1:
             br_info = BranchInfo(None, [operands[0].name])
-        elif l == 3:
+        else:
+            assert l == 3
             br_info = BranchInfo(
                 self.symbols.value_qir2qasm(operands[0]), [operands[1].name, operands[2].name]
             )
-        else:
-            raise Exception
         return br_info
