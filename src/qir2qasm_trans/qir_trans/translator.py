@@ -9,6 +9,7 @@ from openqasm3 import ast
 from openqasm3.printer import Printer
 
 from .builder import (
+    BinaryExpressionBuilder,
     BranchInfo,
     ClassicalDeclarationBuilder,
     DeclBuilder,
@@ -17,7 +18,6 @@ from .builder import (
     SymbolTable,
 )
 from .qir_profile import BaseProfile, Profile
-from .builder import BinaryExpressionBuilder
 
 _RESERVED_KEYWORDS = frozenset(
     {
@@ -76,6 +76,7 @@ _LLVM_INSTRUCTIONS = {
     "sub": BinaryExpressionBuilder("-"),
     "mul": BinaryExpressionBuilder("*"),
 }
+
 
 class Exporter:
     """QASM3 exporter main class."""
@@ -137,14 +138,12 @@ class QASM3Builder:
         for builder, name, size in building_task:
             if size > 0:
                 statements.append(builder.building(name, size))
-        
+
         for io_key in ["input", "output"]:
             for type_ast, ident_ast in self.symbols.io_variables[io_key]:
                 statements.append(
                     ast.IODeclaration(
-                        io_identifier = ast.IOKeyword[io_key],
-                        type = type_ast,
-                        identifier = ident_ast
+                        io_identifier=ast.IOKeyword[io_key], type=type_ast, identifier=ident_ast
                     )
                 )
 
@@ -283,7 +282,7 @@ class QASM3Builder:
     def build_control(self):
         is_updated = True
         while is_updated:
-            cfg = self.create_CFG()
+            self.create_CFG()
             is_updated = False
 
     def create_CFG(self) -> nx.DiGraph:
@@ -320,7 +319,7 @@ class QASM3Builder:
         if ret_ident:
             self.symbols.record_variables(inst, ret_ident)
         return statements
-    
+
     def build_llvm_inst(self, inst: ValueRef) -> List[ast.Statement]:
         operands = list(inst.operands)
         func_builder = _LLVM_INSTRUCTIONS[inst.opcode]
@@ -333,11 +332,11 @@ class QASM3Builder:
 
     def build_branch(self, inst: ValueRef) -> BranchInfo:
         operands = list(inst.operands)
-        l = len(operands)
-        if l == 1:
+        len_op = len(operands)
+        if len_op == 1:
             br_info = BranchInfo(None, [operands[0].name])
         else:
-            assert l == 3
+            assert len_op == 3
             br_info = BranchInfo(
                 self.symbols.value_qir2qasm(operands[0]), [operands[1].name, operands[2].name]
             )

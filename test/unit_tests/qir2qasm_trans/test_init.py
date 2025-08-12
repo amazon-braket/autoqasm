@@ -1,10 +1,8 @@
 import tempfile
-import os
 import textwrap
 
 import pyqir
 import pytest
-
 from autoqasm.qir2qasm_trans.qir_trans import load
 from autoqasm.qir2qasm_trans.qir_trans.translator import Exporter
 
@@ -70,5 +68,5 @@ def test_load_error():
 
         # Convert to QASM using the Exporter
         with pytest.raises(ValueError, match=r"Unsupported file extension: .qir"):
-            module = load(temp_file.name)
+            load(temp_file.name)
     # File automatically deleted here

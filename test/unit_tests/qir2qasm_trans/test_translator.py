@@ -1,10 +1,8 @@
-import tempfile
 import os
+import tempfile
 import textwrap
 
-import pyqir
 import pytest
-
 from autoqasm.qir2qasm_trans.qir_trans import load
 from autoqasm.qir2qasm_trans.qir_trans.translator import Exporter
 
@@ -81,7 +79,7 @@ def test_return_value_error():
         # Convert to QASM using the Exporter
         exporter = Exporter()
         with pytest.raises(Exception, match=r"Too much return value!"):
-            qasm_output = exporter.dumps(module)
+            exporter.dumps(module)
 
 
 def test_main_func_error():
@@ -115,7 +113,7 @@ def test_main_func_error():
         # Convert to QASM using the Exporter
         exporter = Exporter()
         with pytest.raises(Exception, match=r"No main function defined!"):
-            qasm_output = exporter.dumps(module)
+            exporter.dumps(module)
 
 
 def test_llvm_inst_error():
@@ -148,4 +146,4 @@ def test_llvm_inst_error():
         # Convert to QASM using the Exporter
         exporter = Exporter()
         with pytest.raises(Exception, match=r"Undefined llvm instruction: load"):
-            qasm_output = exporter.dumps(module)
+            exporter.dumps(module)

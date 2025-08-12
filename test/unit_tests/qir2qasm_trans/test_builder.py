@@ -1,14 +1,17 @@
-import tempfile
 import os
-import textwrap
 import re
+import tempfile
+import textwrap
 
-import pyqir
 import pytest
-
 from autoqasm.qir2qasm_trans.qir_trans import load
+from autoqasm.qir2qasm_trans.qir_trans.builder import (
+    DeclBuilder,
+    FunctionBuilder,
+    InstructionBuilder,
+    SymbolTable,
+)
 from autoqasm.qir2qasm_trans.qir_trans.translator import Exporter
-from autoqasm.qir2qasm_trans.qir_trans.builder import FunctionBuilder, InstructionBuilder, DeclBuilder, SymbolTable
 
 
 def test_mresetz_qir_to_qasm():
@@ -137,7 +140,7 @@ def test_builder_array_error():
         # Convert to QASM using the Exporter
         exporter = Exporter()
         with pytest.raises(Exception, match=r"vector Undefined!"):
-            qasm_output = exporter.dumps(module)
+            exporter.dumps(module)
     # File automatically deleted here
 
 
@@ -180,7 +183,7 @@ def test_builder_ptr2ptr_error():
         # Convert to QASM using the Exporter
         exporter = Exporter()
         with pytest.raises(Exception, match=r"Unsupported ptr to ptr!"):
-            qasm_output = exporter.dumps(module)
+            exporter.dumps(module)
     # File automatically deleted here
 
 
@@ -221,7 +224,7 @@ def test_builder_instruction_error():
         # Convert to QASM using the Exporter
         exporter = Exporter()
         with pytest.raises(Exception, match=r"Undefined llvm insturction!"):
-            qasm_output = exporter.dumps(module)
+            exporter.dumps(module)
     # File automatically deleted here
 
 

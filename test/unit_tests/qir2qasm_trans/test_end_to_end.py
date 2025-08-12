@@ -1,10 +1,9 @@
-import tempfile
 import os
+import tempfile
 import textwrap
 from pathlib import Path
 
 import pyqir
-
 from autoqasm.qir2qasm_trans.qir_trans import load
 from autoqasm.qir2qasm_trans.qir_trans.translator import Exporter
 
@@ -130,9 +129,9 @@ def test_bell_pyqir_to_qasm():
 
 def test_arithmetic_pyqir_to_qasm():
     """Test end-to-end conversion of a Bell pair QIR program to QASM."""
-        
+
     mod = pyqir.SimpleModule("arithmetic", num_qubits=0, num_results=0)
-    
+
     # Declare functions that can produce and consume integers at runtime. See
     # external_functions.py.
     i32 = pyqir.IntType(mod.context, 32)
@@ -202,7 +201,7 @@ def test_bernstein_vazirani_qir_to_qasm():
     qasm_file_path = os.path.join(file_path, f"{benchmark_name}.qasm")
 
     # Load and convert
-    
+
     module = load(qir_file_path)
     exporter = Exporter()
     qasm_output = exporter.dumps(module)
@@ -221,7 +220,7 @@ def test_external_functions_qir_to_qasm():
     qasm_file_path = os.path.join(file_path, f"{benchmark_name}.qasm")
 
     # Load and convert
-    
+
     module = load(qir_file_path)
     exporter = Exporter()
     qasm_output = exporter.dumps(module)
@@ -240,7 +239,7 @@ def test_dynamic_allocation_qir_to_qasm():
     qasm_file_path = os.path.join(file_path, f"{benchmark_name}.qasm")
 
     # Load and convert
-    
+
     module = load(qir_file_path)
     exporter = Exporter()
     qasm_output = exporter.dumps(module)
@@ -259,7 +258,7 @@ def test_dynamic_if_then_qir_to_qasm():
     qasm_file_path = os.path.join(file_path, f"{benchmark_name}.qasm")
 
     # Load and convert
-    
+
     module = load(qir_file_path)
     exporter = Exporter()
     qasm_output = exporter.dumps(module)

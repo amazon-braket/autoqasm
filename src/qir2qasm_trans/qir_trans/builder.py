@@ -11,10 +11,7 @@ from openqasm3 import ast
 
 class FunctionBuilder:
     def building(
-        self,
-        symbols, 
-        ret_type: TypeRef,
-        operands: List[ValueRef]
+        self, symbols, ret_type: TypeRef, operands: List[ValueRef]
     ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
         return None, []
 
@@ -64,13 +61,16 @@ class SymbolTable:
         self.instructions: OrderedDict[str, InstructionInfo] = {}
         self.functions: OrderedDict[str, FunctionInfo] = {}
         self.variables: OrderedDict[str, Union[ast.IndexedIdentifier, ast.Identifier]] = {}
-        self.io_variables: OrderedDict[str, List[Tuple[ast.ClassicalType, ast.Identifier]]] = {"input": [], "output": []}
+        self.io_variables: OrderedDict[str, List[Tuple[ast.ClassicalType, ast.Identifier]]] = {
+            "input": [],
+            "output": [],
+        }
 
         self.structures_num: OrderedDict[str, int] = {}
         self.structures_tmp_num: OrderedDict[str, int] = {}
         self.classical_tmp: OrderedDict[str, ast.ClassicalType] = {}
         self.classical_tmp_num: OrderedDict[str, int] = {}
-        
+
         self.entry_block: str = None
         self.block_statements: OrderedDict[str, List[ast.Statement]] = {}
         self.block_branchs: OrderedDict[str, BranchInfo] = {}
@@ -180,7 +180,7 @@ class SymbolTable:
                 name=ast.Identifier(name=f"{name}_tmp"), indices=[[ast.IntegerLiteral(value=idx)]]
             )
         return var_ast
-    
+
     def alloc_io_var(self, type_ast: ast.ClassicalType, io_key: str) -> ast.Identifier:
         name = type_ast.__class__.__name__
         idx = len(self.io_variables[io_key])
@@ -326,7 +326,9 @@ class InttoptrBuilder(InstructionBuilder):
 #     return [tp for tp in func_type.element_type.elements][0]
 
 
-def identifier2expression(ident: Union[ast.IndexedIdentifier, ast.Identifier, ast.Expression]) -> ast.Expression:
+def identifier2expression(
+    ident: Union[ast.IndexedIdentifier, ast.Identifier, ast.Expression],
+) -> ast.Expression:
     if isinstance(ident, ast.Identifier) or isinstance(ident, ast.Expression):
         return ident
     else:
@@ -373,7 +375,7 @@ def preprocess_params(
             arguments.append(op_ident)
 
             # Return & Assignment
-            if (op_type_str == "pointer"):
+            if op_type_str == "pointer":
                 # if assign_ident is None:
                 # void func(typeA*, ...) => typeA func(type_A, ...)
                 assign_ident = symbols.value_qir2qasm(op)
@@ -530,8 +532,8 @@ class InputBuilder(FunctionBuilder):
         _, type_ast = symbols.type_qir2qasm(ret_type)
         ret_ident = symbols.alloc_io_var(type_ast, "input")
         return ret_ident, []
-    
-    
+
+
 class OutputBuilder(FunctionBuilder):
     def building(
         self, symbols: SymbolTable, ret_type: TypeRef, operands: List[ValueRef]
@@ -544,7 +546,7 @@ class OutputBuilder(FunctionBuilder):
             lvalue=assign_ident, op=ast.AssignmentOperator["="], rvalue=op_value
         )
         return None, [statement]
-    
+
 
 # Declaration Builder
 def build_rotation_2Q_definition(name: str) -> ast.QuantumGateDefinition:
