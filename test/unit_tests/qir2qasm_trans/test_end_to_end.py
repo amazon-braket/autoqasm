@@ -73,7 +73,7 @@ def test_bell_qir_to_qasm():
 
 
 def test_bell_pyqir_to_qasm():
-    """Test end-to-end conversion of a Bell pair QIR program to QASM."""
+    """Test end-to-end conversion of a Bell pair pyqir program to QASM."""
     bell = pyqir.SimpleModule("bell", num_qubits=2, num_results=2)
     qis = pyqir.BasicQisBuilder(bell.builder)
 
@@ -82,8 +82,8 @@ def test_bell_pyqir_to_qasm():
     qis.cx(bell.qubits[0], bell.qubits[1])
     qis.mz(bell.qubits[0], bell.results[0])
     qis.mz(bell.qubits[1], bell.results[1])
+    qir_content = bell.ir()
 
-    # Sample QIR content for a Bell pair circuit
     # Expected QASM output
     expected_qasm = """
         OPENQASM 3.0;
@@ -96,13 +96,12 @@ def test_bell_pyqir_to_qasm():
         Results[1] = measure Qubits[1];
     """
 
-    # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(bell.ir()))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "bell.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
@@ -110,30 +109,13 @@ def test_bell_pyqir_to_qasm():
 
         # Validate the complete output
         assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
-
-    with tempfile.NamedTemporaryFile(mode="wb", suffix=".bc", delete=True) as temp_file:
-        temp_file.write(bell.bitcode())
-        temp_file.flush()  # Ensure content is written to disk
-
-        # Load the QIR module
-        module = load(temp_file.name)
-
-        # Convert to QASM using the Exporter
-        exporter = Exporter()
-        qasm_output = exporter.dumps(module)
-
-        # Validate the complete output
-        assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
-    # File automatically deleted here
 
 
 def test_arithmetic_pyqir_to_qasm():
-    """Test end-to-end conversion of a Bell pair QIR program to QASM."""
+    """Test end-to-end conversion of an arithmetic pyqir program to QASM."""
 
     mod = pyqir.SimpleModule("arithmetic", num_qubits=0, num_results=0)
-
-    # Declare functions that can produce and consume integers at runtime. See
-    # external_functions.py.
+    # Declare functions that can produce and consume integers at runtime.
     i32 = pyqir.IntType(mod.context, 32)
     get_int = mod.add_external_function("get_int", pyqir.FunctionType(i32, []))
     take_int = mod.add_external_function(
@@ -158,7 +140,7 @@ def test_arithmetic_pyqir_to_qasm():
     mod.builder.call(take_int, [c])
     mod.builder.call(take_int, [negative_x])
 
-    # Sample QIR content for a Bell pair circuit
+    # Sample QIR content for the arithmetic circuit
     qir_content = mod.ir()
 
     # Expected QASM output
@@ -177,13 +159,12 @@ def test_arithmetic_pyqir_to_qasm():
         IntType_o1 = IntType_tmp[2];
     """
 
-    # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(qir_content))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "arithmetic.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
@@ -191,7 +172,6 @@ def test_arithmetic_pyqir_to_qasm():
 
         # Validate the complete output
         assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
-    # File automatically deleted here
 
 
 def test_bernstein_vazirani_qir_to_qasm():

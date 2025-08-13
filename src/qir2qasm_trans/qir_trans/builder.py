@@ -376,11 +376,9 @@ def preprocess_params(
 
             # Return & Assignment
             if op_type_str == "pointer":
-                # if assign_ident is None:
                 # void func(typeA*, ...) => typeA func(type_A, ...)
+                assert assign_ident is None
                 assign_ident = symbols.value_qir2qasm(op)
-                # else:
-                #     raise Exception("Too much return value!")
 
     return ret_ident, arguments, qubits, assign_ident
 
