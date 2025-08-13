@@ -48,7 +48,6 @@ def test_bell_qir_to_qasm():
     # Expected QASM output
     expected_qasm = """
         OPENQASM 3.0;
-        include "stdgates.inc";
         qubit[2] Qubits;
         bit[2] Results;
         h Qubits[0];
@@ -87,7 +86,6 @@ def test_bell_pyqir_to_qasm():
     # Expected QASM output
     expected_qasm = """
         OPENQASM 3.0;
-        include "stdgates.inc";
         qubit[2] Qubits;
         bit[2] Results;
         h Qubits[0];
@@ -146,7 +144,6 @@ def test_arithmetic_pyqir_to_qasm():
     # Expected QASM output
     expected_qasm = """
         OPENQASM 3.0;
-        include "stdgates.inc";
         array[int[32], 3] IntType_tmp;
         input int[32] IntType_i0;
         input int[32] IntType_i1;

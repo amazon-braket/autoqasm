@@ -1,5 +1,4 @@
 OPENQASM 3.0;
-include "stdgates.inc";
 qubit[1] Qubits;
 array[float[64], 1] FloatType_tmp;
 defcal my_function()  {}

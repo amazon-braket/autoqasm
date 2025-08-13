@@ -1,12 +1,12 @@
 import io
 import re
-from typing import List, Sequence, Tuple
+from typing import List, Sequence, Tuple, Type
 
 # from pyqir import Module, FunctionType, PointerType, StructType, Type
 import networkx as nx
 from llvmlite.binding.module import ModuleRef, ValueRef
 from openqasm3 import ast
-from openqasm3.printer import Printer
+from openqasm3.printer import Printer, QASMVisitor
 
 from .builder import (
     BinaryExpressionBuilder,
@@ -82,10 +82,11 @@ class Exporter:
     """QASM3 exporter main class."""
 
     def __init__(
-        self, includes: Sequence[str] = (), profile: Profile = BaseProfile(), printer = ...
+        self, includes: Sequence[str] = (), profile: Profile = BaseProfile(), printer_class: Type[QASMVisitor] = Printer
     ):
         self.includes = list(includes)
         self.profile = profile
+        self.printer_class = printer_class
 
     def dumps(self, module):
         """Convert the module to OpenQASM 3, returning the result as a string."""
@@ -96,13 +97,14 @@ class Exporter:
     def dump(self, module, stream):
         """Convert the module to OpenQASM 3, dumping the result to a file or text stream."""
         builder = QASM3Builder(module, includeslist=self.includes, profile=self.profile)
-        Printer(stream).visit(builder.build_program())
+        printer = self.printer_class(stream)
+        printer.visit(builder.build_program())
 
 
 class QASM3Builder:
     """QASM3 builder constructs an AST from a Module."""
 
-    def __init__(self, module: ModuleRef, includeslist, profile: Profile):
+    def __init__(self, module: ModuleRef, includeslist: List[str], profile: Profile):
         self.module = module
         self.symbols = SymbolTable()
         self.includes = includeslist

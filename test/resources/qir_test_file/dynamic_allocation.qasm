@@ -1,5 +1,4 @@
 OPENQASM 3.0;
-include "stdgates.inc";
 qubit[1] Qubits_tmp;
 bit[2] Results_tmp;
 array[bool, 1] BoolType_tmp;

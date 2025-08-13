@@ -1,5 +1,4 @@
 OPENQASM 3.0;
-include "stdgates.inc";
 qubit[7] Qubits;
 bit[6] Results;
 h Qubits[0];

@@ -1,5 +1,4 @@
 OPENQASM 3.0;
-include "stdgates.inc";
 qubit[2] Qubits;
 gate rxx(θ) q0, q1 {
   h q0;

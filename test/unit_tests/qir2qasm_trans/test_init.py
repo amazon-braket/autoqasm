@@ -22,7 +22,6 @@ def test_bitcode_load():
     # Expected QASM output
     expected_qasm = """
         OPENQASM 3.0;
-        include "stdgates.inc";
         qubit[2] Qubits;
         bit[2] Results;
         h Qubits[0];
