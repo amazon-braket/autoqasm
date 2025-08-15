@@ -905,7 +905,7 @@ def get_program_conversion_context() -> ProgramConversionContext:
     Returns:
         ProgramConversionContext: The thread-local ProgramConversionContext object.
     """
-    assert (
-        _get_local().program_conversion_context is not None
-    ), "get_program_conversion_context() must be called inside build_program() block"
+    assert _get_local().program_conversion_context is not None, (
+        "get_program_conversion_context() must be called inside build_program() block"
+    )
     return _get_local().program_conversion_context

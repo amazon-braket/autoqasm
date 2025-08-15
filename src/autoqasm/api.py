@@ -604,8 +604,7 @@ def _get_gate_args(f: Callable) -> aq_program.GateArgs:
 
         if param.annotation is param.empty:
             raise errors.MissingParameterTypeError(
-                f'Parameter "{param.name}" for gate "{f.__name__}" '
-                "is missing a required type hint."
+                f'Parameter "{param.name}" for gate "{f.__name__}" is missing a required type hint.'
             )
 
         if param.annotation == aq_instructions.QubitIdentifierType:
