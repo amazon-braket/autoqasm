@@ -82,7 +82,10 @@ class Exporter:
     """QASM3 exporter main class."""
 
     def __init__(
-        self, includes: Sequence[str] = (), profile: Profile = BaseProfile(), printer_class: Type[QASMVisitor] = Printer
+        self,
+        includes: Sequence[str] = (),
+        profile: Profile = BaseProfile(),
+        printer_class: Type[QASMVisitor] = Printer,
     ):
         self.includes = list(includes)
         self.profile = profile
@@ -127,10 +130,10 @@ class QASM3Builder:
 
     def build_var_declarations(self) -> List[ast.Statement]:
         building_tasks: List[Tuple[DeclBuilder, str, int]] = []
-        for name, struct_info in self.symbols.structures.items():
+        for name, struct_info in self.symbols.structs.items():
             builder = struct_info.decl_builder
-            building_tasks.append((builder, f"{name}s", self.symbols.structures_num[name]))
-            building_tasks.append((builder, f"{name}s_tmp", self.symbols.structures_tmp_num[name]))
+            building_tasks.append((builder, f"{name}s", self.symbols.structs_num[name]))
+            building_tasks.append((builder, f"{name}s_tmp", self.symbols.structs_tmp_num[name]))
 
         for name, type_ast in self.symbols.classical_tmp.items():
             builder = ClassicalDeclarationBuilder(type_ast)
@@ -154,12 +157,12 @@ class QASM3Builder:
     def build_func_declarations(self) -> List[ast.Statement]:
         module = self.module
 
-        # todo 
-        statements_declaration : List[ast.CalibrationDefinition] = []
-        statements_definition : List[ast.QuantumGateDefinition] = [] 
+        # todo
+        statements_declaration: List[ast.CalibrationDefinition] = []
+        statements_definition: List[ast.QuantumGateDefinition] = []
 
-        for name, struct_info in self.profile.structures.items():
-            self.symbols.register_structure(name, struct_info) 
+        for name, struct_info in self.profile.structs.items():
+            self.symbols.register_struct(name, struct_info)
 
         for name, inst_info in self.profile.classical_instruction.items():
             self.symbols.instructions[name] = inst_info
@@ -167,13 +170,11 @@ class QASM3Builder:
         for func in module.functions:
             if not func.is_declaration:
                 continue
-            
+
             func_info = self.profile.standard_functions.get(func.name)
             if func_info:
                 # If func is defined in QIR Profile
-                self.symbols.functions[func.name] = (
-                    func_info  # Register Function in SymbolTable
-                )
+                self.symbols.functions[func.name] = func_info  # Register Function in SymbolTable
                 def_statement = func_info.def_statement
                 if def_statement:
                     statements_definition.append(def_statement)
@@ -193,7 +194,7 @@ class QASM3Builder:
                 ret_type = arg_types[0]
                 _, ret_type_ast = self.symbols.type_qir2qasm(ret_type)
                 if isinstance(ret_type_ast, str):
-                    ret_type_ast = self.symbols.structures[ret_type_ast].type_ast
+                    ret_type_ast = self.symbols.structs[ret_type_ast].type_ast
                 if ret_type_ast == "Qubit":
                     # In QIR, a function may allocate and return a new qubit.
                     # In OpenQASM, qubit allocation via operations is not allowed.
@@ -211,28 +212,26 @@ class QASM3Builder:
                 for op_type in arg_types[1:]:
                     op_type_str, op_type_ast = self.symbols.type_qir2qasm(op_type)
                     if isinstance(op_type_ast, str):
-                        op_type_ast = self.symbols.structures[op_type_ast].type_ast
+                        op_type_ast = self.symbols.structs[op_type_ast].type_ast
                     if op_type_ast == "Qubit":
                         num_qubits += 1
                     else:
                         arguments.append(op_type_ast)
 
-                    if (op_type_str == "pointer") and isinstance(
-                        op_type_ast, ast.ClassicalType
-                    ):
+                    if (op_type_str == "pointer") and isinstance(op_type_ast, ast.ClassicalType):
                         if ret_type_ast is None:
                             # Transform: void func(typeA* *a, ...) => a = typeA func(type_A a, ...)
                             ret_type_ast = op_type_ast
                         else:
                             raise Exception("Too much return value!")
-                
+
                 # Process the qubits for the "CalibrationDefinition" AST node
                 if num_qubits == 1:
                     qubits.append(ast.Identifier(name="q"))
                 else:
                     for k in range(num_qubits):
                         qubits.append(ast.Identifier(name=f"q{k}"))
-                
+
                 # Register the new function defined by "defcal" in symbol table
                 func_info = FunctionInfo(
                     type=func_type.as_ir(self.profile.context),
