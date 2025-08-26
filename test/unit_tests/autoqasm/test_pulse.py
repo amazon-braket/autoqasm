@@ -156,7 +156,7 @@ def test_merge_cal_box() -> None:
             capture_v0,
             FRAME1,
             [],
-            ("\nbit __bit_0__;" "\ncal {\n    __bit_0__ = capture_v0(predefined_frame_1);\n}"),
+            ("\nbit __bit_0__;\ncal {\n    __bit_0__ = capture_v0(predefined_frame_1);\n}"),
         ),
     ],
 )
