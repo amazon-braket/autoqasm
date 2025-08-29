@@ -1,8 +1,20 @@
+# Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You
+# may not use this file except in compliance with the License. A copy of
+# the License is located at
+#
+#     http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+# ANY KIND, either express or implied. See the License for the specific
+# language governing permissions and limitations under the License.
+
 import io
 import re
 from typing import List, Sequence, Tuple, Type
 
-# from pyqir import Module, FunctionType, PointerType, StructType, Type
 import networkx as nx
 from llvmlite.binding.module import ModuleRef, ValueRef
 from openqasm3 import ast
@@ -19,6 +31,7 @@ from .builder import (
 )
 from .qir_profile import BaseProfile, Profile
 
+# Reserved OpenQASM 3 keywords that must not be used as identifiers.
 _RESERVED_KEYWORDS = frozenset(
     {
         "OPENQASM",
@@ -71,6 +84,7 @@ _RESERVED_KEYWORDS = frozenset(
     }
 )
 
+# Mapping from LLVM arithmetic opcodes to classical expression builders.
 _LLVM_INSTRUCTIONS = {
     "add": BinaryExpressionBuilder("+"),
     "sub": BinaryExpressionBuilder("-"),

@@ -16,7 +16,7 @@
 import re
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Callable
 
 from llvmlite.binding.module import ValueRef
 from llvmlite.binding.typeref import TypeRef
@@ -89,7 +89,7 @@ class StructInfo:
     type_qir: IdentifiedStructType  # LLVM identified struct type
     type_ast: Union[ast.ClassicalType, str]     # Target OpenQASM AST representation
     decl_builder: DeclBuilder   # Declaration builder for the struct
-    # call_builder
+    static_name: str   # Static register name for the struct
 
 
 @dataclass
@@ -115,6 +115,10 @@ class SymbolTable:
             "input": [],
             "output": [],
         }
+
+        # Register naming function
+        self.tmp_naming: Callable = lambda sname: f"{sname}_tmp"
+        self.io_naming: Callable = lambda sname, io_key, idx: f"{sname}_{io_key[0]}{idx}"
 
         # Counters for sizing OpenQASM temporaries and constants (i.e. `qubit[n]`)
         self.structs_num: OrderedDict[str, int] = {}
@@ -256,8 +260,9 @@ class SymbolTable:
                 name
             ]
             self.structs_tmp_num[name] += 1
+            ident_name = self.tmp_naming(self.structs[name].static_name)
             var_ast = ast.IndexedIdentifier(
-                name=ast.Identifier(name=f"{name}_tmp"), indices=[[ast.IntegerLiteral(value=idx)]]
+                name=ast.Identifier(name=ident_name), indices=[[ast.IntegerLiteral(value=idx)]]
             )
         else:
             # Classical temporary buffer.
@@ -270,8 +275,9 @@ class SymbolTable:
                 self.classical_tmp[name] = type_ast
             else:
                 self.classical_tmp_num[name] += 1
+            ident_name = self.tmp_naming(name)
             var_ast = ast.IndexedIdentifier(
-                name=ast.Identifier(name=f"{name}_tmp"), indices=[[ast.IntegerLiteral(value=idx)]]
+                name=ast.Identifier(name=ident_name), indices=[[ast.IntegerLiteral(value=idx)]]
             )
         return var_ast
 
@@ -291,7 +297,7 @@ class SymbolTable:
         """
         name = type_ast.__class__.__name__
         idx = len(self.io_variables[io_key])
-        ident_name = f"{name}_{io_key[0]}{idx}"
+        ident_name = self.io_naming(name, io_key, idx)
         var_ast = ast.Identifier(name=ident_name)
         self.io_variables[io_key].append((type_ast, var_ast))
         return var_ast
@@ -398,8 +404,9 @@ class InttoptrBuilder(InstructionBuilder):
         symbols.structs_num[op_name] = max(symbols.structs_num[op_name], idx + 1)
         
         # Return `<StructName>s[idx]`
+        ident_name = symbols.structs[op_name].static_name
         return ast.IndexedIdentifier(
-            name=ast.Identifier(name=f"{op_name}s"), indices=[[ast.IntegerLiteral(value=idx)]]
+            name=ast.Identifier(name=ident_name), indices=[[ast.IntegerLiteral(value=idx)]]
         )
 
 # def type_qir2qasm(tp: TypeRef) -> Tuple[str, Optional[Union[ast.ClassicalType, str]]]:
