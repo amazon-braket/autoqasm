@@ -18,11 +18,10 @@ with open("README.md", "r") as fh:
 
 setup(
     name="autoqasm",
-    version="0.1.2",
+    version="0.2.0",
     license="Apache License 2.0",
-    python_requires=">= 3.9",
-    packages=find_namespace_packages(where="src", exclude=("test",))
-    + ["qir2qasm_trans", "qir2qasm_trans.qir_trans"],
+    python_requires=">= 3.10",
+    packages=find_namespace_packages(where="src", exclude=("test",)),
     package_dir={"": "src"},
     install_requires=[
         "amazon-braket-sdk>=1.89.1",
@@ -37,8 +36,6 @@ setup(
         "gast",
         "termcolor",
         "openqasm_pygments",
-        "pyqir",
-        "llvmlite",
     ],
     extras_require={
         "test": [
@@ -77,8 +74,9 @@ setup(
         "Natural Language :: English",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
 )
