@@ -36,6 +36,8 @@ setup(
         "gast",
         "termcolor",
         "openqasm_pygments",
+        "llvmlite",
+        "pyqir",
     ],
     extras_require={
         "test": [
