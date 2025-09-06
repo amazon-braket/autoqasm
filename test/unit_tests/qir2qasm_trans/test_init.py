@@ -1,5 +1,6 @@
 import tempfile
 import textwrap
+from pathlib import Path
 
 import pyqir
 import pytest
@@ -31,12 +32,12 @@ def test_bitcode_load():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="wb", suffix=".bc", delete=True) as temp_file:
-        temp_file.write(bell.bitcode())
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "bell.bc"
+        qir_path.write_bytes(bell.bitcode())
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
@@ -44,7 +45,6 @@ def test_bitcode_load():
 
         # Validate the complete output
         assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
-    # File automatically deleted here
 
 
 def test_load_error():
@@ -59,13 +59,12 @@ def test_load_error():
     qis.mz(bell.qubits[1], bell.results[1])
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="wb", suffix=".qir", delete=True) as temp_file:
-        temp_file.write(bell.bitcode())
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "bell.qir"
+        qir_path.write_bytes(bell.bitcode())
 
         # Load the QIR module
 
         # Convert to QASM using the Exporter
         with pytest.raises(ValueError, match=r"Unsupported file extension: .qir"):
-            load(temp_file.name)
-    # File automatically deleted here
+            load(str(qir_path))

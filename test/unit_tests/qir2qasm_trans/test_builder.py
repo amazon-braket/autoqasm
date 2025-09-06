@@ -2,6 +2,7 @@ import os
 import re
 import tempfile
 import textwrap
+from pathlib import Path
 
 import pytest
 from autoqasm.qir2qasm_trans.qir_trans import load
@@ -67,12 +68,12 @@ def test_FunctionBuilder_building():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(qir_content))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "bell.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        mod = load(temp_file.name)
+        mod = load(str(qir_path))
         for func in mod.functions:
             # check main function definition
             attr_dict = {}
@@ -130,18 +131,17 @@ def test_builder_array_error():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(qir_content))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "test.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
         with pytest.raises(Exception, match=r"vector Undefined!"):
             exporter.dumps(module)
-    # File automatically deleted here
 
 
 def test_builder_ptr2ptr_error():
@@ -173,18 +173,17 @@ def test_builder_ptr2ptr_error():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(qir_content))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "ptr_to_ptr_example.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
         with pytest.raises(Exception, match=r"Unsupported ptr to ptr!"):
             exporter.dumps(module)
-    # File automatically deleted here
 
 
 def test_builder_instruction_error():
@@ -214,18 +213,17 @@ def test_builder_instruction_error():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(qir_content))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "instruction_error.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
         with pytest.raises(Exception, match=r"Undefined llvm insturction!"):
             exporter.dumps(module)
-    # File automatically deleted here
 
 
 def test_builder_defcal():
@@ -263,12 +261,12 @@ def test_builder_defcal():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(qir_content))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "instruction_error.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
@@ -276,4 +274,3 @@ def test_builder_defcal():
 
         # Validate the complete output
         assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
-    # File automatically deleted here

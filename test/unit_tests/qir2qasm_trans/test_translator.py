@@ -1,6 +1,7 @@
 import os
 import tempfile
 import textwrap
+from pathlib import Path
 
 import pytest
 from autoqasm.qir2qasm_trans.qir_trans import load
@@ -69,12 +70,12 @@ def test_return_value_error():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(qir_content))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "return_value_error.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
@@ -103,12 +104,12 @@ def test_main_func_error():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(qir_content))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "main_func_error.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
@@ -136,12 +137,12 @@ def test_llvm_inst_error():
     """
 
     # Create a temporary QIR file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".ll", delete=True) as temp_file:
-        temp_file.write(textwrap.dedent(qir_content))
-        temp_file.flush()  # Ensure content is written to disk
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        qir_path = Path(tmp_dir) / "llvm_inst_error.ll"
+        qir_path.write_text(textwrap.dedent(qir_content), encoding="utf-8")
 
         # Load the QIR module
-        module = load(temp_file.name)
+        module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
         exporter = Exporter()
