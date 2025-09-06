@@ -772,18 +772,18 @@ def build_rotation_2Q_definition(name: str) -> ast.QuantumGateDefinition:
         name: One of {"rxx", "ryy", ...}. Unknown names fall back to plain RZZ-like body.
 
     Returns:
-        ast.QuantumGateDefinition with parameter θ and qubits q0, q1.
+        ast.QuantumGateDefinition with parameter `theta` and qubits q0, q1.
     """
     ident = ast.Identifier(name=name)
 
-    # Define the parameter θ (negated if adjoint)
-    theta = ast.Identifier(name="θ")
+    # Define the parameter `_theta` (negated if adjoint)
+    theta = ast.Identifier(name="_theta")
 
     # Qubit identifiers
     q0 = ast.Identifier(name="q0")
     q1 = ast.Identifier(name="q1")
 
-    # Base Rzz-like body: CX - Rz(θ) - CX
+    # Base Rzz-like body: CX - Rz(_theta) - CX
     body = [
         ast.QuantumGate(
             modifiers=[], name=ast.Identifier(name="cx"), arguments=[], qubits=[q0, q1]
