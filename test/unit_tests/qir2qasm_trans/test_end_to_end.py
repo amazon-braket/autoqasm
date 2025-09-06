@@ -48,6 +48,8 @@ def test_bell_qir_to_qasm():
     # Expected QASM output
     expected_qasm = """
         OPENQASM 3.0;
+        include "stdgates.inc";
+        include "qelib1.inc";
         qubit[2] Qubits;
         bit[2] Results;
         h Qubits[0];
@@ -64,7 +66,7 @@ def test_bell_qir_to_qasm():
         module = load(str(qir_path))
 
         # Convert to QASM using the Exporter
-        exporter = Exporter()
+        exporter = Exporter(includes=["stdgates.inc", "qelib1.inc"])
         qasm_output = exporter.dumps(module)
 
         # Validate the complete output
