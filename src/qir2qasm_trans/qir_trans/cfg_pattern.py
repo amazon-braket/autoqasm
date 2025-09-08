@@ -1,11 +1,12 @@
 from collections import OrderedDict
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import networkx as nx
 from networkx.algorithms import isomorphism
 from openqasm3 import ast
 
-from .builder import SymbolTable, BranchInfo
+from .builder import BranchInfo, SymbolTable
+
 
 class CFGPattern:
     def __init__(self):

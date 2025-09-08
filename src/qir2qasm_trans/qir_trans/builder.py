@@ -14,11 +14,11 @@
 """Builders for QIR → OpenQASM 3 translator"""
 
 import re
-import networkx as nx
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Callable, List, Optional, Tuple, Union
 
+import networkx as nx
 from llvmlite.binding.module import ValueRef
 from llvmlite.binding.typeref import TypeRef
 from llvmlite.ir import FunctionType, IdentifiedStructType

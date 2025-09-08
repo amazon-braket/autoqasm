@@ -13,7 +13,7 @@
 
 import io
 import re
-from typing import List, Sequence, Tuple, Type, Optional
+from typing import List, Optional, Sequence, Tuple, Type
 
 import networkx as nx
 from llvmlite.binding.module import ModuleRef, ValueRef
@@ -29,8 +29,8 @@ from .builder import (
     FunctionInfo,
     SymbolTable,
 )
+from .cfg_pattern import IfPattern1, SeqPattern
 from .qir_profile import BaseProfile, Profile
-from .cfg_pattern import SeqPattern, IfPattern1
 
 # Reserved OpenQASM 3 keywords that must not be used as identifiers.
 _RESERVED_KEYWORDS = frozenset(
