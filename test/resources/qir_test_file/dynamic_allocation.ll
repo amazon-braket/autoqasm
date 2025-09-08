@@ -21,7 +21,16 @@ entry:
   %1 = call %Result* @__quantum__qis__m__body(%Qubit* %0)
   %2 = call %Result* @__quantum__rt__result_get_one()
   %3 = call i1 @__quantum__rt__result_equal(%Result* %1, %Result* %2)
+  br i1 %3, label %then, label %else
+
+then:                                             ; preds = %entry
   call void @__quantum__qis__reset__body(%Qubit* %0)
+  br label %continue
+
+else:                                             ; preds = %entry
+  br label %continue
+
+continue:                                         ; preds = %else, %then
   call void @__quantum__rt__qubit_release(%Qubit* %0)
   ret void
 }

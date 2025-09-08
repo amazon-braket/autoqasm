@@ -21,7 +21,8 @@ setup(
     version="0.2.0",
     license="Apache License 2.0",
     python_requires=">= 3.10",
-    packages=find_namespace_packages(where="src", exclude=("test",)),
+    packages=find_namespace_packages(where="src", exclude=("test",))
+    + ["qir2qasm_trans", "qir2qasm_trans.qir_trans"],
     package_dir={"": "src"},
     install_requires=[
         "amazon-braket-sdk>=1.89.1",
@@ -36,6 +37,8 @@ setup(
         "gast",
         "termcolor",
         "openqasm_pygments",
+        "pyqir",
+        "llvmlite",
     ],
     extras_require={
         "test": [

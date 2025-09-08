@@ -14,6 +14,7 @@
 """Builders for QIR → OpenQASM 3 translator"""
 
 import re
+import networkx as nx
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Union, Callable
@@ -96,7 +97,7 @@ class StructInfo:
 class BranchInfo:
     """Branch metadata for a basic block."""
     branch_condition: Optional[ast.Expression]  # Conditional expression 
-    br_tgt: List[str]   # Target block labels (true/false)
+    branch_targets: List[str]   # Target block labels (true/false)
 
 
 class SymbolTable:
@@ -130,6 +131,7 @@ class SymbolTable:
         self.entry_block: str = None
         self.block_statements: OrderedDict[str, List[ast.Statement]] = {}
         self.block_branchs: OrderedDict[str, BranchInfo] = {}
+        self.cfg: nx.DiGraph = nx.DiGraph()
 
     def register_struct(self, name: str, info: StructInfo):
         """Register a struct type and initialize counters."""

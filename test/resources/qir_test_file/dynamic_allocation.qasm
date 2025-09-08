@@ -9,5 +9,7 @@ h Qubits_tmp[0];
 Results_tmp[0] = measure Qubits_tmp[0];
 Results_tmp[1] = true;
 BoolType_tmp[0] = Results_tmp[0] == Results_tmp[1];
-reset Qubits_tmp[0];
+if (BoolType_tmp[0]) {
+  reset Qubits_tmp[0];
+}
 __quantum__rt__qubit_release(Qubits_tmp[0]);
