@@ -1,10 +1,10 @@
 OPENQASM 3.0;
 qubit[2] Qubits;
-gate rxx(θ) q0, q1 {
+gate rxx(_theta) q0, q1 {
   h q0;
   h q1;
   cx q0, q1;
-  rz(θ) q1;
+  rz(_theta) q1;
   cx q0, q1;
   h q0;
   h q1;

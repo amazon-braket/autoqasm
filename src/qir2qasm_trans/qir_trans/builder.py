@@ -17,7 +17,7 @@ import re
 import networkx as nx
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union, Callable
+from typing import Callable, List, Optional, Tuple, Union
 
 from llvmlite.binding.module import ValueRef
 from llvmlite.binding.typeref import TypeRef
@@ -30,10 +30,11 @@ class FunctionBuilder:
 
     Subclasses should override ``building``
     """
+
     def building(
         self, symbols, ret_type: TypeRef, operands: List[ValueRef]
     ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
-        """Build OpenQASM statements for a single QIR ``call`` instruction 
+        """Build OpenQASM statements for a single QIR ``call`` instruction
 
         Args:
             symbols (SymbolTable): Translation context.
@@ -42,7 +43,7 @@ class FunctionBuilder:
 
         Returns:
             A tuple (ret_ident, statements) where:
-            - ret_ident: OpenQASM identifier for the result of the QIR instruction 
+            - ret_ident: OpenQASM identifier for the result of the QIR instruction
                 (i.e., ``%1 = call ...``).
             - statements: List of OpenQASM statements for the QIR instruction.
         """
@@ -52,9 +53,10 @@ class FunctionBuilder:
 @dataclass
 class FunctionInfo:
     """Registry entry for a QIR function"""
+
     type: FunctionType  # LLVM function type
     def_statement: Optional[ast.QuantumGateDefinition]  # QASM gate definitions (i.e. Rzz gate)
-    builder: FunctionBuilder    # Calling builder for the function
+    builder: FunctionBuilder  # Calling builder for the function
 
 
 class InstructionBuilder:
@@ -62,6 +64,7 @@ class InstructionBuilder:
 
     Subclasses should override ``building``
     """
+
     def building(
         self,
         **kwargs,
@@ -72,6 +75,7 @@ class InstructionBuilder:
 @dataclass
 class InstructionInfo:
     """Registry entry for a LLVM IR instruction"""
+
     builder: InstructionBuilder
 
 
@@ -80,6 +84,7 @@ class DeclBuilder:
 
     Subclasses should override ``building``
     """
+
     def building(self, name: str, size: int) -> ast.Statement:
         return None
 
@@ -87,10 +92,11 @@ class DeclBuilder:
 @dataclass
 class StructInfo:
     """Registry entry for a QIR struct"""
+
     type_qir: IdentifiedStructType  # LLVM identified struct type
-    type_ast: Union[ast.ClassicalType, str]     # Target OpenQASM AST representation
-    decl_builder: DeclBuilder   # Declaration builder for the struct
-    static_name: str   # Static register name for the struct
+    type_ast: Union[ast.ClassicalType, str]  # Target OpenQASM AST representation
+    decl_builder: DeclBuilder  # Declaration builder for the struct
+    static_name: str  # Static register name for the struct
 
 
 @dataclass
@@ -102,8 +108,9 @@ class BranchInfo:
 
 class SymbolTable:
     """Holds all translation-time symbols and contextual counters."""
+
     def __init__(self):
-        # Struct / LLVM IR / QIR function registries 
+        # Struct / LLVM IR / QIR function registries
         self.structs: OrderedDict[str, StructInfo] = {}
         self.instructions: OrderedDict[str, InstructionInfo] = {}
         self.functions: OrderedDict[str, FunctionInfo] = {}
@@ -151,7 +158,7 @@ class SymbolTable:
 
     def type_qir2qasm(self, tp: TypeRef):
         """Translate a QIR (LLVM) TypeRef into a (kind_str, AST type) pair.
-        Args: 
+        Args:
             tp (TypeRef): LLVM type need to translated.
 
         Returns:
@@ -258,9 +265,7 @@ class SymbolTable:
         if isinstance(type_ast, str):
             # Struct temporary buffer.
             name = type_ast
-            idx = self.structs_tmp_num[
-                name
-            ]
+            idx = self.structs_tmp_num[name]
             self.structs_tmp_num[name] += 1
             ident_name = self.tmp_naming(self.structs[name].static_name)
             var_ast = ast.IndexedIdentifier(
@@ -328,8 +333,10 @@ class SymbolTable:
 
 ## StructBuilder implementations
 
+
 class QubitDeclarationBuilder(DeclBuilder):
     """Declare `qubit name[size]`."""
+
     def building(self, name: str, size: int) -> ast.Statement:
         ident = ast.Identifier(name=name)
         size_exp = ast.IntegerLiteral(value=size)
@@ -338,6 +345,7 @@ class QubitDeclarationBuilder(DeclBuilder):
 
 class ResultDeclarationBuilder(DeclBuilder):
     """Declare a classical bit array for measurement results: `bit[size] name;`."""
+
     def building(self, name: str, size: int) -> ast.Statement:
         ident = ast.Identifier(name=name)
         size_exp = ast.IntegerLiteral(value=size)
@@ -347,6 +355,7 @@ class ResultDeclarationBuilder(DeclBuilder):
 
 class ClassicalDeclarationBuilder(DeclBuilder):
     """Declare an array of a given classical base type: `<T>[size] name;`."""
+
     def __init__(self, base_type: ast.ClassicalType):
         self.base_type = base_type
 
@@ -359,6 +368,7 @@ class ClassicalDeclarationBuilder(DeclBuilder):
 
 ## InstructionBuilder implementations
 
+
 class InttoptrBuilder(InstructionBuilder):
     """Translate an `inttoptr`-encoded constant into an OpenQASM indexed identifier.
 
@@ -369,6 +379,7 @@ class InttoptrBuilder(InstructionBuilder):
     Produces:
       `<StructName>s[<idx>]`  (pluralized buffer of structs)
     """
+
     def __init__(
         self,
     ):
@@ -404,12 +415,13 @@ class InttoptrBuilder(InstructionBuilder):
 
         # Track the maximum used index for this struct to size declarations later.
         symbols.structs_num[op_name] = max(symbols.structs_num[op_name], idx + 1)
-        
+
         # Return `<StructName>s[idx]`
         ident_name = symbols.structs[op_name].static_name
         return ast.IndexedIdentifier(
             name=ast.Identifier(name=ident_name), indices=[[ast.IntegerLiteral(value=idx)]]
         )
+
 
 # def type_qir2qasm(tp: TypeRef) -> Tuple[str, Optional[Union[ast.ClassicalType, str]]]:
 #     type_kind = tp.type_kind
@@ -547,6 +559,7 @@ class GateBuilder(FunctionBuilder):
         GateBuilder("rx").building(...) ⇒ `rx(theta) q;`
         GateBuilder("u3", adjoint=True) ⇒ `u3dg(...) q;`  # using "dg" suffix
     """
+
     def __init__(self, gate: str, adjoint: bool = False):
         if adjoint:
             self.ident = ast.Identifier(name=gate + "dg")
@@ -576,6 +589,7 @@ class GateBuilder(FunctionBuilder):
 
 class ResetBuilder(FunctionBuilder):
     """Translate a single-qubit reset operation `reset q;`."""
+
     def building(
         self, symbols: SymbolTable, ret_type: TypeRef, operands: List[ValueRef]
     ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
@@ -588,6 +602,7 @@ class MeasurementBuilder(FunctionBuilder):
     - For `m`, allocate a temporary result and assign `measure q -> result`.
     - For `mresetz`, measure and then reset the same qubit to |0⟩.
     """
+
     def __init__(self, name: str):
         self.name = name
 
@@ -612,8 +627,8 @@ class MeasurementBuilder(FunctionBuilder):
 
 
 class DefCalBuilder(FunctionBuilder):
-    """Translate a ``defcal`` function call.
-    """
+    """Translate a ``defcal`` function call."""
+
     def __init__(self, name: str):
         self.ident = ast.Identifier(name=name)
 
@@ -633,7 +648,7 @@ class DefCalBuilder(FunctionBuilder):
         #     arguments=arguments,
         #     qubits=qubits
         # )
-        
+
         # Assignment vs. pure call
         if assign_ident is not None:
             statement = ast.ClassicalAssignment(
@@ -651,6 +666,7 @@ class LoadBuilder(FunctionBuilder):
     Semantics:
       result := operand[0]
     """
+
     def building(
         self, symbols: SymbolTable, ret_type: TypeRef, operands: List[ValueRef]
     ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
@@ -662,6 +678,7 @@ class LoadBuilder(FunctionBuilder):
 
 class ConstantBuilder(FunctionBuilder):
     """Emit an assignment from a constant expression into a fresh temporary."""
+
     def __init__(self, constant: ast.Expression):
         self.constant = constant
 
@@ -679,6 +696,7 @@ class ConstantBuilder(FunctionBuilder):
 
 class BinaryExpressionBuilder(FunctionBuilder):
     """Emit `tmp = (lhs <op> rhs)` for a classical binary expression."""
+
     def __init__(self, op: str):
         self.op = ast.BinaryOperator[op]
 
@@ -701,11 +719,13 @@ class BinaryExpressionBuilder(FunctionBuilder):
 
 class RecordBuilder(FunctionBuilder):
     """Do nothing, as OpenQASM does not need to load from memory to register"""
+
     pass
 
 
 class InputBuilder(FunctionBuilder):
     """Emit a fresh input identifier of the given classical type."""
+
     def building(
         self, symbols: SymbolTable, ret_type: TypeRef, operands: List[ValueRef]
     ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
@@ -716,6 +736,7 @@ class InputBuilder(FunctionBuilder):
 
 class OutputBuilder(FunctionBuilder):
     """Write a classical value to a synthesized output identifier."""
+
     def building(
         self, symbols: SymbolTable, ret_type: TypeRef, operands: List[ValueRef]
     ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
@@ -732,6 +753,7 @@ class OutputBuilder(FunctionBuilder):
 # ----------------------
 # Gate definition helpers
 # ----------------------
+
 
 # Declaration Builder
 def build_rotation_2Q_definition(name: str) -> ast.QuantumGateDefinition:
@@ -751,18 +773,18 @@ def build_rotation_2Q_definition(name: str) -> ast.QuantumGateDefinition:
         name: One of {"rxx", "ryy", ...}. Unknown names fall back to plain RZZ-like body.
 
     Returns:
-        ast.QuantumGateDefinition with parameter θ and qubits q0, q1.
+        ast.QuantumGateDefinition with parameter `theta` and qubits q0, q1.
     """
     ident = ast.Identifier(name=name)
 
-    # Define the parameter θ (negated if adjoint)
-    theta = ast.Identifier(name="θ")
+    # Define the parameter `_theta` (negated if adjoint)
+    theta = ast.Identifier(name="_theta")
 
     # Qubit identifiers
     q0 = ast.Identifier(name="q0")
     q1 = ast.Identifier(name="q1")
 
-    # Base Rzz-like body: CX - Rz(θ) - CX
+    # Base Rzz-like body: CX - Rz(_theta) - CX
     body = [
         ast.QuantumGate(
             modifiers=[], name=ast.Identifier(name="cx"), arguments=[], qubits=[q0, q1]

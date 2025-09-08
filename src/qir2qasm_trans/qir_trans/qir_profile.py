@@ -51,11 +51,11 @@ class Profile:
     """Base profile for mapping QIR constructs to OpenQASM 3.
 
     A `Profile` bundles:
-      - Structure/type mappings 
-      - Classical instruction builders 
-      - Function builders 
+      - Structure/type mappings
+      - Classical instruction builders
+      - Function builders
 
-    Attributes: 
+    Attributes:
         name (str): Profile name (e.g., "base_profile").
         structs (Dict[str, StructInfo]): Registered structure information by name.
         classical_instruction (Dict[str, InstructionInfo]): Builders info for
@@ -64,6 +64,7 @@ class Profile:
             function calls (e.g., QIS intrinsics).
         context (Context): An LLVM IR context for creating/looking up types.
     """
+
     def __init__(self, name: str):
         self.name = name
         self.structs: Dict[str, StructInfo] = {}
@@ -214,7 +215,7 @@ class BaseProfile(Profile):
 
         # register_rt_functions(["initialize"], void_type, [IntType(8).as_pointer()])
         # register_rt_functions([f"{x}_record_output" for x in ["tuple", "arry"]], void_type, [IntType(64), IntType(8).as_pointer()])
-        
+
         # Runtime helpers
         self.register_function(
             "__quantum__rt__result_record_output",

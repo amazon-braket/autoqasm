@@ -306,15 +306,15 @@ def test_parametric_gate_args():
 
     @aq.main(num_qubits=3)
     def parametric():
-        rx_theta(2, FreeParameter("θ"))
+        rx_theta(2, FreeParameter("_theta"))
 
     expected = """OPENQASM 3.0;
 gate rx_theta(theta) q {
     rx(theta) q;
 }
-input float θ;
+input float _theta;
 qubit[3] __qubits__;
-rx_theta(θ) __qubits__[2];"""
+rx_theta(_theta) __qubits__[2];"""
     assert parametric.build().to_ir() == expected
 
 
