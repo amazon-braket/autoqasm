@@ -21,12 +21,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
+      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -44,7 +44,7 @@ jobs:
         jupyter nbconvert --to html --execute --ExecutePreprocessor.kernel_name=python3 ./examples/3_1_Iterative_phase_estimation.ipynb
         jupyter nbconvert --to html --execute --ExecutePreprocessor.kernel_name=python3 ./examples/3_2_magic_state_distillation.ipynb
     - name: Upload coverage report to Codecov
-      uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
+      uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
       if: ${{ strategy.job-index }} == 0

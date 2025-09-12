@@ -18,6 +18,9 @@ from functools import singledispatchmethod
 from typing import Optional, Union
 
 import numpy as np
+from sympy import Integer
+
+from autoqasm.simulator.conversion import convert_to_output
 from braket.default_simulator.openqasm._helpers.arrays import (
     convert_discrete_set_to_list,
     convert_range_def_to_slice,
@@ -34,9 +37,6 @@ from braket.default_simulator.openqasm.parser.openqasm_ast import (
 )
 from braket.default_simulator.openqasm.program_context import ProgramContext, Table
 from braket.default_simulator.operation import GateOperation
-from sympy import Integer
-
-from autoqasm.simulator.conversion import convert_to_output
 
 
 class QubitTable(Table):

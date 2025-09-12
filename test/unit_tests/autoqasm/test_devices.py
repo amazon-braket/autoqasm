@@ -11,22 +11,21 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-"""AutoQASM tests exercising device-specific targeting functionality.
-"""
+"""AutoQASM tests exercising device-specific targeting functionality."""
 
 import json
 from unittest.mock import Mock, patch
 
 import pytest
+
+import autoqasm as aq
+from autoqasm import errors
+from autoqasm.instructions import cnot, cphaseshift00, h, rx, x
 from braket.aws import AwsDevice
 from braket.device_schema import DeviceActionType
 from braket.device_schema.simulators import GateModelSimulatorDeviceCapabilities
 from braket.devices import Devices
 from braket.parametric import FreeParameter
-
-import autoqasm as aq
-from autoqasm import errors
-from autoqasm.instructions import cnot, cphaseshift00, h, rx, x
 
 RIGETTI_REGION = "us-west-1"
 

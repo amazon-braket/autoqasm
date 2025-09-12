@@ -20,12 +20,12 @@ from collections.abc import Iterable
 from typing import Any
 
 import oqpy
-from braket.circuits.basis_state import BasisState, BasisStateInput
 
 from autoqasm import program as aq_program
 from autoqasm import types as aq_types
 from autoqasm.instructions.qubits import _qubit
 from autoqasm.types import QubitIdentifierType
+from braket.circuits.basis_state import BasisState, BasisStateInput
 
 
 def _qubit_instruction(

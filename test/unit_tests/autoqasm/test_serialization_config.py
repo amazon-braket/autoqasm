@@ -15,11 +15,10 @@
 
 import textwrap
 
-from braket.pulse import Frame, GaussianWaveform, Port
-
 import autoqasm as aq
 from autoqasm.program import OpenQASMSerializationProperties
 from autoqasm.pulse import barrier, play
+from braket.pulse import Frame, GaussianWaveform, Port
 
 PORT = Port(port_id="device_port_x0", dt=1e-9, properties={})
 FRAME = Frame(frame_id="predefined_frame_1", frequency=2e9, port=PORT, phase=0, is_predefined=True)

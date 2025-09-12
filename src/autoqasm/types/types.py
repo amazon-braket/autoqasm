@@ -21,11 +21,11 @@ from typing import Any, List, Union, get_args
 import numpy as np
 import oqpy
 import oqpy.base
-from braket.circuits import FreeParameterExpression
-from braket.registers import Qubit
 from openpulse import ast
 
 from autoqasm import errors, program
+from braket.circuits import FreeParameterExpression
+from braket.registers import Qubit
 
 
 def is_qasm_type(val: Any) -> bool:

@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.2.0 (2025-08-26)
+
+## What's Changed
+* infra: update supported python versions by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/77
+* change: Use Ankaa-2 instead of Aspen-M-3 in pulse examples by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/48
+* infra: onboard to use ruff by @AbeCoull in https://github.com/amazon-braket/autoqasm/pull/53
+* feature: Use hybrid_job from braket.jobs by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/66
+
+## New Contributors
+* @AbeCoull made their first contribution in https://github.com/amazon-braket/autoqasm/pull/53
+
+**Full Changelog**: https://github.com/amazon-braket/autoqasm/compare/v0.1.2...v0.1.3
+
+## v0.1.2 (2024-09-24)
+
+### What's Changed
+* doc: Add syntax highlighting to Python code blocks by @josh146 in https://github.com/amazon-braket/autoqasm/pull/43
+* doc: Update CODEOWNERS file by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/42
+* fix: Ensure all tests use valid OpenQASM and upgrade to latest Braket SDK by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/45
+* doc: Highlight Python syntax in md files by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/44
+
+### New Contributors
+* @josh146 made their first contribution in https://github.com/amazon-braket/autoqasm/pull/43
+
+**Full Changelog**: https://github.com/amazon-braket/autoqasm/compare/v0.1.1...v0.1.2
+
 ## v0.1.1 (2024-06-17)
 
 ### What's Changed

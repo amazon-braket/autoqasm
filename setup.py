@@ -18,13 +18,13 @@ with open("README.md", "r") as fh:
 
 setup(
     name="autoqasm",
-    version="0.1.1",
+    version="0.2.0",
     license="Apache License 2.0",
-    python_requires=">= 3.9",
+    python_requires=">= 3.10",
     packages=find_namespace_packages(where="src", exclude=("test",)),
     package_dir={"": "src"},
     install_requires=[
-        "amazon-braket-sdk>=1.81.1",
+        "amazon-braket-sdk>=1.89.1",
         "amazon-braket-default-simulator>=1.23.2",
         "oqpy~=0.3.5",
         "diastatic-malt",
@@ -39,10 +39,7 @@ setup(
     ],
     extras_require={
         "test": [
-            "black",
             "botocore",
-            "flake8<=5.0.4",
-            "isort",
             "jsonschema==3.2.0",
             "pre-commit",
             "pylint",
@@ -50,6 +47,7 @@ setup(
             "pytest-cov",
             "pytest-rerunfailures",
             "pytest-xdist[psutil]",
+            "ruff",
             "sphinx",
             "sphinx-rtd-theme",
             "sphinxcontrib-apidoc",
@@ -76,8 +74,9 @@ setup(
         "Natural Language :: English",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
 )

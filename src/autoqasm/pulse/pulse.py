@@ -17,6 +17,11 @@
 from __future__ import annotations
 
 import oqpy
+
+from autoqasm import program as aq_program
+from autoqasm.instructions.qubits import _get_physical_qubit_indices
+from autoqasm.reserved_keywords import sanitize_parameter_name
+from autoqasm.types import BitVar, QubitIdentifierType, is_qubit_identifier_type
 from braket.parametric import FreeParameterExpression
 from braket.parametric.free_parameter import FreeParameter
 from braket.pulse import PulseSequence
@@ -24,11 +29,6 @@ from braket.pulse.frame import Frame
 from braket.pulse.pulse_sequence import _validate_uniqueness
 from braket.pulse.waveforms import Waveform
 from braket.registers.qubit_set import QubitSet
-
-from autoqasm import program as aq_program
-from autoqasm.instructions.qubits import _get_physical_qubit_indices
-from autoqasm.reserved_keywords import sanitize_parameter_name
-from autoqasm.types import BitVar, QubitIdentifierType, is_qubit_identifier_type
 
 
 def _pulse_instruction(name: str, frame: Frame, *args) -> None:
