@@ -15,18 +15,18 @@
 
 import numpy as np
 import pytest
-from braket.circuits import FreeParameter
-from braket.default_simulator import StateVectorSimulator
-from braket.devices.local_simulator import LocalSimulator
-from braket.tasks.local_quantum_task import LocalQuantumTask
 
 import autoqasm as aq
 from autoqasm import pulse
 from autoqasm.instructions import cnot, cphaseshift, gpi, h, measure, ms, rx, rz, x
+from autoqasm.simulator import McmSimulator
+from braket.circuits import FreeParameter
+from braket.devices import LocalSimulator
+from braket.tasks.local_quantum_task import LocalQuantumTask
 
 
 def _test_parametric_on_local_sim(program: aq.Program, inputs: dict[str, float]) -> np.ndarray:
-    device = LocalSimulator(backend=StateVectorSimulator())
+    device = LocalSimulator(backend=McmSimulator())
     task = device.run(program, shots=100, inputs=inputs)
     assert isinstance(task, LocalQuantumTask)
     assert isinstance(task.result().measurements, dict)
@@ -319,19 +319,19 @@ def test_parametric_pulse_cals():
     """Test that pulse calibrations work with free parameters."""
 
     @aq.gate_calibration(implements=rx, target="$1")
-    def cal_1(angle: float):
-        pulse.delay("$1", angle)
+    def cal_1(theta: float):
+        pulse.delay("$1", theta)
 
     @aq.main
-    def my_program(theta):
-        rx("$1", theta)
+    def my_program(a):
+        rx("$1", a)
 
     expected = """OPENQASM 3.0;
-input float[64] theta;
-defcal rx(angle[32] angle) $1 {
-    delay[angle * 1s] $1;
+input float a;
+defcal rx(angle[32] theta) $1 {
+    delay[theta * 1s] $1;
 }
-rx(theta) $1;"""
+rx(a) $1;"""
     qasm = my_program.build().with_calibrations(cal_1).to_ir()
     assert qasm == expected
 
@@ -398,8 +398,8 @@ def sub(float[64] alpha, float[64] theta) {
     rx(theta) __qubits__[0];
     rx(alpha) __qubits__[1];
 }
-def rx_alpha(int[32] qubit) {
-    rx(alpha) __qubits__[qubit];
+def rx_alpha(int[32] qubit_) {
+    rx(alpha) __qubits__[qubit_];
 }
 float[64] alpha = 0.5;
 float[64] beta = 1.5;
@@ -424,8 +424,8 @@ def test_partial_bind():
     bound_prog = parametric.build().make_bound_program({"beta": np.pi})
 
     expected = """OPENQASM 3.0;
-def rx_alpha(int[32] qubit, float[64] theta) {
-    rx(theta) __qubits__[qubit];
+def rx_alpha(int[32] qubit_, float[64] theta) {
+    rx(theta) __qubits__[qubit_];
 }
 input float[64] alpha;
 float[64] beta = 3.141592653589793;
@@ -439,23 +439,23 @@ def test_binding_pulse_parameters():
     """Test binding programs with parametric pulse instructions."""
 
     @aq.gate_calibration(implements=rx, target="$1")
-    def cal_1(angle: float):
-        pulse.delay("$1", angle)
+    def cal_1(theta: float):
+        pulse.delay("$1", theta)
 
     @aq.main
-    def my_program(theta):
-        rx("$1", theta)
+    def my_program(a):
+        rx("$1", a)
 
-    qasm1 = my_program.build().with_calibrations(cal_1).make_bound_program({"theta": 0.6}).to_ir()
-    qasm2 = my_program.build().make_bound_program({"theta": 0.6}).with_calibrations(cal_1).to_ir()
+    qasm1 = my_program.build().with_calibrations(cal_1).make_bound_program({"a": 0.6}).to_ir()
+    qasm2 = my_program.build().make_bound_program({"a": 0.6}).with_calibrations(cal_1).to_ir()
     assert qasm1 == qasm2
 
     expected = """OPENQASM 3.0;
-float[64] theta = 0.6;
-defcal rx(angle[32] angle) $1 {
-    delay[angle * 1s] $1;
+float a = 0.6;
+defcal rx(angle[32] theta) $1 {
+    delay[theta * 1s] $1;
 }
-rx(theta) $1;"""
+rx(a) $1;"""
     assert expected == qasm1
 
 

@@ -33,6 +33,7 @@ import autoqasm.transpiler as aq_transpiler
 import autoqasm.types as aq_types
 from autoqasm import errors
 from autoqasm.program.gate_calibrations import GateCalibration
+from autoqasm.reserved_keywords import sanitize_parameter_name
 from autoqasm.types import QubitIdentifierType as Qubit
 
 
@@ -323,6 +324,11 @@ def _convert_subroutine(
     with aq_program.build_program() as program_conversion_context:
         oqpy_program = program_conversion_context.get_oqpy_program()
 
+        # Iterate over list of dictionary keys to avoid runtime error
+        for key in list(kwargs):
+            new_name = sanitize_parameter_name(key)
+            kwargs[new_name] = kwargs.pop(key)
+
         if f not in program_conversion_context.subroutines_processing:
             # Mark that we are starting to process this function to short-circuit recursion
             program_conversion_context.subroutines_processing.add(f)
@@ -339,13 +345,17 @@ def _convert_subroutine(
                 for i, param in enumerate(inspect.signature(f).parameters.values())
                 if param.annotation == aq_types.QubitIdentifierType
             }
+
+            # Map args and kwargs to function signature
+            bound_args = inspect.signature(oqpy_sub).bind(*[oqpy_program, *args], **kwargs)
+
             args = [
                 (aq_instructions.qubits._qubit(arg) if i in quantum_indices else arg)
-                for i, arg in enumerate(args)
+                for i, arg in enumerate(bound_args.args[1:])
             ]
 
             # Process the program
-            subroutine_function_call = oqpy_sub(oqpy_program, *args, **kwargs)
+            subroutine_function_call = oqpy_sub(oqpy_program, *args)
             program_conversion_context.register_args(args)
 
             # Mark that we are finished processing this function
@@ -357,8 +367,13 @@ def _convert_subroutine(
                 _wrap_for_oqpy_subroutine(_dummy_function(f), options)
             )
 
+            # Map args and kwargs to function signature
+            bound_args = inspect.signature(oqpy_sub).bind(*((oqpy_program, *args)), **kwargs)
+
+            args = bound_args.args[1:]
+
             # Process the program
-            subroutine_function_call = oqpy_sub(oqpy_program, *args, **kwargs)
+            subroutine_function_call = oqpy_sub(oqpy_program, *args)
 
         # Add the subroutine invocation to the program
         ret_type = subroutine_function_call.subroutine_decl.return_type
@@ -410,6 +425,12 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
     def _func(*args, **kwargs) -> Any:
         inner_program: oqpy.Program = args[0]
         with aq_program.get_program_conversion_context().push_oqpy_program(inner_program):
+            # Bind args and kwargs to '_func' signature
+            sig = inspect.signature(_func)
+            bound_args = sig.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+            args = bound_args.args
+            kwargs = bound_args.kwargs
             result = aq_transpiler.converted_call(f, args[1:], kwargs, options=options)
         inner_program.autodeclare()
         return result
@@ -432,8 +453,12 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
                 "is missing a required type hint."
             )
 
+        # Check whether 'param.name' is a reserved keyword
+        new_name = sanitize_parameter_name(param.name)
+        _func.__annotations__.pop(param.name)
+
         new_param = inspect.Parameter(
-            name=param.name,
+            name=new_name,
             kind=param.kind,
             annotation=aq_types.map_parameter_type(param.annotation),
         )
@@ -579,14 +604,14 @@ def _get_gate_args(f: Callable) -> aq_program.GateArgs:
 
         if param.annotation is param.empty:
             raise errors.MissingParameterTypeError(
-                f'Parameter "{param.name}" for gate "{f.__name__}" '
-                "is missing a required type hint."
+                f'Parameter "{param.name}" for gate "{f.__name__}" is missing a required type hint.'
             )
 
         if param.annotation == aq_instructions.QubitIdentifierType:
             gate_args.append_qubit(param.name)
-        elif param.annotation == float or any(
-            type_ == float for type_ in get_args(param.annotation)
+        elif param.annotation == float or any(  # noqa: E721
+            type_ == float  # noqa: E721
+            for type_ in get_args(param.annotation)
         ):
             gate_args.append_angle(param.name)
         else:

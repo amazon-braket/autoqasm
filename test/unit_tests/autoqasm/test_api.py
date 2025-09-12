@@ -16,18 +16,20 @@ generating OpenQASM, and in turn verifying the OpenQASM by running against
 the local simulator.
 """
 
+import math
+
 import pytest
-from braket.default_simulator import StateVectorSimulator
-from braket.devices.local_simulator import LocalSimulator
-from braket.tasks.local_quantum_task import LocalQuantumTask
 
 import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
+from autoqasm.simulator import McmSimulator
+from braket.devices import LocalSimulator
+from braket.tasks.local_quantum_task import LocalQuantumTask
 
 
 def _test_on_local_sim(program: aq.Program, inputs=None) -> None:
-    device = LocalSimulator(backend=StateVectorSimulator())
+    device = LocalSimulator(backend=McmSimulator())
     task = device.run(program, shots=10, inputs=inputs or {})
     assert isinstance(task, LocalQuantumTask)
     assert isinstance(task.result().measurements, dict)
@@ -952,11 +954,11 @@ def test_double_decorated_function():
 def test_to_ir_implicit_build(empty_program) -> None:
     """Test that to_ir works as expected with and without implicit build."""
     expected = """OPENQASM 3.0;"""
-    assert empty_program.build().to_ir(allow_implicit_build=False) == expected
-    assert empty_program.build().to_ir(allow_implicit_build=True) == expected
-    assert empty_program.to_ir(allow_implicit_build=True) == expected
+    assert empty_program.build().to_ir(build_if_necessary=False) == expected
+    assert empty_program.build().to_ir(build_if_necessary=True) == expected
+    assert empty_program.to_ir(build_if_necessary=True) == expected
     with pytest.raises(RuntimeError):
-        empty_program.to_ir(allow_implicit_build=False)
+        empty_program.to_ir(build_if_necessary=False)
 
 
 def test_main_no_return():
@@ -1092,17 +1094,17 @@ def test_input_types():
     @aq.main
     def multiple_input_types(x: int, y: bool, z: float, u):
         if x and y:
-            rx(target=0, angle=u + z)
+            rx(target=0, theta=u + z)
 
     @aq.main()
     def multiple_input_types_parens(x: int, y: bool, z: float, u):
         if x and y:
-            rx(target=0, angle=u + z)
+            rx(target=0, theta=u + z)
 
     @aq.main(num_qubits=1)
     def multiple_input_types_params(x: int, y: bool, z: float, u):
         if x and y:
-            rx(target=0, angle=u + z)
+            rx(target=0, theta=u + z)
 
     expected_ir = """OPENQASM 3.0;
 input int[32] x;
@@ -1240,3 +1242,53 @@ h __qubits__[1];
 h __qubits__[2];
 h __qubits__[3];"""
     assert main.build().to_ir() == expected_ir
+
+
+def test_subroutine_call_with_kwargs():
+    """Test that subroutine call works with keyword arguments"""
+
+    @aq.subroutine
+    def test(a: int, b: int) -> None:
+        aq.instructions.h(a)
+        aq.instructions.h(b)
+
+    @aq.main(num_qubits=2)
+    def main():
+        test(0, b=1)  # Test with one keyword argument
+        test(a=2, b=3)  # Test with keyword argument
+        test(b=5, a=4)  # Test with keyword argument in any order
+
+    expected = """OPENQASM 3.0;
+def test(int[32] a, int[32] b) {
+    h __qubits__[a];
+    h __qubits__[b];
+}
+qubit[2] __qubits__;
+test(0, 1);
+test(2, 3);
+test(4, 5);"""
+    assert main.build().to_ir() == expected
+
+
+def test_subroutine_call_with_reserved_keyword():
+    """Test that subroutine call works with reserved keyword as a variable name"""
+
+    @aq.subroutine
+    def make_input_state(input: int, theta: float):
+        rx(input, theta)
+        measure(input)
+
+    @aq.main(num_qubits=3)
+    def teleportation():
+        input, theta = 0, math.pi / 2
+        make_input_state(theta=theta, input=input)
+
+    expected = """OPENQASM 3.0;
+def make_input_state(int[32] input_, float[64] theta) {
+    rx(theta) __qubits__[input_];
+    bit __bit_0__;
+    __bit_0__ = measure __qubits__[input_];
+}
+qubit[3] __qubits__;
+make_input_state(0, 1.5707963267948966);"""
+    assert teleportation.build().to_ir() == expected

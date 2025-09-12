@@ -19,10 +19,10 @@ from unittest.mock import patch
 
 import oqpy.base
 import pytest
-from braket.circuits.serialization import IRType
 
 import autoqasm as aq
 from autoqasm.instructions import cnot, measure, rx
+from braket.circuits.serialization import IRType
 
 
 def test_program_conversion_context() -> None:
@@ -95,8 +95,8 @@ def test_multiprocessing() -> None:
     def expected(scale, angle):
         return (
             """OPENQASM 3.0;
-def circuit(float[64] angle) {
-    rx(angle) __qubits__[0];
+def circuit(float[64] angle_) {
+    rx(angle_) __qubits__[0];
     cnot __qubits__[0], __qubits__[1];
 }
 output bit return_value;

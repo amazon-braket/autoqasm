@@ -18,13 +18,14 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any, List, Union, get_args
 
+import numpy as np
 import oqpy
 import oqpy.base
-from braket.circuits import FreeParameterExpression
-from braket.registers import Qubit
 from openpulse import ast
 
 from autoqasm import errors, program
+from braket.circuits import FreeParameterExpression
+from braket.registers import Qubit
 
 
 def is_qasm_type(val: Any) -> bool:
@@ -96,7 +97,13 @@ class Range(oqpy.Range):
 
 
 class ArrayVar(oqpy.ArrayVar):
-    def __init__(self, *args, annotations: str | Iterable[str] | None = None, **kwargs):
+    def __init__(
+        self,
+        init_expression: Iterable,
+        *args,
+        annotations: str | Iterable[str] | None = None,
+        **kwargs,
+    ):
         if (
             program.get_program_conversion_context().subroutines_processing
             or not program.get_program_conversion_context().at_function_root_scope
@@ -104,8 +111,17 @@ class ArrayVar(oqpy.ArrayVar):
             raise errors.InvalidArrayDeclaration(
                 "Arrays may only be declared at the root scope of an AutoQASM main function."
             )
+
+        if not isinstance(init_expression, Iterable):
+            raise errors.InvalidArrayDeclaration("init_expression must be an iterable type.")
+
+        dimensions = np.shape(init_expression)
         super(ArrayVar, self).__init__(
-            *args, annotations=make_annotations_list(annotations), **kwargs
+            init_expression=init_expression,
+            *args,
+            annotations=make_annotations_list(annotations),
+            dimensions=dimensions,
+            **kwargs,
         )
         self.name = program.get_program_conversion_context().next_var_name(oqpy.ArrayVar)
 

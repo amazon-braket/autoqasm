@@ -25,12 +25,6 @@ from typing import Any
 
 import oqpy.base
 import pygments
-from braket.aws.aws_device import AwsDevice
-from braket.circuits.free_parameter_expression import FreeParameterExpression
-from braket.circuits.serialization import IRType, SerializableProgram
-from braket.device_schema import DeviceActionType
-from braket.devices.device import Device
-from braket.pulse.ast.qasm_parser import ast_to_qasm
 from openpulse import ast
 from openqasm_pygments import OpenQASM3Lexer
 from pygments.formatters.terminal import TerminalFormatter
@@ -44,6 +38,12 @@ from autoqasm.program.serialization_properties import (
     SerializationProperties,
 )
 from autoqasm.types import QubitIdentifierType as Qubit
+from braket.aws.aws_device import AwsDevice
+from braket.circuits.free_parameter_expression import FreeParameterExpression
+from braket.circuits.serialization import IRType, SerializableProgram
+from braket.device_schema import DeviceActionType
+from braket.devices.device import Device
+from braket.pulse.ast.qasm_parser import ast_to_qasm
 
 # Create the thread-local object for the program conversion context.
 _local = threading.local()
@@ -121,7 +121,7 @@ class MainProgram(SerializableProgram):
     def to_ir(
         self,
         ir_type: IRType = IRType.OPENQASM,
-        allow_implicit_build: bool = False,
+        build_if_necessary: bool = True,
         serialization_properties: SerializationProperties = OpenQASMSerializationProperties(),
     ) -> str:
         """Serializes the program into an intermediate representation.
@@ -129,20 +129,20 @@ class MainProgram(SerializableProgram):
         Args:
             ir_type (IRType): The IRType to use for converting the program to its
                 IR representation. Defaults to IRType.OPENQASM.
-            allow_implicit_build (bool): Whether to allow the program to be implicitly
-                built as a side effect of calling this function. Defaults to False.
+            build_if_necessary (bool): Whether to allow the program to be implicitly
+                built as a side effect of calling this function. Defaults to True.
             serialization_properties (SerializationProperties): IR serialization configuration.
                 Default to OpenQASMSerializationProperties().
 
         Raises:
             ValueError: Raised if the supplied `ir_type` is not supported.
-            RuntimeError: Raised if `allow_implicit_build` is False, since a MainProgram object
+            RuntimeError: Raised if `build_if_necessary` is False, since a MainProgram object
                 has not yet been built.
 
         Returns:
             str: A representation of the program in the `ir_type` format.
         """
-        if not allow_implicit_build:
+        if not build_if_necessary:
             raise RuntimeError(
                 "The AutoQASM program cannot be serialized because it has not yet been built. "
                 "To serialize the program, first call build() to obtain a built Program object, "
@@ -227,7 +227,7 @@ class Program(SerializableProgram):
     def to_ir(
         self,
         ir_type: IRType = IRType.OPENQASM,
-        allow_implicit_build: bool = True,
+        build_if_necessary: bool = True,
         serialization_properties: SerializationProperties = OpenQASMSerializationProperties(),
     ) -> str:
         """Serializes the program into an intermediate representation.
@@ -235,7 +235,7 @@ class Program(SerializableProgram):
         Args:
             ir_type (IRType): The IRType to use for converting the program to its
                 IR representation. Defaults to IRType.OPENQASM.
-            allow_implicit_build (bool): Whether to allow the program to be implicitly
+            build_if_necessary (bool): Whether to allow the program to be implicitly
                 built as a side effect of calling this function. Defaults to True.
                 This parameter is ignored for the Program class, since the program has
                 already been built.
@@ -898,7 +898,7 @@ def get_program_conversion_context() -> ProgramConversionContext:
     Returns:
         ProgramConversionContext: The thread-local ProgramConversionContext object.
     """
-    assert (
-        _get_local().program_conversion_context is not None
-    ), "get_program_conversion_context() must be called inside build_program() block"
+    assert _get_local().program_conversion_context is not None, (
+        "get_program_conversion_context() must be called inside build_program() block"
+    )
     return _get_local().program_conversion_context

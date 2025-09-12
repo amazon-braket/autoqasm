@@ -850,9 +850,7 @@ def test_py_if_stmt(value: int) -> None:
 
     expected = """OPENQASM 3.0;
 qubit[1] __qubits__;
-{} __qubits__[0];""".format(
-        "h" if value else "x"
-    )
+{} __qubits__[0];""".format("h" if value else "x")
     assert test_control_flow.build().to_ir() == expected
 
 
@@ -930,3 +928,126 @@ def test_py_list_ops() -> None:
         assert np.array_equal(c, [[2, 3, 4], [2, 3, 4]])
 
     assert test_list_ops.build().to_ir()
+
+
+def test_int_typecasting_on_measure():
+    @aq.main(num_qubits=2)
+    def main():
+        test = int(measure([0, 1]))  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
+int[32] test;
+qubit[2] __qubits__;
+bit[2] __bit_0__ = "00";
+__bit_0__[0] = measure __qubits__[0];
+__bit_0__[1] = measure __qubits__[1];
+int[32] __int_1__;
+__int_1__ = __bit_0__;
+test = __int_1__;"""
+    assert main.build().to_ir() == expected_ir
+
+
+def test_int_typecasting_on_python_string_not_captured():
+    @aq.main(num_qubits=2)
+    def main():
+        test = int("101", 2)  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;"""
+    assert main.build().to_ir() == expected_ir
+
+
+@pytest.mark.xfail(reason="Bug: assignments do not work as expected when operators are nested")
+def test_nested_int_typecasting_without_return():
+    @aq.main(num_qubits=2)
+    def main():
+        test = 2 * int(measure([0, 1]))  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;
+bit[2] __bit_0__ = "00";
+__bit_0__[0] = measure __qubits__[0];
+__bit_0__[1] = measure __qubits__[1];
+int[32] __int_1__;
+__int_1__ = __bit_0__;
+test = 2 * __int_1__;"""
+    assert main.build().to_ir() == expected_ir
+
+
+def test_nested_int_typecasting_with_return():
+    @aq.main(num_qubits=2)
+    def main():
+        test = 2 * int(measure([0, 1]))  # noqa: F841
+        return test
+
+    expected_ir = """OPENQASM 3.0;
+output int[32] test;
+qubit[2] __qubits__;
+bit[2] __bit_0__ = "00";
+__bit_0__[0] = measure __qubits__[0];
+__bit_0__[1] = measure __qubits__[1];
+int[32] __int_1__;
+__int_1__ = __bit_0__;
+test = 2 * __int_1__;"""
+    assert main.build().to_ir() == expected_ir
+
+
+def test_integer_division_on_intvars():
+    @aq.main(num_qubits=2)
+    def main():
+        a = aq.IntVar(5)
+        b = aq.IntVar(2)
+        c = a // b  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
+int[32] c;
+qubit[2] __qubits__;
+int[32] a = 5;
+int[32] b = 2;
+int[32] __int_2__;
+__int_2__ = a / b;
+c = __int_2__;"""
+    assert main.build().to_ir() == expected_ir
+
+
+def test_integer_division_on_mixed_vars():
+    @aq.main(num_qubits=2)
+    def main():
+        a = aq.IntVar(5)
+        b = aq.FloatVar(2.3)
+        c = a // b  # noqa: F841
+        d = b // a  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
+float[64] c;
+float[64] d;
+qubit[2] __qubits__;
+int[32] a = 5;
+float[64] b = 2.3;
+float[64] __float_2__;
+__float_2__ = a;
+int[32] __int_3__;
+__int_3__ = __float_2__ / b;
+float[64] __float_4__;
+__float_4__ = __int_3__;
+c = __float_4__;
+float[64] __float_5__;
+__float_5__ = a;
+int[32] __int_6__;
+__int_6__ = b / __float_5__;
+float[64] __float_7__;
+__float_7__ = __int_6__;
+d = __float_7__;"""
+    assert main.build().to_ir() == expected_ir
+
+
+def test_integer_division_on_python_types():
+    @aq.main(num_qubits=2)
+    def main():
+        a = 5
+        b = 2.3
+        c = a // b  # noqa: F841
+
+    expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;"""
+    assert main.build().to_ir() == expected_ir

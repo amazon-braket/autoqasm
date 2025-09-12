@@ -16,8 +16,6 @@
 import textwrap
 
 import pytest
-from braket.parametric import FreeParameter
-from braket.pulse import ArbitraryWaveform, Frame, Port
 
 import autoqasm as aq
 from autoqasm.instructions import rx
@@ -32,6 +30,8 @@ from autoqasm.pulse import (
     shift_frequency,
     shift_phase,
 )
+from braket.parametric import FreeParameter
+from braket.pulse import ArbitraryWaveform, Frame, Port
 
 PORT = Port(port_id="device_port_x0", dt=1e-9, properties={})
 FRAME1 = Frame(frame_id="predefined_frame_1", frequency=2e9, port=PORT, phase=0, is_predefined=True)
@@ -156,7 +156,7 @@ def test_merge_cal_box() -> None:
             capture_v0,
             FRAME1,
             [],
-            ("\nbit __bit_0__;" "\ncal {\n    __bit_0__ = capture_v0(predefined_frame_1);\n}"),
+            ("\nbit __bit_0__;\ncal {\n    __bit_0__ = capture_v0(predefined_frame_1);\n}"),
         ),
     ],
 )
@@ -188,17 +188,17 @@ def test_pulse_freeparameter() -> None:
     """Test pulse program with free parameter."""
 
     @aq.main
-    def my_program(duration):
-        delay(["$3", "$4"], duration)
+    def my_program(duration1):
+        delay(["$3", "$4"], duration1)
         delay(["$3", "$4"], FreeParameter("duration2"))
 
     expected = textwrap.dedent(
         """
         OPENQASM 3.0;
-        input float duration;
+        input float duration1;
         input float duration2;
         cal {
-            delay[duration * 1s] $3, $4;
+            delay[duration1 * 1s] $3, $4;
             delay[duration2 * 1s] $3, $4;
         }
         """
@@ -210,19 +210,19 @@ def test_pulse_freeparameter_bound() -> None:
     """Test pulse program with freeparameter bound with values."""
 
     @aq.main
-    def my_program(duration):
-        delay(["$3", "$4"], duration)
+    def my_program(duration1):
+        delay(["$3", "$4"], duration1)
 
     expected = textwrap.dedent(
         """
         OPENQASM 3.0;
-        float duration = 0.123;
+        float duration1 = 0.123;
         cal {
-            delay[duration * 1s] $3, $4;
+            delay[duration1 * 1s] $3, $4;
         }
         """
     ).strip()
-    qasm = my_program.build().make_bound_program({"duration": 0.123}).to_ir()
+    qasm = my_program.build().make_bound_program({"duration1": 0.123}).to_ir()
     assert qasm == expected
 
 
@@ -230,21 +230,21 @@ def test_pulse_freeparameter_condition() -> None:
     """Test pulse program with freeparameter in condition."""
 
     @aq.main
-    def my_program(duration, duration2):
-        delay(["$3", "$4"], duration)
-        if duration > duration2:
+    def my_program(duration1, duration2):
+        delay(["$3", "$4"], duration1)
+        if duration1 > duration2:
             delay(["$3", "$4"], duration2)
 
     expected = textwrap.dedent(
         """
         OPENQASM 3.0;
-        input float duration;
+        input float duration1;
         input float duration2;
         cal {
-            delay[duration * 1s] $3, $4;
+            delay[duration1 * 1s] $3, $4;
         }
         bool __bool_0__;
-        __bool_0__ = duration > duration2;
+        __bool_0__ = duration1 > duration2;
         if (__bool_0__) {
             cal {
                 delay[duration2 * 1s] $3, $4;

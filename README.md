@@ -56,7 +56,7 @@ quantum programs with a simplified syntax and run the programs on the service. I
 model programming paradigm that is also used in the Amazon Braket SDK.
 
 First, import the following modules and functions:
-```
+```python
 import autoqasm as aq
 from autoqasm.instructions import h, cnot, measure
 ```
@@ -66,7 +66,7 @@ This allows AutoQASM to hook into the program definition and generate an output 
 by quantum devices.
 
 For instance, we can create a Bell state like so:
-```
+```python
 # A program that generates a maximally entangled state
 @aq.main
 def bell_state():
@@ -74,12 +74,12 @@ def bell_state():
     cnot(0, 1)
 ```
 
-You can view the output format, which is OpenQASM, by running `bell_state.display()`.
+You can view the output format, which is OpenQASM, by running `bell_state.build().display()`.
 
 AutoQASM enables users to use more complicated program constructs with a compact and readable
 structure. We can demonstrate this with a program that conditionally prepares multiple Bell states
 on qubit pairs (1, 2) and (3, 4).
-```
+```python
 @aq.main(num_qubits=5)
 def conditional_multi_bell_states() -> None:
     h(0)
@@ -96,18 +96,20 @@ AutoQASM can support subroutines and complex control flow. You can use the Pytho
 and quantum runtime side-by-side. There are rough edges at the moment, but we're actively smoothing
 them out!
 
-The Amazon Braket local simulator supports AutoQASM programs as input.
+AutoQASM includes a simulator which can be accessed using the Amazon Braket local simulator interface.
 Let's simulate the `conditional_multi_bell_states` program:
 
-```
-from braket.devices.local_simulator import LocalSimulator
+```python
+from braket.devices import LocalSimulator
 
-device = LocalSimulator()
+device = LocalSimulator("autoqasm")
 task = device.run(conditional_multi_bell_states, shots=100)
 result = task.result()
 ```
 
 Read more about AutoQASM decorators like `@aq.main` [here](doc/decorators.md).
+
+Read more about using AutoQASM with Amazon Braket Hybrid Jobs [here](doc/hybrid_jobs.md).
 
 For more example usage of AutoQASM, visit the [example notebooks](examples).
 

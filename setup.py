@@ -18,18 +18,14 @@ with open("README.md", "r") as fh:
 
 setup(
     name="autoqasm",
-    version="0.0.1.dev0",
+    version="0.2.0",
     license="Apache License 2.0",
-    python_requires=">= 3.9",
+    python_requires=">= 3.10",
     packages=find_namespace_packages(where="src", exclude=("test",)),
     package_dir={"": "src"},
     install_requires=[
-        # Pin the latest commit of mcm-sim branch of amazon-braket/amazon-braket-sdk-python.git
-        # and amazon-braket/amazon-braket-default-simulator-python.git to get the version of the
-        # simulator that supports the mcm=True argument for Monte Carlo simulation of mid-circuit
-        # measurement, which AutoQASM requires.
-        "amazon-braket-sdk @ git+https://github.com/amazon-braket/amazon-braket-sdk-python.git@ff73de68cf6ac2d0a921e8fe62693e5b9ae2e321#egg=amazon-braket-sdk",  # noqa E501
-        "amazon-braket-default-simulator @ git+https://github.com/amazon-braket/amazon-braket-default-simulator-python.git@ab068c860963c29842d7649c741f88da669597eb#egg=amazon-braket-default-simulator",  # noqa E501
+        "amazon-braket-sdk>=1.89.1",
+        "amazon-braket-default-simulator>=1.23.2",
         "oqpy~=0.3.5",
         "diastatic-malt",
         "numpy",
@@ -43,10 +39,7 @@ setup(
     ],
     extras_require={
         "test": [
-            "black",
             "botocore",
-            "flake8<=5.0.4",
-            "isort",
             "jsonschema==3.2.0",
             "pre-commit",
             "pylint",
@@ -54,11 +47,17 @@ setup(
             "pytest-cov",
             "pytest-rerunfailures",
             "pytest-xdist[psutil]",
+            "ruff",
             "sphinx",
             "sphinx-rtd-theme",
             "sphinxcontrib-apidoc",
             "tox",
         ],
+    },
+    entry_points={
+        "braket.simulators": [
+            "autoqasm = autoqasm.simulator.simulator:McmSimulator",
+        ]
     },
     include_package_data=True,
     url="https://github.com/amazon-braket/autoqasm",
@@ -75,8 +74,9 @@ setup(
         "Natural Language :: English",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
 )
