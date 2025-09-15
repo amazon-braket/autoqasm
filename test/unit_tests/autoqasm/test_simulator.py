@@ -158,7 +158,7 @@ def test_qubit_register_invalid_index(invalid_index):
         x __qubits__[{invalid_index}];
         bit[2] __bit_0__ = measure __qubits__;
     """
-    with pytest.raises(TypeError, match="tuple indices must be integers or slices"):
+    with pytest.raises(TypeError, match=r"slice indices must be integers, not"):
         NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm)
 
 

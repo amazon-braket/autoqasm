@@ -163,7 +163,7 @@ class QubitTable(Table):
         elif isinstance(last_index, DiscreteSet):
             return len(last_index.values)
         else:
-            raise TypeError(f"tuple indices must be integers or slices, not {type(last_index)}")
+            raise TypeError(f"slice indices must be integers, not {type(last_index)}")
 
     def get_qubit_size(self, identifier: Union[Identifier, IndexedIdentifier]) -> int:
         """Gets the number of qubit indices for the given identifier.
