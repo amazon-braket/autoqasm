@@ -14,9 +14,8 @@
 """Builders for QIR → OpenQASM 3 translator"""
 
 import re
-from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import networkx as nx
 from llvmlite.binding.module import ValueRef
@@ -26,15 +25,15 @@ from openqasm3 import ast
 
 
 class FunctionBuilder:
-    """Building interface for the QIR function-call instruction (``call ...``)
+    """Building interface for the QIR function-call instruction (`call ...`)
 
-    Subclasses should override ``building``
+    Subclasses should override `building`
     """
 
     def building(
         self, symbols, ret_type: TypeRef, operands: List[ValueRef]
     ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
-        """Build OpenQASM statements for a single QIR ``call`` instruction
+        """Build OpenQASM statements for a single QIR `call` instruction
 
         Args:
             symbols (SymbolTable): Translation context.
@@ -44,7 +43,7 @@ class FunctionBuilder:
         Returns:
             A tuple (ret_ident, statements) where:
             - ret_ident: OpenQASM identifier for the result of the QIR instruction
-                (i.e., ``%1 = call ...``).
+                (i.e., `%1 = call ...`).
             - statements: List of OpenQASM statements for the QIR instruction.
         """
         return None, []
@@ -60,9 +59,9 @@ class FunctionInfo:
 
 
 class InstructionBuilder:
-    """Building interface for the LLVM IR instructions (i.e. ``inttoptr``)
+    """Building interface for the LLVM IR instructions (i.e. `inttoptr`)
 
-    Subclasses should override ``building``
+    Subclasses should override `building`
     """
 
     def building(
@@ -80,9 +79,9 @@ class InstructionInfo:
 
 
 class DeclBuilder:
-    """Building interface for the QIR struct declarations (i.e. ``Qubit``, ``Result``)
+    """Building interface for the QIR struct declarations (i.e. `Qubit`, `Result`)
 
-    Subclasses should override ``building``
+    Subclasses should override `building`
     """
 
     def building(self, name: str, size: int) -> ast.Statement:
@@ -111,15 +110,15 @@ class SymbolTable:
 
     def __init__(self):
         # Struct / LLVM IR / QIR function registries
-        self.structs: OrderedDict[str, StructInfo] = {}
-        self.instructions: OrderedDict[str, InstructionInfo] = {}
-        self.functions: OrderedDict[str, FunctionInfo] = {}
+        self.structs: Dict[str, StructInfo] = {}
+        self.instructions: Dict[str, InstructionInfo] = {}
+        self.functions: Dict[str, FunctionInfo] = {}
 
-        # OpenQASM identifier for the SSA value (i.e. ``%1 = ...``)
-        self.variables: OrderedDict[str, Union[ast.IndexedIdentifier, ast.Identifier]] = {}
+        # OpenQASM identifier for the SSA value (i.e. `%1 = ...`)
+        self.variables: Dict[str, Union[ast.IndexedIdentifier, ast.Identifier]] = {}
 
         # I/O Tags for the OpenQASM variables
-        self.io_variables: OrderedDict[str, List[Tuple[ast.ClassicalType, ast.Identifier]]] = {
+        self.io_variables: Dict[str, List[Tuple[ast.ClassicalType, ast.Identifier]]] = {
             "input": [],
             "output": [],
         }
@@ -129,16 +128,17 @@ class SymbolTable:
         self.io_naming: Callable = lambda sname, io_key, idx: f"{sname}_{io_key[0]}{idx}"
 
         # Counters for sizing OpenQASM temporaries and constants (i.e. `qubit[n]`)
-        self.structs_num: OrderedDict[str, int] = {}
-        self.structs_tmp_num: OrderedDict[str, int] = {}
-        self.classical_tmp: OrderedDict[str, ast.ClassicalType] = {}
-        self.classical_tmp_num: OrderedDict[str, int] = {}
+        self.structs_num: Dict[str, int] = {}
+        self.structs_tmp_num: Dict[str, int] = {}
+        self.classical_tmp: Dict[str, ast.ClassicalType] = {}
+        self.classical_tmp_num: Dict[str, int] = {}
 
         # Control-flow scaffolding
         self.entry_block: str = None
-        self.block_statements: OrderedDict[str, List[ast.Statement]] = {}
-        self.block_branchs: OrderedDict[str, BranchInfo] = {}
+        self.block_statements: Dict[str, List[ast.Statement]] = {}
+        self.block_branchs: Dict[str, BranchInfo] = {}
         self.cfg: nx.DiGraph = nx.DiGraph()
+        self.block_tmp_num: int = 0
 
     def register_struct(self, name: str, info: StructInfo):
         """Register a struct type and initialize counters."""
@@ -195,7 +195,7 @@ class SymbolTable:
         elif type_str == "pointer":
             type_qasm = self.type_qir2qasm(tp.element_type)
             if type_qasm[0] != "pointer":
-                # return the ``ast_type`` of the element
+                # return the `ast_type` of the element
                 type_ast = type_qasm[1]
             else:
                 # Reject pointer-to-pointer
@@ -215,12 +215,12 @@ class SymbolTable:
         Returns:
             Union[ast.IndexedIdentifier, ast.Expression]:
                 - If the value is a constant integer or float, returns the
-                corresponding OpenQASM literal (``IntegerLiteral`` or ``FloatLiteral``).
-                - If the value encodes a supported LLVM IR (e.g., ``inttoptr``),
-                dispatches to the appropriate ``InstructionBuilder`` and returns the
+                corresponding OpenQASM literal (`IntegerLiteral` or `FloatLiteral`).
+                - If the value encodes a supported LLVM IR (e.g., `inttoptr`),
+                dispatches to the appropriate `InstructionBuilder` and returns the
                 resulting identifier.
                 - Otherwise, returns the identifier previously recorded in the
-                symbol table via ``record_variables()``.
+                symbol table via `record_variables()`.
         """
         if value_qir.is_constant:
             value = value_qir.get_constant_value()
@@ -259,8 +259,8 @@ class SymbolTable:
         Returns:
             ast.IndexedIdentifier: An indexed identifier referencing the allocated
             temporary. The identifier name follows:
-                - ``<StructName>_tmp[<idx>]`` for struct temporaries.
-                - ``<TypeName>_tmp[<idx>]`` for classical temporaries.
+                - `<StructName>_tmp[<idx>]` for struct temporaries.
+                - `<TypeName>_tmp[<idx>]` for classical temporaries.
         """
         if isinstance(type_ast, str):
             # Struct temporary buffer.
@@ -294,13 +294,13 @@ class SymbolTable:
         Args:
             type_ast (ast.ClassicalType): The OpenQASM classical type of the variable
                 (e.g., IntType, FloatType).
-            io_key (str): Either ``"input"`` or ``"output"``, indicating the I/O role.
+            io_key (str): Either `"input"` or `"output"`, indicating the I/O role.
 
         Returns:
             ast.Identifier: A new identifier with the naming convention
-            ``<TypeName>_<i/o><index>``, for example:
-                - ``IntType_i0`` for the first integer input.
-                - ``FloatType_o1`` for the second float output.
+            `<TypeName>_<i/o><index>`, for example:
+                - `IntType_i0` for the first integer input.
+                - `FloatType_o1` for the second float output.
         """
         name = type_ast.__class__.__name__
         idx = len(self.io_variables[io_key])
@@ -308,28 +308,14 @@ class SymbolTable:
         var_ast = ast.Identifier(name=ident_name)
         self.io_variables[io_key].append((type_ast, var_ast))
         return var_ast
-
-    # def alloc_tmp_struct(self, name) -> ast.IndexedIdentifier:
-    #     idx = self.structs_tmp_num[name]
-    #     self.structs_tmp_num[name] += 1
-    #     return ast.IndexedIdentifier(name=ast.Identifier(name=f"{name}_tmp"), indices=[[ast.IntegerLiteral(value=idx)]])
-
-    # def alloc_tmp_classical(self, ret_type: TypeRef) -> ast.IndexedIdentifier:
-    #     _, type_ast = self.type_qir2qasm(ret_type)
-    #     assert isinstance(type_ast, ast.ClassicalType)
-
-    #     type_name = type_ast.__class__.__name__
-
-    #     idx = self.classical_tmp_num.get(type_name)
-    #     if idx is None:
-    #         idx = 0
-    #         self.classical_tmp_num[type_name] = 1
-    #         self.classical_tmp[type_name] = type_ast
-    #     else:
-    #         self.classical_tmp_num[type_name] += 1
-
-    #     return ast.IndexedIdentifier(name=ast.Identifier(name=f"{type_name}_tmp"), indices=[[ast.IntegerLiteral(value=idx)]])
-
+    
+    def new_tmp_block_name(self) -> str:
+        """Gnerate the name for a new temporary block in control flow.
+        """
+        block_name = f"_tmp_block_{self.block_tmp_num}"
+        self.block_tmp_num += 1
+        return block_name
+    
 
 ## StructBuilder implementations
 
@@ -423,55 +409,6 @@ class InttoptrBuilder(InstructionBuilder):
         )
 
 
-# def type_qir2qasm(tp: TypeRef) -> Tuple[str, Optional[Union[ast.ClassicalType, str]]]:
-#     type_kind = tp.type_kind
-#     _FLOAT_BIT_WIDTHS = {
-#         "half": 16,
-#         "float": 32,
-#         "double": 64,
-#         "x86_fp80": 80,
-#         "fp128": 128,
-#         "ppc_fp128": 128,
-#     }
-#     type_str = type_kind.name
-#     type_ast = None
-
-#     if type_str == "void":
-#         pass
-#     elif type_str in _FLOAT_BIT_WIDTHS.keys():
-#         width = _FLOAT_BIT_WIDTHS[type_str]
-#         type_ast = ast.FloatType(size=ast.IntegerLiteral(value=width))
-#     elif type_str == "integer":
-#         if tp.type_width == 1:
-#             type_ast = ast.BoolType()
-#         else:
-#             type_ast = ast.IntType(tp.type_width)
-#     elif type_str == "struct":
-#         if tp.name == "Qubit":
-#             type_ast = "Qubit"
-#         elif tp.name == "Result":
-#             type_ast = ast.BitType()
-#         else:
-#             raise Exception(f"Unsupported struct")
-#     elif type_str == "array":
-#         pass # TODO
-#     elif type_str == "pointer":
-#         type_qasm = type_qir2qasm(tp.element_type)
-#         if type_qasm[0] != "pointer":
-#             type_ast = type_qasm[1]
-#         else:
-#             raise Exception(f"Unsupported ptr to ptr")
-#     elif type_str == "vector":
-#         pass # TODO
-#     else:
-#         raise Exception(f"{type_str} Undefined!")
-#     return type_str, type_ast
-
-
-# def get_return_type(func_type: TypeRef) -> TypeRef:
-#     return [tp for tp in func_type.element_type.elements][0]
-
-
 def identifier2expression(
     ident: Union[ast.IndexedIdentifier, ast.Identifier, ast.Expression],
 ) -> ast.Expression:
@@ -504,12 +441,12 @@ def preprocess_params(
     Returns:
         A tuple (ret_ident, arguments, qubits, assign_ident) where:
         - ret_ident: Optional identifier for the return SSA value
-            (``None`` for void-returning calls).
+            (`None` for void-returning calls).
         - arguments: Classical expressions to be passed as arguments.
         - qubits: List of qubit identifiers collected from operands.
         - assign_ident: Identifier representing the assignment resulting
             from a function return or a pointer argument
-            (e.g., ``typeA func(...)`` or ``void func(typeA* &arg_A, ...)``).
+            (e.g., `typeA func(...)` or `void func(typeA* &arg_A, ...)`).
     """
     ret_ident = None
     assign_ident = None
@@ -627,7 +564,7 @@ class MeasurementBuilder(FunctionBuilder):
 
 
 class DefCalBuilder(FunctionBuilder):
-    """Translate a ``defcal`` function call."""
+    """Translate a `defcal` function call."""
 
     def __init__(self, name: str):
         self.ident = ast.Identifier(name=name)
@@ -661,11 +598,7 @@ class DefCalBuilder(FunctionBuilder):
 
 
 class LoadBuilder(FunctionBuilder):
-    """Translate a simple load-like operation that aliases the operand as the result.
-
-    Semantics:
-      result := operand[0]
-    """
+    """Translate a simple load-like operation that aliases the operand as the result."""
 
     def building(
         self, symbols: SymbolTable, ret_type: TypeRef, operands: List[ValueRef]
@@ -748,6 +681,23 @@ class OutputBuilder(FunctionBuilder):
             lvalue=assign_ident, op=ast.AssignmentOperator["="], rvalue=op_value
         )
         return None, [statement]
+    
+
+class ReturnBuilder(FunctionBuilder):
+    """Translate a `return` statement."""
+
+    def building(
+        self, symbols: SymbolTable, ret_type: TypeRef, operands: List[ValueRef]
+    ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
+        ## TODO: fix this for the OpenQASM subroutine
+        # if len(operands) == 1:
+        #     op_value = identifier2expression(symbols.value_qir2qasm(operands[0]))
+        # else:
+        #     assert len(operands) == 0
+        #     op_value = None
+        # statement = ast.ReturnStatement(expression=op_value)
+        # return None, [statement]
+        return None, []
 
 
 # ----------------------

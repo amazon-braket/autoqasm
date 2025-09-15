@@ -1,5 +1,5 @@
-; ModuleID = 'while_test'
-source_filename = "while_test"
+; ModuleID = 'dynamic_allocation'
+source_filename = "dynamic_allocation"
 
 %Qubit = type opaque
 %Result = type opaque
@@ -7,23 +7,25 @@ source_filename = "while_test"
 define void @main() #0 {
 A0:
   %0 = call i32 @get_int()
-  %1 = add i32 0, %0
-  br i1 0, label %B1, label %C2
+  br label %B1
 
-B1:                                            
-  %2 = add i32 1, %0
+B1:            
+  %1 = add i32 1, %0      
+  br label %C2
+
+C2:         
+  %2 = add i32 2, %0      
+  br label %D3
+
+D3:   
+  %3 = add i32 3, %0
   br i1 0, label %B1, label %E4
-  
-C2:
-  %3 = add i32 2, %0                                       
-  br i1 0, label %E4, label %D3
 
-D3:                                            
-  %4 = add i32 3, %0
-  br i1 0, label %C2, label %D3
+E4:                                      
+  %4 = add i32 4, %0
+  br i1 0, label %F5, label %C2
 
-E4:                                            
-  %5 = add i32 4, %0
+F5:                      
   ret void
 }
 

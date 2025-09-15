@@ -1,5 +1,5 @@
-; ModuleID = 'while_test'
-source_filename = "while_test"
+; ModuleID = 'dynamic_allocation'
+source_filename = "dynamic_allocation"
 
 %Qubit = type opaque
 %Result = type opaque
@@ -12,18 +12,22 @@ A0:
 
 B1:                                            
   %2 = add i32 1, %0
-  br i1 0, label %B1, label %E4
-  
+  br i1 0, label %D3, label %E4
+
 C2:
   %3 = add i32 2, %0                                       
-  br i1 0, label %E4, label %D3
+  br label %E4
 
 D3:                                            
   %4 = add i32 3, %0
-  br i1 0, label %C2, label %D3
+  br label %F5
 
-E4:                                            
+E4:                                          
   %5 = add i32 4, %0
+  br label %F5
+
+F5:                                          
+  %6 = add i32 5, %0
   ret void
 }
 

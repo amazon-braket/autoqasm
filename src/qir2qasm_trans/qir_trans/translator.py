@@ -27,10 +27,12 @@ from .builder import (
     DeclBuilder,
     DefCalBuilder,
     FunctionInfo,
+    ReturnBuilder,
     SymbolTable,
 )
-from .cfg_pattern import IfPattern1, SeqPattern
+from .cfg_pattern import IfPattern, SeqPattern, WhilePattern
 from .qir_profile import BaseProfile, Profile
+from .control_flow import isolate_if_pattern, isolate_while_pattern
 
 # Reserved OpenQASM 3 keywords that must not be used as identifiers.
 _RESERVED_KEYWORDS = frozenset(
@@ -84,6 +86,8 @@ _RESERVED_KEYWORDS = frozenset(
         "while",
     }
 )
+
+_END_KEYWORD = "_function_end_"
 
 # Mapping from LLVM arithmetic opcodes to classical expression builders.
 _LLVM_INSTRUCTIONS = {
@@ -349,10 +353,13 @@ class QASM3Builder:
         # Track entry block name for control-flow assembly.
         self.entry_block = list(main_func.blocks)[0].name
 
+        # 
+        self.symbols.block_statements[_END_KEYWORD] = []
+        self.symbols.block_branchs[_END_KEYWORD] = BranchInfo(None, [])
+
         # Trabslate each basic block in order.
-        for idx, block in enumerate(main_func.blocks):
+        for block in main_func.blocks:
             self.build_block(block)
-            # statements.extend(self.build_block(block))
 
         # TODO: Assemble control flow
         self.build_control()
@@ -374,8 +381,8 @@ class QASM3Builder:
             inst_statements, br_info = self.build_instruction(inst)
             statements.extend(inst_statements)
         assert br_info is not None
-        self.symbols.block_branchs[block_name] = br_info
         self.symbols.block_statements[block_name] = statements
+        self.symbols.block_branchs[block_name] = br_info
         return statements
 
     def build_control(self):
@@ -394,7 +401,10 @@ class QASM3Builder:
         is_updated = True
         while is_updated:
             is_updated = SeqPattern().building(self.symbols)
-            is_updated = is_updated or IfPattern1().building(self.symbols)
+            is_updated = IfPattern().building(self.symbols) or is_updated 
+            is_updated = WhilePattern().building(self.symbols) or is_updated
+            is_updated = is_updated or isolate_if_pattern(self.symbols)
+            is_updated = is_updated or isolate_while_pattern(self.symbols)
 
     def build_instruction(self, instruction: ValueRef) -> Tuple[List[ast.Statement], Optional[BranchInfo]]:
         """Translate a single LLVM instruction.
@@ -410,17 +420,38 @@ class QASM3Builder:
         br_info: Optional[BranchInfo] = None
 
         if instruction.opcode in _LLVM_INSTRUCTIONS.keys():
-            statements.extend(self.build_llvm_inst(instruction))
+            statements = self.build_llvm_inst(instruction)
         elif instruction.opcode == "call":
-            statements.extend(self.build_func_call(instruction))
+            statements = self.build_func_call(instruction)
         elif instruction.opcode == "br":
             br_info = self.build_branch(instruction)
         elif instruction.opcode == "ret":
-            br_info = BranchInfo(None, [])
+            statements = self.build_return(instruction)
+            br_info = BranchInfo(None, [_END_KEYWORD])
         else:
             raise Exception(f"Undefined llvm instruction: {instruction.opcode}")
 
         return statements, br_info
+
+    def build_llvm_inst(self, inst: ValueRef) -> List[ast.Statement]:
+        """Translate a supported LLVM arithmetic instruction to QASM statements.
+
+        Args:
+            inst (ValueRef): LLVM instruction (e.g., `add`, `sub`, `mul`).
+
+        Returns:
+            List[ast.Statement]: Emitted statements and records the SSA result.
+        """
+        operands = list(inst.operands)
+        func_builder = _LLVM_INSTRUCTIONS[inst.opcode]
+        ret_type = inst.type
+
+        ret_ident, statements = func_builder.building(self.symbols, ret_type, operands)
+        assert ret_ident is not None
+        # if ret_ident:
+        #     self.symbols.record_variables(inst, ret_ident)
+        self.symbols.record_variables(inst, ret_ident)
+        return statements
 
     def build_func_call(self, inst: ValueRef) -> List[ast.Statement]:
         """Translate a QIR `call` instruction into OpenQASM statements.
@@ -449,24 +480,6 @@ class QASM3Builder:
             self.symbols.record_variables(inst, ret_ident)
         return statements
 
-    def build_llvm_inst(self, inst: ValueRef) -> List[ast.Statement]:
-        """Translate a supported LLVM arithmetic instruction to QASM statements.
-
-        Args:
-            inst (ValueRef): LLVM instruction (e.g., `add`, `sub`, `mul`).
-
-        Returns:
-            List[ast.Statement]: Emitted statements and records the SSA result.
-        """
-        operands = list(inst.operands)
-        func_builder = _LLVM_INSTRUCTIONS[inst.opcode]
-        ret_type = inst.type
-        ret_ident, statements = func_builder.building(self.symbols, ret_type, operands)
-        # if ret_ident:
-        #     self.symbols.record_variables(inst, ret_ident)
-        self.symbols.record_variables(inst, ret_ident)
-        return statements
-
     def build_branch(self, inst: ValueRef) -> BranchInfo:
         """Extract branch information (targets and optional condition).
 
@@ -477,15 +490,28 @@ class QASM3Builder:
             BranchInfo: Condition expression (if any) and target block names.
         """
         operands = list(inst.operands)
-        len_op = len(operands)
-        if len_op == 1:
+        if len(operands) == 1:
             # Unconditional branch: br label %target
             br_info = BranchInfo(None, [operands[0].name])
         else:
             # Conditional branch: br i1 %cond, label %true, label %false
             # llvmlite load operands as (%cond, %false, %true)
-            assert len_op == 3
+            assert len(operands) == 3
             br_info = BranchInfo(
                 self.symbols.value_qir2qasm(operands[0]), [operands[2].name, operands[1].name]
             )
         return br_info
+    
+    def build_return(self, inst: ValueRef) -> List[ast.Statement]:
+        """Extract branch information (targets and optional condition).
+
+        Args:
+            inst (ValueRef): LLVM `ret` instruction.
+
+        Returns:
+            List[ast.Statement]: Emitted statements implementing the return.
+        """
+        operands = list(inst.operands)
+        ret_type = inst.type
+        _, statements = ReturnBuilder().building(self.symbols, ret_type, operands)
+        return statements

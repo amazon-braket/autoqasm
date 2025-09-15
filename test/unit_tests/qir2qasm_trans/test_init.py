@@ -1,6 +1,5 @@
-import tempfile
+import os
 import textwrap
-from pathlib import Path
 
 import pyqir
 import pytest
@@ -31,20 +30,22 @@ def test_bitcode_load():
         Results[1] = measure Qubits[1];
     """
 
-    # Create a temporary QIR file
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        qir_path = Path(tmp_dir) / "bell.bc"
-        qir_path.write_bytes(bell.bitcode())
+    file_path = "test/resources/qir_test_file"
+    benchmark_name = "bitcode_load"
+    qir_file_path = os.path.join(file_path, f"{benchmark_name}.bc")
 
-        # Load the QIR module
-        module = load(str(qir_path))
+    with open(qir_file_path, "wb") as f:
+        f.write(bell.bitcode())
 
-        # Convert to QASM using the Exporter
-        exporter = Exporter()
-        qasm_output = exporter.dumps(module)
+    # Load the QIR module
+    module = load(str(qir_file_path))
 
-        # Validate the complete output
-        assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
+    # Convert to QASM using the Exporter
+    exporter = Exporter()
+    qasm_output = exporter.dumps(module)
+
+    # Validate the complete output
+    assert qasm_output.strip() == textwrap.dedent(expected_qasm).strip()
 
 
 def test_load_error():
@@ -58,13 +59,13 @@ def test_load_error():
     qis.mz(bell.qubits[0], bell.results[0])
     qis.mz(bell.qubits[1], bell.results[1])
 
-    # Create a temporary QIR file
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        qir_path = Path(tmp_dir) / "bell.qir"
-        qir_path.write_bytes(bell.bitcode())
+    file_path = "test/resources/qir_test_file"
+    benchmark_name = "load_error"
+    qir_file_path = os.path.join(file_path, f"{benchmark_name}.qir")
 
-        # Load the QIR module
+    with open(qir_file_path, "wb") as f:
+        f.write(bell.bitcode())
 
-        # Convert to QASM using the Exporter
-        with pytest.raises(ValueError, match=r"Unsupported file extension: .qir"):
-            load(str(qir_path))
+    # Convert to QASM using the Exporter
+    with pytest.raises(ValueError, match=r"Unsupported file extension: .qir"):
+        load(str(qir_file_path))
