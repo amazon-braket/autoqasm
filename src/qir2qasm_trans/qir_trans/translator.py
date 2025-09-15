@@ -31,8 +31,8 @@ from .builder import (
     SymbolTable,
 )
 from .cfg_pattern import IfPattern, SeqPattern, WhilePattern
-from .qir_profile import BaseProfile, Profile
 from .control_flow import isolate_if_pattern, isolate_while_pattern
+from .qir_profile import BaseProfile, Profile
 
 # Reserved OpenQASM 3 keywords that must not be used as identifiers.
 _RESERVED_KEYWORDS = frozenset(

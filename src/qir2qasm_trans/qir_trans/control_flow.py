@@ -12,7 +12,7 @@
 # language governing permissions and limitations under the License.
 
 from collections import deque
-from typing import Deque, Dict, Iterable, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import networkx as nx
 
