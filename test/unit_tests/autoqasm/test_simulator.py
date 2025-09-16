@@ -150,7 +150,7 @@ def test_qubit_register_indexing():
     assert result["__bit_0__"] == ["01"]
 
 
-@pytest.mark.parametrize("invalid_index", ("1.23", "pi", "{0, pi}"))
+@pytest.mark.parametrize("invalid_index", ("1.23", "$1"))
 def test_qubit_register_invalid_index(invalid_index):
     qasm = f"""
         OPENQASM 3.0;
@@ -158,7 +158,7 @@ def test_qubit_register_invalid_index(invalid_index):
         x __qubits__[{invalid_index}];
         bit[2] __bit_0__ = measure __qubits__;
     """
-    with pytest.raises(TypeError, match=r"slice indices must be integers"):
+    with pytest.raises(TypeError, match=r"tuple indices must be integers or slices"):
         NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm)
 
 
