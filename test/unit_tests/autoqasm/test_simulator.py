@@ -150,15 +150,29 @@ def test_qubit_register_indexing():
     assert result["__bit_0__"] == ["01"]
 
 
-@pytest.mark.parametrize("invalid_index", ("1.23", "$1", "pi", "{0, pi}"))
-def test_qubit_register_invalid_index(invalid_index):
+@pytest.mark.parametrize("invalid_index", ("1.23", "$1"))
+def test_qubit_register_invalid_index_static_validation(invalid_index):
     qasm = f"""
         OPENQASM 3.0;
         qubit[2] __qubits__;
         x __qubits__[{invalid_index}];
         bit[2] __bit_0__ = measure __qubits__;
     """
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"tuple indices must be integers or slices"):
+        NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm)
+
+
+@pytest.mark.parametrize("invalid_index", ("pi", "{0, pi}"))
+def test_qubit_register_invalid_index_dynamic_validation(invalid_index):
+    qasm = f"""
+        OPENQASM 3.0;
+        qubit[2] __qubits__;
+        x __qubits__[{invalid_index}];
+        bit[2] __bit_0__ = measure __qubits__;
+    """
+    with pytest.raises(
+        TypeError, match="slice indices must be integers or None or have an __index__ method"
+    ):
         NativeInterpreter(Simulation(1, 1, 1)).simulate(qasm)
 
 
