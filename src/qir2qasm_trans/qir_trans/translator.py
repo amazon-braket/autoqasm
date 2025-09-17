@@ -255,7 +255,9 @@ class QASM3Builder:
 
                 arg_types = [arg_type for arg_type in func_type.elements]
 
-                # Process the return type for the "CalibrationDefinition" AST node
+                # Process the return type for the "CalibrationDefinition" AST node.
+                # Per QIR convention, return is always at the first element. If there
+                # are multiple returns, the return object is a list.
                 ret_type = arg_types[0]
                 _, ret_type_ast = self.symbols.type_qir2qasm(ret_type)
                 if isinstance(ret_type_ast, str):
@@ -305,7 +307,8 @@ class QASM3Builder:
                 )
                 self.symbols.functions[func.name] = func_info
 
-                # # Use subroutine for the opague function
+                ## TODO: QIR function declaration can be classical (subroutine) or quantum (defcal).
+                ## For now, we assume only quantum declaration, and skip the subroutines.
                 # declaration = ast.SubroutineDefinition(
                 #     name=ast.Identifier(name=func_name),
                 #     arguments=arguments + qubits,
@@ -337,6 +340,8 @@ class QASM3Builder:
             # Collect function attributes into a dictionary.
             attr_dict = {}
             for attr in func.attributes:
+                # Convert string expressions of "key"="value" to a dict of
+                # key-value pairs.
                 matches = re.findall(r'"(\w+)"(?:="([^"]*)")?', attr.decode())
                 for k, v in matches:
                     if v != "":
@@ -387,6 +392,8 @@ class QASM3Builder:
 
     def build_control(self):
         """Construct control-flow artifacts.
+
+        Note: LLVM requires branch statement to be the last statment of a block.
         # TODO: Currently builds a CFG only
         """
         # Create a directed CFG from collected branch information.
@@ -400,6 +407,8 @@ class QASM3Builder:
 
         is_updated = True
         while is_updated:
+            # If a CFG pattern matching failed, it returns `is_updated=False`. This is a
+            # mechanism to prevent an infinte loop.
             is_updated = SeqPattern().building(self.symbols)
             is_updated = IfPattern().building(self.symbols) or is_updated
             is_updated = WhilePattern().building(self.symbols) or is_updated

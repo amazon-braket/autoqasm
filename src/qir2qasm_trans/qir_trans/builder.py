@@ -59,7 +59,9 @@ class FunctionInfo:
 
 
 class InstructionBuilder:
-    """Building interface for the LLVM IR instructions (i.e. `inttoptr`)
+    """Building interface for the LLVM IR instructions (i.e. `inttoptr`). A list of
+    LLVM instructions is in `https://github.com/qir-alliance/qir-spec/blob/main/specification
+    /under_development/profiles/Base_Profile.md#classical-instructions"
 
     Subclasses should override `building`
     """
