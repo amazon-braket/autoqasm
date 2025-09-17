@@ -44,6 +44,12 @@ The Python code above outputs the following OpenQASM program:
     result[1] = measure __qubits__[1];
 """
 
+# Create an alias so it can be accessed as autoqasm.qir2qasm_trans
+import sys
+
+# Import qir2qasm_trans module to make it available as autoqasm.qir2qasm_trans
+import qir2qasm_trans  # noqa: F401
+
 from . import errors, instructions, operators  # noqa: F401
 from .api import gate, gate_calibration, main, subroutine  # noqa: F401
 from .instructions import QubitIdentifierType as Qubit  # noqa: F401
@@ -51,6 +57,8 @@ from .program import Program, build_program, verbatim  # noqa: F401
 from .transpiler import transpiler  # noqa: F401
 from .types import ArrayVar, BitVar, BoolVar, FloatVar, IntVar  # noqa: F401
 from .types import Range as range  # noqa: F401
+
+sys.modules[__name__ + ".qir2qasm_trans"] = qir2qasm_trans
 
 
 def __getattr__(name):

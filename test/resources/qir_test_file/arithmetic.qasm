@@ -1,0 +1,11 @@
+OPENQASM 3.0;
+array[int[32], 3] IntType_tmp;
+input int[32] IntType_i0;
+input int[32] IntType_i1;
+output int[32] IntType_o0;
+output int[32] IntType_o1;
+IntType_tmp[0] = 3 + IntType_i0;
+IntType_tmp[1] = 2 * IntType_tmp[0];
+IntType_tmp[2] = 0 - IntType_i1;
+IntType_o0 = IntType_tmp[1];
+IntType_o1 = IntType_tmp[2];
