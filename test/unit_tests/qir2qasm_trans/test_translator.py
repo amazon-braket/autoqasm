@@ -50,7 +50,7 @@ def test_include_qir_to_qasm():
 
     # Load and convert
     module = load(qir_file_path)
-    exporter = Exporter(includes=['stdgates.inc'])
+    exporter = Exporter(include_files=["stdgates.inc"])
     qasm_output = exporter.dumps(module)
 
     with open(qasm_file_path, "r") as f:

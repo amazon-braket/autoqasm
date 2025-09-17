@@ -101,8 +101,9 @@ class StructInfo:
 @dataclass
 class BranchInfo:
     """Branch metadata for a basic block."""
-    branch_condition: Optional[ast.Expression]  # Conditional expression 
-    branch_targets: List[str]   # Target block labels (true/false)
+
+    branch_condition: Optional[ast.Expression]  # Conditional expression
+    branch_targets: List[str]  # Target block labels (true/false)
 
 
 class SymbolTable:
@@ -308,14 +309,13 @@ class SymbolTable:
         var_ast = ast.Identifier(name=ident_name)
         self.io_variables[io_key].append((type_ast, var_ast))
         return var_ast
-    
+
     def new_tmp_block_name(self) -> str:
-        """Gnerate the name for a new temporary block in control flow.
-        """
+        """Gnerate the name for a new temporary block in control flow."""
         block_name = f"_tmp_block_{self.block_tmp_num}"
         self.block_tmp_num += 1
         return block_name
-    
+
 
 ## StructBuilder implementations
 
@@ -681,7 +681,7 @@ class OutputBuilder(FunctionBuilder):
             lvalue=assign_ident, op=ast.AssignmentOperator["="], rvalue=op_value
         )
         return None, [statement]
-    
+
 
 class ReturnBuilder(FunctionBuilder):
     """Translate a `return` statement."""

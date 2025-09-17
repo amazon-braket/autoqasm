@@ -43,10 +43,12 @@ class SeqPattern(CFGPattern):
             is_updated = True
             symbols.block_statements[blocks["A"]].extend(symbols.block_statements.pop(blocks["B"]))
             symbols.block_branchs[blocks["A"]] = symbols.block_branchs.pop(blocks["B"])
-            symbols.cfg = nx.contracted_nodes(symbols.cfg, blocks["A"], blocks["B"], self_loops=False)
+            symbols.cfg = nx.contracted_nodes(
+                symbols.cfg, blocks["A"], blocks["B"], self_loops=False
+            )
 
             blocks = self.matching(symbols.cfg)
-        
+
         return is_updated
 
 
@@ -69,19 +71,25 @@ class IfPattern1(CFGPattern):
             br_tgts_A = br_info_A.branch_targets
 
             if br_tgts_A[0] == blocks["B"]:
-                # A -> B is the branch of True 
+                # A -> B is the branch of True
                 if_block = symbols.block_statements[blocks["B"]]
                 else_block = symbols.block_statements[blocks["C"]]
             else:
                 # A -> B is the branch of False
                 if_block = symbols.block_statements[blocks["C"]]
                 else_block = symbols.block_statements[blocks["B"]]
-            
-            if_statement = ast.BranchingStatement(condition=br_cond_A, if_block=if_block, else_block=else_block)
+
+            if_statement = ast.BranchingStatement(
+                condition=br_cond_A, if_block=if_block, else_block=else_block
+            )
             symbols.block_statements[blocks["A"]].append(if_statement)
             symbols.block_branchs[blocks["A"]] = BranchInfo(None, [blocks["D"]])
-            symbols.cfg = nx.contracted_nodes(symbols.cfg, blocks["A"], blocks["B"], self_loops=False)
-            symbols.cfg = nx.contracted_nodes(symbols.cfg, blocks["A"], blocks["C"], self_loops=False)
+            symbols.cfg = nx.contracted_nodes(
+                symbols.cfg, blocks["A"], blocks["B"], self_loops=False
+            )
+            symbols.cfg = nx.contracted_nodes(
+                symbols.cfg, blocks["A"], blocks["C"], self_loops=False
+            )
 
             blocks = self.matching(symbols.cfg)
 
@@ -106,23 +114,27 @@ class IfPattern2(CFGPattern):
             br_tgts_A = br_info_A.branch_targets
 
             if br_tgts_A[0] == blocks["B"]:
-                # A -> B is the branch of True 
+                # A -> B is the branch of True
                 if_block = symbols.block_statements[blocks["B"]]
                 else_block = []
             else:
                 # A -> B is the branch of False
                 if_block = []
                 else_block = symbols.block_statements[blocks["B"]]
-            
-            if_statement = ast.BranchingStatement(condition=br_cond_A, if_block=if_block, else_block=else_block)
+
+            if_statement = ast.BranchingStatement(
+                condition=br_cond_A, if_block=if_block, else_block=else_block
+            )
             symbols.block_statements[blocks["A"]].append(if_statement)
             symbols.block_branchs[blocks["A"]] = BranchInfo(None, [blocks["D"]])
-            symbols.cfg = nx.contracted_nodes(symbols.cfg, blocks["A"], blocks["B"], self_loops=False)
+            symbols.cfg = nx.contracted_nodes(
+                symbols.cfg, blocks["A"], blocks["B"], self_loops=False
+            )
 
             blocks = self.matching(symbols.cfg)
 
         return is_updated
-    
+
 
 class IfPattern(CFGPattern):
     def building(self, symbols: SymbolTable):
@@ -130,13 +142,13 @@ class IfPattern(CFGPattern):
         while IfPattern1().building(symbols) or IfPattern2().building(symbols):
             pass
         return is_updated
-    
+
 
 class WhilePattern1(CFGPattern):
     def __init__(self):
         super().__init__()
         self.pattern.add_edges_from([("A", "B"), ("B", "A")])
-        self.degrees["A"] = (None, 2)    # A is the exit block of the while loop.
+        self.degrees["A"] = (None, 2)  # A is the exit block of the while loop.
         self.degrees["B"] = (1, 1)
 
     def building(self, symbols: SymbolTable):
@@ -150,15 +162,19 @@ class WhilePattern1(CFGPattern):
 
             assert br_cond_A is not None
             if br_tgts_A[0] == blocks["B"]:
-                # A -> B is the branch of True 
+                # A -> B is the branch of True
                 while_condition = br_cond_A
                 out_bt_tgt = br_tgts_A[1]
             else:
                 # A -> B is the branch of False
-                while_condition = ast.UnaryExpression(op=ast.UnaryOperator['!'], expression=br_cond_A)
+                while_condition = ast.UnaryExpression(
+                    op=ast.UnaryOperator["!"], expression=br_cond_A
+                )
                 out_bt_tgt = br_tgts_A[0]
-                
-            while_body = symbols.block_statements[blocks["B"]] + symbols.block_statements[blocks["A"]]
+
+            while_body = (
+                symbols.block_statements[blocks["B"]] + symbols.block_statements[blocks["A"]]
+            )
             while_statement = ast.WhileLoop(while_condition=while_condition, block=while_body)
             symbols.block_statements[blocks["A"]].append(while_statement)
             symbols.block_branchs[blocks["A"]] = BranchInfo(None, [out_bt_tgt])
@@ -168,17 +184,17 @@ class WhilePattern1(CFGPattern):
 
             symbols.cfg.remove_edge(blocks["A"], blocks["B"])
             symbols.cfg.remove_node(blocks["B"])
-            
+
             blocks = self.matching(symbols.cfg)
 
         return is_updated
-    
+
 
 class WhilePattern2(CFGPattern):
     def __init__(self):
         super().__init__()
         self.pattern.add_edges_from([("A", "A")])
-        self.degrees["A"] = (None, 2)   
+        self.degrees["A"] = (None, 2)
 
     def building(self, symbols: SymbolTable):
         is_updated = False
@@ -191,14 +207,16 @@ class WhilePattern2(CFGPattern):
 
             assert br_cond_A is not None
             if br_tgts_A[0] == blocks["A"]:
-                # A -> A is the branch of True 
+                # A -> A is the branch of True
                 while_condition = br_cond_A
                 out_bt_tgt = br_tgts_A[1]
             else:
                 # A -> A is the branch of False
-                while_condition = ast.UnaryExpression(op=ast.UnaryOperator['!'], expression=br_cond_A)
+                while_condition = ast.UnaryExpression(
+                    op=ast.UnaryOperator["!"], expression=br_cond_A
+                )
                 out_bt_tgt = br_tgts_A[0]
-                
+
             while_body = symbols.block_statements[blocks["A"]].copy()
             while_statement = ast.WhileLoop(while_condition=while_condition, block=while_body)
             symbols.block_statements[blocks["A"]].append(while_statement)
@@ -209,7 +227,7 @@ class WhilePattern2(CFGPattern):
             blocks = self.matching(symbols.cfg)
 
         return is_updated
-    
+
 
 class WhilePattern(CFGPattern):
     def building(self, symbols: SymbolTable):

@@ -64,7 +64,7 @@ def test_FunctionBuilder_building():
                     decl_builder.building("Qubit", 10)
 
 
-def test_builder_array_error():  
+def test_builder_array_error():
     file_path = "test/resources/qir_test_file"
     benchmark_name = "builder_array_error"
     qir_file_path = os.path.join(file_path, f"{benchmark_name}.ll")

@@ -26,13 +26,17 @@ def isolate_incoming_edge(edge: Tuple[str, str], symbols: SymbolTable):
 
     # 1) Redirect A's branch target from B -> B_copy
     br_info_A = symbols.block_branchs[blockA]
-    br_tgts_A_new = [blockB_copy if block == blockB else block for block in br_info_A.branch_targets]
+    br_tgts_A_new = [
+        blockB_copy if block == blockB else block for block in br_info_A.branch_targets
+    ]
     symbols.block_branchs[blockA] = BranchInfo(br_info_A.branch_condition, br_tgts_A_new)
 
     # 2) Duplicate B's statements and branch info to B_copy
     symbols.block_statements[blockB_copy] = symbols.block_statements[blockB].copy()
     br_info_B = symbols.block_branchs[blockB]
-    symbols.block_branchs[blockB_copy] = BranchInfo(br_info_B.branch_condition, br_info_B.branch_targets)
+    symbols.block_branchs[blockB_copy] = BranchInfo(
+        br_info_B.branch_condition, br_info_B.branch_targets
+    )
 
     # 3) Rewire CFG: remove A->B, add A->B_copy, and B_copy -> successors(B)
     symbols.cfg.remove_edge(blockA, blockB)
@@ -64,8 +68,8 @@ def find_if_pattern(G: nx.DiGraph) -> Optional[Tuple[str, List[List[str]]]]:
         chains[block] = path
         for pred_block in G.predecessors(block):
             if pred_block in deg1_H:
-               assert chains[pred_block] is None
-               q.append((pred_block, [pred_block] + path))
+                assert chains[pred_block] is None
+                q.append((pred_block, [pred_block] + path))
 
     # Scan out-degree-2 nodes for an 'if' statement candidate
     deg2_G: set = {u for u in G.nodes if G.out_degree(u) == 2}
@@ -87,17 +91,17 @@ def isolate_if_pattern(symbols: SymbolTable) -> bool:
     result = find_if_pattern(symbols.cfg)
     if result is None:
         return is_updated
-    
+
     # For each path, walk edges and split any node that has in-degree > 1.
     if_block, paths = result
     for path in paths:
-        for edge in zip([if_block]+path[:-1], path):
+        for edge in zip([if_block] + path[:-1], path):
             if symbols.cfg.in_degree(edge[1]) > 1:
                 is_updated = True
                 isolate_incoming_edge(edge, symbols)
-                
+
     return is_updated
-    
+
 
 def find_while_pattern(G: nx.DiGraph) -> Optional[Tuple[str, List[List[str]]]]:
     """Find an 'while' statement candidate."""
@@ -122,8 +126,8 @@ def find_while_pattern(G: nx.DiGraph) -> Optional[Tuple[str, List[List[str]]]]:
         chains[block] = path
         for pred_block in G.predecessors(block):
             if pred_block in deg1_H:
-               assert chains[pred_block] is None
-               q.append((pred_block, [pred_block] + path))
+                assert chains[pred_block] is None
+                q.append((pred_block, [pred_block] + path))
 
     # Scan out-degree-2 nodes for an 'while' statement candidate
     deg2_G: set = {u for u in G.nodes if G.out_degree(u) == 2}
@@ -131,23 +135,22 @@ def find_while_pattern(G: nx.DiGraph) -> Optional[Tuple[str, List[List[str]]]]:
         for succ in G.successors(block):
             path = chains[succ]
             if block in path:
-                return block, path[:path.index(block)]
-    
+                return block, path[: path.index(block)]
+
     return None
-        
+
 
 def isolate_while_pattern(symbols: SymbolTable) -> bool:
     is_updated = False
     result = find_while_pattern(symbols.cfg)
     if result is None:
         return is_updated
-    
+
     # For each path, walk edges and split any node that has in-degree > 1.
     while_block, path = result
-    for edge in zip([while_block]+path[:-1], path):
+    for edge in zip([while_block] + path[:-1], path):
         if symbols.cfg.in_degree(edge[1]) > 1:
             is_updated = True
             isolate_incoming_edge(edge, symbols)
-                
+
     return is_updated
-    
