@@ -243,8 +243,6 @@ class SymbolTable:
                         break
                 else:
                     raise Exception("Undefined llvm insturction!")
-            # else:
-            #     raise Exception(f"{value} Undefined!")
         else:
             # Non-constant: expect it was recorded earlier via `record_variables()`.
             value_ast = self.get_variables(str(value_qir))
@@ -580,13 +578,6 @@ class DefCalBuilder(FunctionBuilder):
         expression = ast.FunctionCall(
             name=self.ident, arguments=arguments + [identifier2expression(q) for q in qubits]
         )
-
-        # expression = ast.QuantumGate(
-        #     modifiers=[],
-        #     name=self.ident,
-        #     arguments=arguments,
-        #     qubits=qubits
-        # )
 
         # Assignment vs. pure call
         if assign_ident is not None:

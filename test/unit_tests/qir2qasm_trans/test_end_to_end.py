@@ -94,7 +94,6 @@ def test_bernstein_vazirani_qir_to_qasm():
     qasm_file_path = os.path.join(file_path, f"{benchmark_name}.qasm")
 
     # Load and convert
-
     module = load(qir_file_path)
     exporter = Exporter()
     qasm_output = exporter.dumps(module)
@@ -113,7 +112,6 @@ def test_external_functions_qir_to_qasm():
     qasm_file_path = os.path.join(file_path, f"{benchmark_name}.qasm")
 
     # Load and convert
-
     module = load(qir_file_path)
     exporter = Exporter()
     qasm_output = exporter.dumps(module)
@@ -132,7 +130,6 @@ def test_dynamic_allocation_qir_to_qasm():
     qasm_file_path = os.path.join(file_path, f"{benchmark_name}.qasm")
 
     # Load and convert
-
     module = load(qir_file_path)
     exporter = Exporter()
     qasm_output = exporter.dumps(module)
@@ -151,7 +148,6 @@ def test_dynamic_if_then_qir_to_qasm():
     qasm_file_path = os.path.join(file_path, f"{benchmark_name}.qasm")
 
     # Load and convert
-
     module = load(qir_file_path)
     exporter = Exporter()
     qasm_output = exporter.dumps(module)
