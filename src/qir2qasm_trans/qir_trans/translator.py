@@ -102,19 +102,19 @@ class Exporter:
 
     def __init__(
         self,
-        includes: Sequence[str] = (),
+        include_files: Sequence[str] = (),
         profile: Profile = BaseProfile(),
         printer_class: Type[QASMVisitor] = Printer,
     ):
         """Configure exporter components.
 
         Args:
-            includes (Sequence[str]): Standard gate library. Example: ["stdgates.inc"] to expose 
+            include_files (Sequence[str]): Standard gate library. Example: ["stdgates.inc"] to expose
                 standard gate declarations.
             profile (Profile): Target QIR profile for translation.
             printer_class (Type[QASMVisitor]): Visitor class that prints an AST to a QASM stream.
         """
-        self.includes = list(includes) 
+        self.include_files = list(include_files)
         self.profile = profile
         self.printer_class = printer_class
 
@@ -138,7 +138,7 @@ class Exporter:
             module (ModuleRef): Source QIR module to export.
             stream: Text IO stream (e.g., file handle or StringIO).
         """
-        builder = QASM3Builder(module, includeslist=self.includes, profile=self.profile)
+        builder = QASM3Builder(module, include_files=self.include_files, profile=self.profile)
         printer = self.printer_class(stream)
         printer.visit(builder.build_program())
 
@@ -146,17 +146,17 @@ class Exporter:
 class QASM3Builder:
     """QASM3 builder constructs an AST from a Module."""
 
-    def __init__(self, module: ModuleRef, includeslist: List[str], profile: Profile):
+    def __init__(self, module: ModuleRef, include_files: List[str], profile: Profile):
         """Initialize builder state and symbol table.
 
         Args:
             module (ModuleRef): Source QIR module to translate.
-            includeslist (List[str]): Target QIR profile for translation.
+            include_files (List[str]): Target QIR profile for translation.
             profile (Profile): Profile containing lowering rules and type mappings.
         """
         self.module = module
         self.symbols = SymbolTable()
-        self.includes = includeslist
+        self.include_files = include_files
         self.profile = profile
 
     def build_program(self) -> ast.Program:
@@ -166,7 +166,7 @@ class QASM3Builder:
             ast.Program: Top-level program node including version and statements.
         """
         include_statements = []
-        for filename in self.includes:
+        for filename in self.include_files:
             include_statements.append(ast.Include(filename))
 
         func_decl_statements = self.build_func_declarations()
@@ -200,7 +200,7 @@ class QASM3Builder:
         # Materialize structure/classical temp declarations.
         statements: List[ast.Statement] = []
         for builder, name, size in building_tasks:
-            if size > 0:    # Skip empty arrays
+            if size > 0:  # Skip empty arrays
                 statements.append(builder.building(name, size))
 
         # I/O declarations (`input` / `output`).
@@ -311,7 +311,7 @@ class QASM3Builder:
                 #     arguments=arguments + qubits,
                 #     body=[],
                 #     return_type=ret_type_ast
-                # )   
+                # )
 
                 # Use gate Calibration for the opague function
                 declaration = ast.CalibrationDefinition(
@@ -320,7 +320,7 @@ class QASM3Builder:
                     qubits=qubits,
                     return_type=ret_type_ast,
                     body="",
-                )   
+                )
 
                 declaration_statements.append(declaration)
 
@@ -353,7 +353,7 @@ class QASM3Builder:
         # Track entry block name for control-flow assembly.
         self.entry_block = list(main_func.blocks)[0].name
 
-        # 
+        #
         self.symbols.block_statements[_END_KEYWORD] = []
         self.symbols.block_branchs[_END_KEYWORD] = BranchInfo(None, [])
 
@@ -371,7 +371,7 @@ class QASM3Builder:
 
         Args:
             block (ValueRef): LLVM basic block.
-        
+
         Returns:
             List[ast.Statement]: OpenQASM Statements.
         """
@@ -401,12 +401,14 @@ class QASM3Builder:
         is_updated = True
         while is_updated:
             is_updated = SeqPattern().building(self.symbols)
-            is_updated = IfPattern().building(self.symbols) or is_updated 
+            is_updated = IfPattern().building(self.symbols) or is_updated
             is_updated = WhilePattern().building(self.symbols) or is_updated
             is_updated = is_updated or isolate_if_pattern(self.symbols)
             is_updated = is_updated or isolate_while_pattern(self.symbols)
 
-    def build_instruction(self, instruction: ValueRef) -> Tuple[List[ast.Statement], Optional[BranchInfo]]:
+    def build_instruction(
+        self, instruction: ValueRef
+    ) -> Tuple[List[ast.Statement], Optional[BranchInfo]]:
         """Translate a single LLVM instruction.
 
         Args:
@@ -463,7 +465,7 @@ class QASM3Builder:
             List[ast.Statement]: Emitted statements implementing the call.
         """
         operands = list(inst.operands)
-        func = operands.pop(-1) # Callee is last in llvmlite's operand list.
+        func = operands.pop(-1)  # Callee is last in llvmlite's operand list.
         func_name = func.name
 
         # Lookup builder for the callee.
@@ -501,7 +503,7 @@ class QASM3Builder:
                 self.symbols.value_qir2qasm(operands[0]), [operands[2].name, operands[1].name]
             )
         return br_info
-    
+
     def build_return(self, inst: ValueRef) -> List[ast.Statement]:
         """Extract branch information (targets and optional condition).
 
