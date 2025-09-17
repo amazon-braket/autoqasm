@@ -682,7 +682,9 @@ class ReturnBuilder(FunctionBuilder):
     def building(
         self, symbols: SymbolTable, ret_type: TypeRef, operands: List[ValueRef]
     ) -> Tuple[Optional[Union[ast.IndexedIdentifier, ast.Identifier]], List[ast.Statement]]:
-        ## TODO: fix this for the OpenQASM subroutine
+        ## TODO: Implement for the OpenQASM subroutine. Main function does not have return.
+        ## For now, return builder outputs None and empty list. Once subroutine is supported,
+        ## we need to implement the return builder for subroutine.
         # if len(operands) == 1:
         #     op_value = identifier2expression(symbols.value_qir2qasm(operands[0]))
         # else:
