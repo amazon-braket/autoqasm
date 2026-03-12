@@ -27,4 +27,4 @@ Example of a program that uses only pulse instructions:
         pulse.delay([3, 4], 0.34)
 """
 
-from .pulse import *  # noqa: F403
+from .pulse import *
