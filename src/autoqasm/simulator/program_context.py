@@ -188,10 +188,9 @@ class McmProgramContext(ProgramContext):
             circuit (Optional[Circuit]): A partially-built circuit to continue building with this
                 context. Default: None.
         """
-        super(ProgramContext, self).__init__()
+        super().__init__(circuit)
         self.qubit_mapping = QubitTable()
         self.outputs = {}
-        self._circuit = circuit or Circuit()
 
     def pop_instructions(self) -> list[GateOperation]:
         """Returns the list of instructions and removes them from the context.
