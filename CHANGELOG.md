@@ -1,14 +1,29 @@
 # Changelog
 
+## v0.3.0 (2026-03-13)
+
+### What's Changed
+* fix: call ProgramContext constructor by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/93
+* fix: updated config file by @sesmart in https://github.com/amazon-braket/autoqasm/pull/81
+* update error message for index error by @yitchen-tim in https://github.com/amazon-braket/autoqasm/pull/82
+* depr: drop Python 3.10 support by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/92
+
+### New Contributors
+* @sesmart made their first contribution in https://github.com/amazon-braket/autoqasm/pull/81
+* @yitchen-tim made their first contribution in https://github.com/amazon-braket/autoqasm/pull/82
+* @speller26 made their first contribution in https://github.com/amazon-braket/autoqasm/pull/84
+
+**Full Changelog**: https://github.com/amazon-braket/autoqasm/compare/v0.2.0...v0.3.0
+
 ## v0.2.0 (2025-08-26)
 
-## What's Changed
+### What's Changed
 * infra: update supported python versions by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/77
 * change: Use Ankaa-2 instead of Aspen-M-3 in pulse examples by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/48
 * infra: onboard to use ruff by @AbeCoull in https://github.com/amazon-braket/autoqasm/pull/53
 * feature: Use hybrid_job from braket.jobs by @rmshaffer in https://github.com/amazon-braket/autoqasm/pull/66
 
-## New Contributors
+### New Contributors
 * @AbeCoull made their first contribution in https://github.com/amazon-braket/autoqasm/pull/53
 
 **Full Changelog**: https://github.com/amazon-braket/autoqasm/compare/v0.1.2...v0.1.3
