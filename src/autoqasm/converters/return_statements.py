@@ -48,14 +48,13 @@ class ReturnTransformer(converter.Base):
         if isinstance(node.value, gast.Name):
             name = node.value.id
 
-        node = templates.replace(
+        return templates.replace(
             template,
             name_=name,
             name_const_=gast.Constant(name, None),
             value_=node.value,
             original=node,
         )
-        return node
 
 
 def transform(

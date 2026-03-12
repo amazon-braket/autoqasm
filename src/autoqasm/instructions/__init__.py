@@ -25,7 +25,7 @@ Example of using a `h` gate and a `cnot` gate to create a Bell circuit:
         measure([0, 1])
 """
 
-from .gates import *  # noqa: F401, F403
+from .gates import *  # noqa: F403
 from .instructions import reset  # noqa: F401
 from .measurements import measure  # noqa: F401
 from .qubits import global_qubit_register  # noqa: F401

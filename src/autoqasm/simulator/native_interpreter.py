@@ -14,7 +14,7 @@
 from copy import deepcopy
 from functools import singledispatchmethod
 from logging import Logger
-from typing import Any, List, Optional, Union
+from typing import Any
 
 from openqasm3.ast import IntegerLiteral
 
@@ -43,8 +43,8 @@ class NativeInterpreter(Interpreter):
     def __init__(
         self,
         simulation: Simulation,
-        context: Optional[McmProgramContext] = None,
-        logger: Optional[Logger] = None,
+        context: McmProgramContext | None = None,
+        logger: Logger | None = None,
     ):
         self.simulation = simulation
         context = context or McmProgramContext()
@@ -53,7 +53,7 @@ class NativeInterpreter(Interpreter):
     def simulate(
         self,
         source: str,
-        inputs: Optional[dict[str, Any]] = None,
+        inputs: dict[str, Any] | None = None,
         is_file: bool = False,
         shots: int = 1,
     ) -> dict[str, Any]:
@@ -87,7 +87,7 @@ class NativeInterpreter(Interpreter):
         return self.context.outputs
 
     @singledispatchmethod
-    def visit(self, node: Union[QASMNode, List[QASMNode]]) -> Optional[QASMNode]:
+    def visit(self, node: QASMNode | list[QASMNode]) -> QASMNode | None:
         """Generic visit function for an AST node"""
         return super().visit(node)
 
@@ -99,21 +99,21 @@ class NativeInterpreter(Interpreter):
         self.simulation.add_qubits(size)
 
     @visit.register
-    def _(self, node: QuantumMeasurement) -> Union[BooleanLiteral, ArrayLiteral]:
+    def _(self, node: QuantumMeasurement) -> BooleanLiteral | ArrayLiteral:
         self.logger.debug(f"Quantum measurement: {node}")
         self.simulation.evolve(self.context.pop_instructions())
         targets = self.context.get_qubits(self.visit(node.qubit))
         outcome = self.simulation.measure(targets)
         if len(targets) > 1 or (
             isinstance(node.qubit, IndexedIdentifier)
-            and not len(node.qubit.indices[0]) == 1
+            and len(node.qubit.indices[0]) != 1
             and isinstance(node.qubit.indices[0], IntegerLiteral)
         ):
             return ArrayLiteral([BooleanLiteral(x) for x in outcome])
         return BooleanLiteral(outcome[0])
 
     @visit.register
-    def _(self, node: QuantumMeasurementStatement) -> Union[BooleanLiteral, ArrayLiteral]:
+    def _(self, node: QuantumMeasurementStatement) -> BooleanLiteral | ArrayLiteral:
         self.logger.debug(f"Quantum measurement statement: {node}")
         outcome = self.visit(node.measure)
         current_value = self.context.get_value_by_identifier(node.target)

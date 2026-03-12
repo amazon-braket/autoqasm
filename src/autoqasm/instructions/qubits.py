@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable
+from collections.abc import Iterator
 from functools import singledispatch
 from typing import Any
 
@@ -58,7 +58,7 @@ class GlobalQubitRegister(oqpy.Qubit):
     def __len__(self) -> int:
         return self.size
 
-    def __iter__(self) -> Iterable:
+    def __iter__(self) -> Iterator:
         return iter(range(len(self)))
 
 

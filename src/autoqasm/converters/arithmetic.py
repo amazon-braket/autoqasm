@@ -41,14 +41,12 @@ class ArithmeticTransformer(converter.Base):
 
         template = f"{ARITHMETIC_OPERATORS[op_type]}(lhs_,rhs_)"
 
-        new_node = templates.replace(
+        return templates.replace(
             template,
             lhs_=node.left,
             rhs_=node.right,
             original=node,
         )[0].value
-
-        return new_node
 
 
 def transform(node: ast.stmt, ctx: ag_ctx.ControlStatusCtx) -> ast.stmt:

@@ -62,11 +62,11 @@ class PyToOqpy(transpiler.PyToPy):
     """The AutoQASM transpiler which converts a Python function into an oqpy program."""
 
     def __init__(self):
-        super(PyToOqpy, self).__init__()
+        super().__init__()
         self._extra_locals = None
 
     def get_transformed_name(self, node: gast.Lambda | gast.FunctionDef) -> str:
-        return "oq__" + super(PyToOqpy, self).get_transformed_name(node)
+        return "oq__" + super().get_transformed_name(node)
 
     def get_extra_locals(self) -> dict:
         """Returns extra static local variables to be made to transformed code.
@@ -147,7 +147,7 @@ class PyToOqpy(transpiler.PyToPy):
         node = logical_expressions.transform(node, ctx)
         node = variables.transform(node, ctx)
 
-        return node
+        return node  # noqa: RET504
 
 
 def _convert_actual(entity: Callable, program_ctx: ag_ctx.ControlStatusCtx | None) -> Callable:
@@ -288,7 +288,7 @@ def _try_convert_actual(
         converted_f = _convert_actual(target_entity, program_ctx)
         if logging.has_verbosity(2):
             _log_callargs(converted_f, effective_args, kwargs)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logging.log(1, "Error transforming entity %s", target_entity, exc_info=True)
         exc = e
     return converted_f, exc

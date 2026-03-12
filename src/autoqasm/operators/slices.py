@@ -52,7 +52,7 @@ def _oqpy_get_item(target: Any, i: Any, opts: GetItemOpts) -> Any:
     elif isinstance(target, oqpy.BitVar):
         base_type = type(target)
     else:
-        raise TypeError(f"{str(type(target))} object is not subscriptable")
+        raise TypeError(f"{type(target)!s} object is not subscriptable")
 
     var = base_type()
     oqpy_program.set(var, target[i])
