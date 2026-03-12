@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="autoqasm",
-    version="0.2.0",
+    version="0.3.0",
     license="Apache License 2.0",
     python_requires=">= 3.11",
     packages=find_namespace_packages(where="src", exclude=("test",)),
