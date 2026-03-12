@@ -27,7 +27,7 @@ setup(
         "amazon-braket-sdk>=1.89.1",
         "amazon-braket-default-simulator>=1.23.2",
         "oqpy~=0.3.5",
-        "diastatic-malt",
+        "diastatic-malt<=2.15.2",
         "numpy",
         "openpulse",
         "openqasm3",
