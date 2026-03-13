@@ -16,7 +16,6 @@
 
 import ast
 
-import gast
 from malt.converters import return_statements
 from malt.core import ag_ctx, converter
 from malt.pyct import templates
@@ -45,13 +44,13 @@ class ReturnTransformer(converter.Base):
         )
 
         name = constants.MAIN_RETURN_VAL_NAME
-        if isinstance(node.value, gast.Name):
+        if isinstance(node.value, ast.Name):
             name = node.value.id
 
         return templates.replace(
             template,
             name_=name,
-            name_const_=gast.Constant(name, None),
+            name_const_=ast.Constant(name, None),
             value_=node.value,
             original=node,
         )

@@ -16,7 +16,6 @@
 
 import ast
 
-import gast
 from malt.core import ag_ctx, converter
 from malt.pyct import templates
 
@@ -52,8 +51,8 @@ class AssignTransformer(converter.Base):
         if len(node.targets) > 1:
             raise NotImplementedError
 
-        if isinstance(node.targets[0], gast.Name):
-            target_name = gast.Constant(node.targets[0].id, None)
+        if isinstance(node.targets[0], ast.Name):
+            target_name = ast.Constant(node.targets[0].id, None)
             new_node = templates.replace(
                 template,
                 tar_name_=target_name,

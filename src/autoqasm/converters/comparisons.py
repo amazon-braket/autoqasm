@@ -15,15 +15,14 @@
 
 import ast
 
-import gast
 from malt.core import ag_ctx, converter
 from malt.pyct import templates
 
 COMPARISON_OPERATORS = {
-    gast.Lt: "ag__.lt_",
-    gast.LtE: "ag__.lteq_",
-    gast.Gt: "ag__.gt_",
-    gast.GtE: "ag__.gteq_",
+    ast.Lt: "ag__.lt_",
+    ast.LtE: "ag__.lteq_",
+    ast.Gt: "ag__.gt_",
+    ast.GtE: "ag__.gteq_",
 }
 
 

@@ -15,12 +15,11 @@
 
 import ast
 
-import gast
 from malt.core import ag_ctx, converter
 from malt.pyct import templates
 
 ARITHMETIC_OPERATORS = {
-    gast.FloorDiv: "ag__.floor_div",
+    ast.FloorDiv: "ag__.floor_div",
 }
 
 

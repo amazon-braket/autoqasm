@@ -20,13 +20,13 @@ to reduce duplication if possible.
 
 from __future__ import annotations
 
+import ast
 import functools
 import importlib
 import inspect
 from collections.abc import Callable
 from typing import Any
 
-import gast
 from malt.converters import (
     asserts,
     call_trees,
@@ -65,7 +65,7 @@ class PyToOqpy(transpiler.PyToPy):
         super().__init__()
         self._extra_locals = None
 
-    def get_transformed_name(self, node: gast.Lambda | gast.FunctionDef) -> str:
+    def get_transformed_name(self, node: ast.Lambda | ast.FunctionDef) -> str:
         return "oq__" + super().get_transformed_name(node)
 
     def get_extra_locals(self) -> dict:
@@ -95,8 +95,8 @@ class PyToOqpy(transpiler.PyToPy):
         return ctx.options
 
     def _initial_analysis(
-        self, node: gast.Lambda | gast.FunctionDef, ctx: ag_ctx.ControlStatusCtx
-    ) -> gast.Lambda | gast.FunctionDef:
+        self, node: ast.Lambda | ast.FunctionDef, ctx: ag_ctx.ControlStatusCtx
+    ) -> ast.Lambda | ast.FunctionDef:
         graphs = cfg.build(node)
         node = qual_names.resolve(node)
         node = activity.resolve(node, ctx, None)
@@ -110,8 +110,8 @@ class PyToOqpy(transpiler.PyToPy):
         return node
 
     def transform_ast(
-        self, node: gast.Lambda | gast.FunctionDef, ctx: ag_ctx.ControlStatusCtx
-    ) -> gast.Lambda | gast.FunctionDef:
+        self, node: ast.Lambda | ast.FunctionDef, ctx: ag_ctx.ControlStatusCtx
+    ) -> ast.Lambda | ast.FunctionDef:
         """Performs an actual transformation of a function's AST.
 
         Args:
@@ -147,7 +147,7 @@ class PyToOqpy(transpiler.PyToPy):
         node = logical_expressions.transform(node, ctx)
         node = variables.transform(node, ctx)
 
-        return node  # noqa: RET504
+        return node
 
 
 def _convert_actual(entity: Callable, program_ctx: ag_ctx.ControlStatusCtx | None) -> Callable:
