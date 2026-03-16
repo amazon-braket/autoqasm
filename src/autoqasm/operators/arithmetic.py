@@ -22,13 +22,13 @@ from .utils import _register_and_convert_parameters
 
 
 def floor_div(
-    num: aq_types.IntVar | aq_types.FloatVar | int | float,
-    den: aq_types.IntVar | aq_types.FloatVar | int | float,
+    num: aq_types.IntVar | aq_types.FloatVar | float,
+    den: aq_types.IntVar | aq_types.FloatVar | float,
 ) -> int | aq_types.IntVar:
     """Functional form of "//".
     Args:
-        num (IntVar | FloatVar | int | float) : The numerator of the integer division
-        den (IntVar | FloatVar | int | float) : The denominator of the integer division
+        num (IntVar | FloatVar | float) : The numerator of the integer division
+        den (IntVar | FloatVar | float) : The denominator of the integer division
     Returns :
         int | IntVar : integer division, IntVar if either numerator or denominator
         are QASM types, else int
@@ -40,8 +40,8 @@ def floor_div(
 
 
 def _oqpy_floor_div(
-    num: aq_types.IntVar | aq_types.FloatVar | int | float,
-    den: aq_types.IntVar | aq_types.FloatVar | int | float,
+    num: aq_types.IntVar | aq_types.FloatVar | float,
+    den: aq_types.IntVar | aq_types.FloatVar | float,
 ) -> aq_types.IntVar | aq_types.FloatVar:
     num, den = _register_and_convert_parameters(num, den)
     oqpy_program = program.get_program_conversion_context().get_oqpy_program()
@@ -75,7 +75,7 @@ def _oqpy_floor_div(
 
 
 def _py_floor_div(
-    num: int | float,
-    den: int | float,
+    num: float,
+    den: float,
 ) -> int | float:
     return num // den

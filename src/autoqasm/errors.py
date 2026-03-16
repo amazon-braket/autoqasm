@@ -92,10 +92,10 @@ class UnsupportedConditionalExpressionError(AutoQasmError):
     def __init__(self, true_type: type | None, false_type: type | None):
         if_type = true_type.__name__ if true_type else "None"
         else_type = false_type.__name__ if false_type else "None"
-        self.message = """\
-`if` clause resolves to {}, but `else` clause resolves to {}. \
+        self.message = f"""\
+`if` clause resolves to {if_type}, but `else` clause resolves to {else_type}. \
 Both the `if` and `else` clauses of an inline conditional expression \
-must resolve to the same type.""".format(if_type, else_type)
+must resolve to the same type."""
 
     def __str__(self):
         return self.message

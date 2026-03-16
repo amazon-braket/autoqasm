@@ -13,9 +13,9 @@
 
 """Mock transpiler for testing converters."""
 
+import ast
 from typing import Union
 
-import gast
 from malt.core import ag_ctx
 
 from autoqasm.transpiler import PyToOqpy
@@ -37,8 +37,8 @@ class MockTranspiler(PyToOqpy):
             self._converters = (converters,)
 
     def transform_ast(
-        self, node: Union[gast.Lambda, gast.FunctionDef], ctx: ag_ctx.ControlStatusCtx
-    ) -> Union[gast.Lambda, gast.FunctionDef]:
+        self, node: Union[ast.Lambda, ast.FunctionDef], ctx: ag_ctx.ControlStatusCtx
+    ) -> Union[ast.Lambda, ast.FunctionDef]:
         """Transform AST from a node using the provided converters.
         Args:
             node (Union[Lambda, FunctionDef]): One or more ast.AST nodes

@@ -20,13 +20,13 @@ to reduce duplication if possible.
 
 from __future__ import annotations
 
+import ast
 import functools
 import importlib
 import inspect
 from collections.abc import Callable
 from typing import Any
 
-import gast
 from malt.converters import (
     asserts,
     call_trees,
@@ -62,11 +62,11 @@ class PyToOqpy(transpiler.PyToPy):
     """The AutoQASM transpiler which converts a Python function into an oqpy program."""
 
     def __init__(self):
-        super(PyToOqpy, self).__init__()
+        super().__init__()
         self._extra_locals = None
 
-    def get_transformed_name(self, node: gast.Lambda | gast.FunctionDef) -> str:
-        return "oq__" + super(PyToOqpy, self).get_transformed_name(node)
+    def get_transformed_name(self, node: ast.Lambda | ast.FunctionDef) -> str:
+        return "oq__" + super().get_transformed_name(node)
 
     def get_extra_locals(self) -> dict:
         """Returns extra static local variables to be made to transformed code.
@@ -95,8 +95,8 @@ class PyToOqpy(transpiler.PyToPy):
         return ctx.options
 
     def _initial_analysis(
-        self, node: gast.Lambda | gast.FunctionDef, ctx: ag_ctx.ControlStatusCtx
-    ) -> gast.Lambda | gast.FunctionDef:
+        self, node: ast.Lambda | ast.FunctionDef, ctx: ag_ctx.ControlStatusCtx
+    ) -> ast.Lambda | ast.FunctionDef:
         graphs = cfg.build(node)
         node = qual_names.resolve(node)
         node = activity.resolve(node, ctx, None)
@@ -110,8 +110,8 @@ class PyToOqpy(transpiler.PyToPy):
         return node
 
     def transform_ast(
-        self, node: gast.Lambda | gast.FunctionDef, ctx: ag_ctx.ControlStatusCtx
-    ) -> gast.Lambda | gast.FunctionDef:
+        self, node: ast.Lambda | ast.FunctionDef, ctx: ag_ctx.ControlStatusCtx
+    ) -> ast.Lambda | ast.FunctionDef:
         """Performs an actual transformation of a function's AST.
 
         Args:
@@ -288,7 +288,7 @@ def _try_convert_actual(
         converted_f = _convert_actual(target_entity, program_ctx)
         if logging.has_verbosity(2):
             _log_callargs(converted_f, effective_args, kwargs)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logging.log(1, "Error transforming entity %s", target_entity, exc_info=True)
         exc = e
     return converted_f, exc

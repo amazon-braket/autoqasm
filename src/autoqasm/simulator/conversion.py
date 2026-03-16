@@ -12,7 +12,7 @@
 # language governing permissions and limitations under the License.
 
 from functools import singledispatch
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 
@@ -25,7 +25,7 @@ from braket.default_simulator.openqasm.parser.openqasm_ast import (
     IntegerLiteral,
 )
 
-LiteralType = Union[BooleanLiteral, IntegerLiteral, FloatLiteral, ArrayLiteral, BitstringLiteral]
+LiteralType = BooleanLiteral | IntegerLiteral | FloatLiteral | ArrayLiteral | BitstringLiteral
 
 
 @singledispatch

@@ -116,8 +116,7 @@ def wrap_value(node: Any) -> Any:
 
 @wrap_value.register(tuple)
 def _(node: tuple):
-    wrapped_nodes = tuple(wrap_value(item) for item in node)
-    return wrapped_nodes
+    return tuple(wrap_value(item) for item in node)
 
 
 @wrap_value.register(bool)

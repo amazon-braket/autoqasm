@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any, List, Union, get_args
+from typing import Any, get_args
 
 import numpy as np
 import oqpy
@@ -52,13 +52,11 @@ def is_qasm_type(val: Any) -> bool:
     return isinstance(val, qasm_types)
 
 
-def make_annotations_list(annotations: str | Iterable[str] | None) -> List[str]:
+def make_annotations_list(annotations: str | Iterable[str] | None) -> list[str]:
     return [annotations] if isinstance(annotations, str) else annotations or []
 
 
-QubitIdentifierType = Union[
-    int, str, Qubit, oqpy._ClassicalVar, oqpy.base.OQPyExpression, oqpy.Qubit
-]
+QubitIdentifierType = int | str | Qubit | oqpy._ClassicalVar | oqpy.base.OQPyExpression | oqpy.Qubit
 
 
 def is_qubit_identifier_type(qubit: Any) -> bool:
@@ -92,7 +90,7 @@ class Range(oqpy.Range):
         if stop is None:
             stop = start
             start = 0
-        super(Range, self).__init__(start, stop, step)
+        super().__init__(start, stop, step)
         self.annotations = make_annotations_list(annotations)
 
 
@@ -116,9 +114,9 @@ class ArrayVar(oqpy.ArrayVar):
             raise errors.InvalidArrayDeclaration("init_expression must be an iterable type.")
 
         dimensions = np.shape(init_expression)
-        super(ArrayVar, self).__init__(
+        super().__init__(
             init_expression=init_expression,
-            *args,
+            *args,  # noqa: B026
             annotations=make_annotations_list(annotations),
             dimensions=dimensions,
             **kwargs,
@@ -128,9 +126,7 @@ class ArrayVar(oqpy.ArrayVar):
 
 class BitVar(oqpy.BitVar):
     def __init__(self, *args, annotations: str | Iterable[str] | None = None, **kwargs):
-        super(BitVar, self).__init__(
-            *args, annotations=make_annotations_list(annotations), **kwargs
-        )
+        super().__init__(*args, annotations=make_annotations_list(annotations), **kwargs)
         self.name = program.get_program_conversion_context().next_var_name(oqpy.BitVar)
         if self.size and self.init_expression != "output":
             value = self.init_expression or 0
@@ -139,23 +135,17 @@ class BitVar(oqpy.BitVar):
 
 class BoolVar(oqpy.BoolVar):
     def __init__(self, *args, annotations: str | Iterable[str] | None = None, **kwargs):
-        super(BoolVar, self).__init__(
-            *args, annotations=make_annotations_list(annotations), **kwargs
-        )
+        super().__init__(*args, annotations=make_annotations_list(annotations), **kwargs)
         self.name = program.get_program_conversion_context().next_var_name(oqpy.BoolVar)
 
 
 class FloatVar(oqpy.FloatVar):
     def __init__(self, *args, annotations: str | Iterable[str] | None = None, **kwargs):
-        super(FloatVar, self).__init__(
-            *args, annotations=make_annotations_list(annotations), **kwargs
-        )
+        super().__init__(*args, annotations=make_annotations_list(annotations), **kwargs)
         self.name = program.get_program_conversion_context().next_var_name(oqpy.FloatVar)
 
 
 class IntVar(oqpy.IntVar):
     def __init__(self, *args, annotations: str | Iterable[str] | None = None, **kwargs):
-        super(IntVar, self).__init__(
-            *args, annotations=make_annotations_list(annotations), **kwargs
-        )
+        super().__init__(*args, annotations=make_annotations_list(annotations), **kwargs)
         self.name = program.get_program_conversion_context().next_var_name(oqpy.IntVar)

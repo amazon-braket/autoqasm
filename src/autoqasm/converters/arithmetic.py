@@ -15,12 +15,11 @@
 
 import ast
 
-import gast
 from malt.core import ag_ctx, converter
 from malt.pyct import templates
 
 ARITHMETIC_OPERATORS = {
-    gast.FloorDiv: "ag__.floor_div",
+    ast.FloorDiv: "ag__.floor_div",
 }
 
 
@@ -41,14 +40,12 @@ class ArithmeticTransformer(converter.Base):
 
         template = f"{ARITHMETIC_OPERATORS[op_type]}(lhs_,rhs_)"
 
-        new_node = templates.replace(
+        return templates.replace(
             template,
             lhs_=node.left,
             rhs_=node.right,
             original=node,
         )[0].value
-
-        return new_node
 
 
 def transform(node: ast.stmt, ctx: ag_ctx.ControlStatusCtx) -> ast.stmt:

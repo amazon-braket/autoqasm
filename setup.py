@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="autoqasm",
-    version="0.2.0",
+    version="0.3.0",
     license="Apache License 2.0",
     python_requires=">= 3.11",
     packages=find_namespace_packages(where="src", exclude=("test",)),
@@ -27,13 +27,12 @@ setup(
         "amazon-braket-sdk>=1.89.1",
         "amazon-braket-default-simulator>=1.23.2",
         "oqpy~=0.3.5",
-        "diastatic-malt",
+        "diastatic-malt>=2.15.3",
         "numpy",
         "openpulse",
         "openqasm3",
         "sympy",
         "astunparse",
-        "gast",
         "termcolor",
         "openqasm_pygments",
     ],

@@ -14,15 +14,13 @@
 
 """Quantum gates, unitary instructions, that apply to qubits."""
 
-from typing import Union
-
 import oqpy
 
 from autoqasm.instructions.instructions import _qubit_instruction
 from autoqasm.types import QubitIdentifierType
 from braket.circuits.free_parameter_expression import FreeParameterExpression
 
-GateParameterType = Union[float, FreeParameterExpression, oqpy._ClassicalVar]
+GateParameterType = float | FreeParameterExpression | oqpy._ClassicalVar
 
 
 def ccnot(

@@ -18,9 +18,9 @@ from __future__ import annotations
 import copy
 import functools
 import inspect
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from types import FunctionType
-from typing import Any, Iterable, get_args
+from typing import Any, get_args
 
 import openqasm3.ast as qasm_ast
 import oqpy.base
@@ -227,7 +227,7 @@ def _convert_main(
     Returns:
         aq_program.Program: Generated AutoQASM Program.
     """
-    if "device" in kwargs and kwargs["device"]:
+    if kwargs.get("device"):
         user_config.device = kwargs["device"]
 
     param_dict = {}
@@ -479,8 +479,8 @@ def _clone_function(f_source: Callable) -> Callable:
         copy.deepcopy(f_source.__defaults__),
         copy.copy(f_source.__closure__),
     )
-    setattr(f_clone, "__signature__", copy.deepcopy(inspect.signature(f_source)))
-    setattr(f_clone, "__annotations__", copy.deepcopy(f_source.__annotations__))
+    f_clone.__signature__ = copy.deepcopy(inspect.signature(f_source))
+    f_clone.__annotations__ = copy.deepcopy(f_source.__annotations__)
     return f_clone
 
 
@@ -492,15 +492,15 @@ def _dummy_function(f_source: Callable) -> Callable:
 
     f_dummy.__name__ = copy.deepcopy(f_source.__name__)
     f_dummy.__defaults__ = copy.deepcopy(f_source.__defaults__)
-    setattr(f_dummy, "__signature__", copy.deepcopy(inspect.signature(f_source)))
-    setattr(f_dummy, "__annotations__", copy.deepcopy(f_source.__annotations__))
+    f_dummy.__signature__ = copy.deepcopy(inspect.signature(f_source))
+    f_dummy.__annotations__ = copy.deepcopy(f_source.__annotations__)
     return f_dummy
 
 
 def _make_return_instance_from_f_annotation(f: Callable) -> Any:
     # TODO: Recursive functions should work even if the user's type hint is wrong
     annotations = f.__annotations__
-    return_type = annotations["return"] if "return" in annotations else None
+    return_type = annotations.get("return", None)
     return return_type() if return_type else None
 
 
@@ -609,9 +609,8 @@ def _get_gate_args(f: Callable) -> aq_program.GateArgs:
 
         if param.annotation == aq_instructions.QubitIdentifierType:
             gate_args.append_qubit(param.name)
-        elif param.annotation == float or any(  # noqa: E721
-            type_ == float  # noqa: E721
-            for type_ in get_args(param.annotation)
+        elif param.annotation == float or any(
+            type_ == float for type_ in get_args(param.annotation)
         ):
             gate_args.append_angle(param.name)
         else:
@@ -675,11 +674,13 @@ def _convert_calibration(
         },
     }
 
-    with aq_program.build_program() as program_conversion_context:
-        with program_conversion_context.calibration_definition(
+    with (
+        aq_program.build_program() as program_conversion_context,
+        program_conversion_context.calibration_definition(
             gate_function.__name__, gate_calibration_qubits, gate_calibration_angles
-        ):
-            aq_transpiler.converted_call(f, [], func_call_kwargs, options=options)
+        ),
+    ):
+        aq_transpiler.converted_call(f, [], func_call_kwargs, options=options)
 
     return GateCalibration(
         gate_function=gate_function,

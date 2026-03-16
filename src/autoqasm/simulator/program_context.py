@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from functools import singledispatchmethod
-from typing import Optional, Union
 
 import numpy as np
 from sympy import Integer
@@ -51,7 +50,7 @@ class QubitTable(Table):
             )
 
     @singledispatchmethod
-    def get_by_identifier(self, identifier: Union[Identifier, IndexedIdentifier]) -> tuple[int]:
+    def get_by_identifier(self, identifier: Identifier | IndexedIdentifier) -> tuple[int]:
         """Convenience method to get an element with a possibly indexed identifier.
 
         Args:
@@ -65,7 +64,7 @@ class QubitTable(Table):
         return self[identifier.name]
 
     @get_by_identifier.register
-    def _(self, identifier: IndexedIdentifier) -> tuple[int]:  # noqa: C901
+    def _(self, identifier: IndexedIdentifier) -> tuple[int]:
         """When identifier is an IndexedIdentifier, function returns a tuple
         corresponding to the elements referenced by the indexed identifier.
 
@@ -94,7 +93,7 @@ class QubitTable(Table):
             for index in index_list:
                 if isinstance(index, int):
                     self._validate_qubit_in_range(index, name)
-            target = tuple([self[name][0] + index for index in index_list])
+            target = tuple([self[name][0] + index for index in index_list])  # noqa: C409
 
         if len(indices) == 2:
             # used for gate calls on registers, index will be IntegerLiteral
@@ -165,7 +164,7 @@ class QubitTable(Table):
         else:
             raise TypeError(f"tuple indices must be integers or slices, not {type(last_index)}")
 
-    def get_qubit_size(self, identifier: Union[Identifier, IndexedIdentifier]) -> int:
+    def get_qubit_size(self, identifier: Identifier | IndexedIdentifier) -> int:
         """Gets the number of qubit indices for the given identifier.
 
         Args:
@@ -182,16 +181,15 @@ class QubitTable(Table):
 
 
 class McmProgramContext(ProgramContext):
-    def __init__(self, circuit: Optional[Circuit] = None):
+    def __init__(self, circuit: Circuit | None = None):
         """
         Args:
             circuit (Optional[Circuit]): A partially-built circuit to continue building with this
                 context. Default: None.
         """
-        super(ProgramContext, self).__init__()
+        super().__init__(circuit)
         self.qubit_mapping = QubitTable()
         self.outputs = {}
-        self._circuit = circuit or Circuit()
 
     def pop_instructions(self) -> list[GateOperation]:
         """Returns the list of instructions and removes them from the context.

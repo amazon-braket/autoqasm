@@ -31,8 +31,8 @@ The verbatim pragma would then apply to the `h` and `cnot`, but not the `x`.
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Iterable
 from enum import StrEnum
-from typing import Iterable
 
 from autoqasm import errors, program
 from braket.device_schema import DeviceActionType

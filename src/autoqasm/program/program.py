@@ -55,7 +55,7 @@ def _get_local() -> threading.local:
         local: The thread-local object which stores the program conversion context.
     """
     if not hasattr(_local, "program_conversion_context"):
-        setattr(_local, "program_conversion_context", None)
+        _local.program_conversion_context = None
     return _local
 
 
@@ -122,7 +122,7 @@ class MainProgram(SerializableProgram):
         self,
         ir_type: IRType = IRType.OPENQASM,
         build_if_necessary: bool = True,
-        serialization_properties: SerializationProperties = OpenQASMSerializationProperties(),
+        serialization_properties: SerializationProperties = OpenQASMSerializationProperties(),  # noqa: B008
     ) -> str:
         """Serializes the program into an intermediate representation.
 
@@ -228,7 +228,7 @@ class Program(SerializableProgram):
         self,
         ir_type: IRType = IRType.OPENQASM,
         build_if_necessary: bool = True,
-        serialization_properties: SerializationProperties = OpenQASMSerializationProperties(),
+        serialization_properties: SerializationProperties = OpenQASMSerializationProperties(),  # noqa: B008
     ) -> str:
         """Serializes the program into an intermediate representation.
 
@@ -364,7 +364,7 @@ class ProgramConversionContext:
             list[int]: The list of virtual qubits, e.g. [0, 1, 2]
         """
         # Can be memoized or otherwise made more performant
-        return sorted(list(self._virtual_qubits_used))
+        return list(sorted(self._virtual_qubits_used))  # noqa: C413
 
     def register_qubit(self, qubit: int) -> None:
         """Register a virtual qubit that is used in this program."""
@@ -441,7 +441,7 @@ class ProgramConversionContext:
     def register_input_parameter(
         self,
         name: str,
-        param_type: float | int | bool = float,
+        param_type: float | bool = float,
     ) -> None:
         """Register an input parameter if it has not already been registered.
 
@@ -471,13 +471,13 @@ class ProgramConversionContext:
             return var
 
     def register_output_parameter(
-        self, name: str, value: bool | int | float | oqpy.base.Var | oqpy.OQPyExpression | None
+        self, name: str, value: bool | float | oqpy.base.Var | oqpy.OQPyExpression | None
     ) -> None:
         """Register a new output parameter if it is not None.
 
         Args:
             name (str): The name of the parameter to register with the program.
-            value (bool | int | float | Var | OQPyExpression | None): Value to
+            value (bool | float | Var | OQPyExpression | None): Value to
                 register as an output parameter.
         """
         if value is None:
@@ -589,10 +589,7 @@ class ProgramConversionContext:
             bool: Return True if the variable already exists
         """
         oqpy_program = self.get_oqpy_program()
-        return (
-            var_name in oqpy_program.declared_vars.keys()
-            or var_name in oqpy_program.undeclared_vars.keys()
-        )
+        return var_name in oqpy_program.declared_vars or var_name in oqpy_program.undeclared_vars
 
     def validate_gate_targets(self, qubits: list[Any], angles: list[Any]) -> None:
         """Validate that the specified gate targets are valid at this point in the program.
