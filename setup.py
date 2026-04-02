@@ -16,9 +16,12 @@ from setuptools import find_namespace_packages, setup
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open("src/autoqasm/_version.py") as f:
+    version = f.readlines()[-1].split()[-1].strip("\"'")
+
 setup(
     name="autoqasm",
-    version="0.3.0",
+    version=version,
     license="Apache License 2.0",
     python_requires=">= 3.11",
     packages=find_namespace_packages(where="src", exclude=("test",)),
