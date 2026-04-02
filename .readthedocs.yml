@@ -18,6 +18,8 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: '3.13'
+  apt_packages:
+    - pandoc
 
 # Optionally set the version of Python and requirements required to build your docs
 python:

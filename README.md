@@ -107,9 +107,9 @@ task = device.run(conditional_multi_bell_states, shots=100)
 result = task.result()
 ```
 
-Read more about AutoQASM decorators like `@aq.main` [here](doc/decorators.md).
+Read more about AutoQASM decorators like `@aq.main` [here](doc/decorators.rst).
 
-Read more about using AutoQASM with Amazon Braket Hybrid Jobs [here](doc/hybrid_jobs.md).
+Read more about using AutoQASM with Amazon Braket Hybrid Jobs [here](doc/hybrid_jobs.rst).
 
 For more example usage of AutoQASM, visit the [example notebooks](examples).
 
