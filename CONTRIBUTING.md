@@ -153,25 +153,25 @@ Our documentation is built with [Sphinx](https://www.sphinx-doc.org/) using the
 [sphinx-rtd-theme](https://sphinx-rtd-theme.readthedocs.io/) and hosted on
 [ReadTheDocs](https://autoqasm.readthedocs.io/). The build pipeline uses the following key extensions:
 
-* **nbsphinx** — Renders Jupyter notebooks (`.ipynb` files) from the `examples/` directory as HTML
+* **nbsphinx** — Renders Jupyter notebooks (`.ipynb` files) from the `doc/examples/` directory as HTML
   documentation pages. Notebooks are not executed during the build; they must contain pre-rendered
   outputs.
 * **sphinxcontrib-apidoc** — Auto-generates API reference pages from source code docstrings.
 
 Prose documentation files use **reStructuredText (`.rst`)** format and live in the `doc/` directory.
-Example notebooks in the `examples/` directory are automatically rendered into the documentation
+Example notebooks in the `doc/examples/` directory are automatically rendered into the documentation
 site via nbsphinx. For a quick primer on RST syntax, see
 [the Sphinx documentation](https://www.sphinx-doc.org/en/main/usage/restructuredtext/basics.html).
 
 #### Adding a New Example Notebook
 
-1. Place your notebook (`.ipynb`) in the `examples/` directory. Make sure it contains pre-rendered
+1. Place your notebook (`.ipynb`) in the `doc/examples/` directory. Make sure it contains pre-rendered
    cell outputs, since notebooks are not executed during the build.
 2. Add a toctree entry in `doc/index.rst` under the "Examples" section with a human-readable
    display title. For example:
 
    ```rst
-   My New Example <../examples/my_new_example>
+   My New Example <examples/my_new_example>
    ```
 
 #### Adding or Editing Prose Documentation
