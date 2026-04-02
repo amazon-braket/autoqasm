@@ -62,16 +62,28 @@ reserved_keywords = {
 }
 
 
-def sanitize_parameter_name(name: str) -> str:
+def sanitize_parameter_name(name: str, existing_names: set[str] | None = None) -> str:
     """
     Method to modify the variable name if it is a
     reserved keyword
 
     Args:
         name (str): Name of the variable to be checked
+        existing_names (set[str] | None): Optional set of existing parameter names
+            in the same subroutine signature. When provided, the function will keep
+            appending underscores until the result is unique among existing_names
+            and not a reserved keyword. When None, preserves the original
+            single-underscore behavior for backward compatibility.
 
     Returns:
-        str: Returns a modified 'name' that has an underscore ('_') appended to it;
-        otherwise, it returns the original 'name' unchanged
+        str: Returns a modified 'name' that has underscores appended to avoid
+        collisions with reserved keywords and existing names; otherwise,
+        it returns the original 'name' unchanged
     """
-    return f"{name}_" if name in reserved_keywords else name
+    if name not in reserved_keywords:
+        return name
+    new_name = f"{name}_"
+    if existing_names is not None:
+        while new_name in existing_names or new_name in reserved_keywords:
+            new_name = f"{new_name}_"
+    return new_name
