@@ -334,6 +334,7 @@ class ProgramConversionContext:
         self._has_pulse_control = False
         self._input_parameters = {}
         self._output_parameters = {}
+        self._deferred_python_values: dict = {}
 
     def make_program(self) -> Program:
         """Makes a Program object using the oqpy program from this conversion context.
