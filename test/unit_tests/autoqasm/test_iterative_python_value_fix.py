@@ -44,10 +44,7 @@ for int q in [0:3 - 1] {
 }"""
 
     result = float_init_loop.build().to_ir()
-    assert result == expected, (
-        f"Plain Python float init produced unexpected QASM.\n"
-        f"Expected:\n{expected}\n\nGot:\n{result}"
-    )
+    assert result == expected
 
 
 def test_int_init_loop_update():
@@ -70,9 +67,7 @@ for int q in [0:3 - 1] {
 }"""
 
     result = int_init_loop.build().to_ir()
-    assert result == expected, (
-        f"Plain Python int init produced unexpected QASM.\nExpected:\n{expected}\n\nGot:\n{result}"
-    )
+    assert result == expected
 
 
 def test_float_init_loop_update_return():
@@ -97,10 +92,7 @@ for int q in [0:3 - 1] {
 }"""
 
     result = float_init_loop_return.build().to_ir()
-    assert result == expected, (
-        f"Plain Python float init with return produced unexpected QASM.\n"
-        f"Expected:\n{expected}\n\nGot:\n{result}"
-    )
+    assert result == expected
 
 
 def test_preservation_floatvar_loop_update():
@@ -125,10 +117,7 @@ for int q in [0:3 - 1] {
 rx(val) __qubits__[0];"""
 
     result = floatvar_loop_update.build().to_ir()
-    assert result == expected, (
-        f"FloatVar loop update QASM changed unexpectedly.\nExpected:\n{expected}\n\nGot:\n{result}"
-    )
-    assert "float[64] val = 0.5;" in result
+    assert result == expected
 
 
 def test_preservation_floatvar_loop_return():
@@ -153,10 +142,7 @@ for int q in [0:3 - 1] {
 }"""
 
     result = floatvar_loop_return.build().to_ir()
-    assert result == expected, (
-        f"FloatVar loop return QASM changed unexpectedly.\nExpected:\n{expected}\n\nGot:\n{result}"
-    )
-    assert "output float[64] val;" in result
+    assert result == expected
 
 
 def test_preservation_intvar_loop_update():
@@ -179,10 +165,7 @@ for int q in [0:3 - 1] {
 }"""
 
     result = intvar_loop_update.build().to_ir()
-    assert result == expected, (
-        f"IntVar loop update QASM changed unexpectedly.\nExpected:\n{expected}\n\nGot:\n{result}"
-    )
-    assert "int[32] val = 0;" in result
+    assert result == expected
 
 
 def test_preservation_literal_float():
@@ -198,11 +181,7 @@ qubit[1] __qubits__;
 rx(0.5) __qubits__[0];"""
 
     result = literal_float.build().to_ir()
-    assert result == expected, (
-        f"Literal float QASM changed unexpectedly.\nExpected:\n{expected}\n\nGot:\n{result}"
-    )
-    assert "float[64]" not in result
-    assert "rx(0.5)" in result
+    assert result == expected
 
 
 def test_preservation_plain_python_var_as_literal():
@@ -220,9 +199,4 @@ qubit[1] __qubits__;
 rx(0.5) __qubits__[0];"""
 
     result = plain_var_as_literal.build().to_ir()
-    assert result == expected, (
-        f"Plain Python var used as literal produced unexpected QASM.\n"
-        f"Expected:\n{expected}\n\nGot:\n{result}"
-    )
-    assert "float[64] val" not in result
-    assert "rx(0.5)" in result
+    assert result == expected
