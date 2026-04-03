@@ -34,6 +34,12 @@ includes the source code, installation instructions, and other information.
 
 .. toctree::
    :maxdepth: 2
+   :caption: Architecture
+
+   variable_capture_and_assignment
+
+.. toctree::
+   :maxdepth: 2
    :caption: API Reference
 
    _apidoc/modules
