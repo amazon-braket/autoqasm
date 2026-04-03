@@ -16,7 +16,12 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.coverage",
+    "nbsphinx",
 ]
+
+nbsphinx_execute = "never"
+
+exclude_patterns = ["**/.ipynb_checkpoints"]
 
 source_suffix = ".rst"
 master_doc = "index"

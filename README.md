@@ -32,7 +32,7 @@ AutoQASM programs can be serialized to OpenQASM. This textual representation for
 
 Although it is still a work in progress, the intent is that AutoQASM will support any quantum programming paradigm which falls into the [OpenQASM 3.0](https://openqasm.com) language scope. AutoQASM supports serializing quantum programs to OpenQASM, which allows the programs to interoperate with any library or service that supports OpenQASM programs, such as Amazon Braket.
 
-See the [Quick Start](#quick-start) section below, as well as the AutoQASM [example notebooks](examples), for examples of AutoQASM usage.
+See the [Quick Start](#quick-start) section below, as well as the AutoQASM [example notebooks](doc/examples), for examples of AutoQASM usage.
 
 
 ## Installation
@@ -107,11 +107,11 @@ task = device.run(conditional_multi_bell_states, shots=100)
 result = task.result()
 ```
 
-Read more about AutoQASM decorators like `@aq.main` [here](doc/decorators.md).
+Read more about AutoQASM decorators like `@aq.main` [here](doc/decorators.rst).
 
-Read more about using AutoQASM with Amazon Braket Hybrid Jobs [here](doc/hybrid_jobs.md).
+Read more about using AutoQASM with Amazon Braket Hybrid Jobs [here](doc/hybrid_jobs.rst).
 
-For more example usage of AutoQASM, visit the [example notebooks](examples).
+For more example usage of AutoQASM, visit the [example notebooks](doc/examples).
 
 ## Architecture
 
@@ -187,7 +187,7 @@ an Amazon Braket device.
 
 Yes. AutoQASM serializes to OpenQASM, and so it is applicable to any library
 or QPU that supports OpenQASM. AutoQASM does have some features that use the Amazon Braket
-SDK, such as [device-specific validation](examples/4_Native_programming.ipynb).
+SDK, such as [device-specific validation](doc/examples/4_Native_programming.ipynb).
 Because AutoQASM is open-source, anyone could build similar integrations for another service.
 Reach out if you're interested in doing this and would like support.
 
@@ -195,7 +195,7 @@ Reach out if you're interested in doing this and would like support.
 
 Yes, AutoQASM has device-specific validation to support native programming.
 We plan to expand this functionality in the future. Learn more with our
-[native programming example notebook](examples/4_Native_programming.ipynb).
+[native programming example notebook](doc/examples/4_Native_programming.ipynb).
 
 ### 6. Do the devices available through Amazon Braket support all of AutoQASM's features?
 
