@@ -23,106 +23,8 @@ import oqpy.base
 from malt.operators.variables import UndefinedReturnValue
 
 from autoqasm import constants, errors, program, types
-from autoqasm.types.conversions import map_parameter_type, var_type_from_oqpy
-
-
-def _make_oqpy_var(value, name):
-    """Create an oqpy variable from a Python value with the given name."""
-    var_type = map_parameter_type(type(value))
-    return var_type(init_expression=value, name=name)
-
-
-class _DeferredVarMixin:
-    """Mixin that lazily promotes a Python numeric value to an oqpy variable
-    when combined with a QASM expression. When used as a gate parameter the
-    value remains a literal."""
-
-    _oqpy_var_type: type = None
-
-    def _deferred_init(self, value, name):
-        self._deferred_name = name
-        self._deferred_value = value
-        self._promoted_var = None
-
-    def _get_or_create_var(self):
-        if self._promoted_var is None:
-            self._promoted_var = self._oqpy_var_type(
-                init_expression=self._deferred_value, name=self._deferred_name
-            )
-        return self._promoted_var
-
-    def _dispatch(self, op, other):
-        if isinstance(other, oqpy.base.OQPyExpression):
-            return getattr(self._get_or_create_var(), op)(other)
-        return NotImplemented
-
-    def __add__(self, other):
-        r = self._dispatch("__add__", other)
-        return r if r is not NotImplemented else super().__add__(other)
-
-    def __radd__(self, other):
-        r = self._dispatch("__radd__", other)
-        return r if r is not NotImplemented else super().__radd__(other)
-
-    def __sub__(self, other):
-        r = self._dispatch("__sub__", other)
-        return r if r is not NotImplemented else super().__sub__(other)
-
-    def __rsub__(self, other):
-        r = self._dispatch("__rsub__", other)
-        return r if r is not NotImplemented else super().__rsub__(other)
-
-    def __mul__(self, other):
-        r = self._dispatch("__mul__", other)
-        return r if r is not NotImplemented else super().__mul__(other)
-
-    def __rmul__(self, other):
-        r = self._dispatch("__rmul__", other)
-        return r if r is not NotImplemented else super().__rmul__(other)
-
-    def __truediv__(self, other):
-        r = self._dispatch("__truediv__", other)
-        return r if r is not NotImplemented else super().__truediv__(other)
-
-    def __rtruediv__(self, other):
-        r = self._dispatch("__rtruediv__", other)
-        return r if r is not NotImplemented else super().__rtruediv__(other)
-
-
-class _DeferredFloat(_DeferredVarMixin, float):
-    """A Python float that lazily promotes to an oqpy FloatVar."""
-
-    _oqpy_var_type = oqpy.FloatVar
-
-    def __new__(cls, value, name):
-        return float.__new__(cls, value)
-
-    def __init__(self, value, name):
-        self._deferred_init(value, name)
-
-
-class _DeferredInt(_DeferredVarMixin, int):
-    """A Python int that lazily promotes to an oqpy IntVar."""
-
-    _oqpy_var_type = oqpy.IntVar
-
-    def __new__(cls, value, name):
-        return int.__new__(cls, value)
-
-    def __init__(self, value, name):
-        self._deferred_init(value, name)
-
-
-def _make_deferred(value, name):
-    """Wrap a plain Python value in a deferred wrapper that lazily promotes
-    to a QASM variable when used in QASM expressions."""
-    if isinstance(value, float):
-        return _DeferredFloat(value, name)
-    elif isinstance(value, bool):
-        return _DeferredInt(int(value), name)
-    elif isinstance(value, int):
-        return _DeferredInt(value, name)
-    return value
+from autoqasm.types.conversions import var_type_from_oqpy
+from autoqasm.types.deferred import DeferredVarMixin, make_deferred
 
 
 def assign_for_output(target_name: str, value: Any) -> Any:
@@ -142,7 +44,7 @@ def assign_for_output(target_name: str, value: Any) -> Any:
     """
     if value is None:
         return None
-    if isinstance(value, _DeferredVarMixin):
+    if isinstance(value, DeferredVarMixin):
         value = value._deferred_value
     value = types.wrap_value(value)
 
@@ -227,7 +129,7 @@ def _resolve_retval(value: Any, ctx) -> Any:
             "Subroutine returns an array or list, which is not allowed."
         )
 
-    if isinstance(value, _DeferredVarMixin):
+    if isinstance(value, DeferredVarMixin):
         value = value._deferred_value
 
     return types.wrap_value(value)
@@ -240,39 +142,21 @@ def _promote_deferred_expression(
 
     Called when a variable that was initially assigned a plain Python value
     (e.g. ``val = 0.5``) is later reassigned with a QASM expression
-    (e.g. ``val = val + measure(q)``).  If the deferred wrapper has already
-    been promoted via arithmetic with a QASM expression, the existing oqpy
-    variable is reused.  Otherwise a new variable is created from the stored
-    Python value.
+    (e.g. ``val = val + measure(q)``).
 
-    Returns ``None`` if the deferred value was never used in a QASM expression
-    (e.g. ``expr = 2 * theta`` where ``2`` is a deferred int but the expression
-    doesn't reference the deferred variable by name). In that case the caller
-    should return the expression value as-is.
-
-    The declaration is appended to the root program scope
-    (``oqpy_program.stack[0]``) so it appears in the correct position in the
-    generated OpenQASM (after qubit register declarations).
+    Returns ``None`` if no deferred value exists for the target name and the
+    expression is not a Var (e.g. a temporary expression like ``2 * theta``).
+    In that case the caller should return the expression value as-is.
     """
-    deferred_val = ctx._deferred_python_values.pop(target_name, None)
-    if deferred_val is not None and deferred_val._promoted_var is not None:
-        target = deferred_val._promoted_var
-    elif deferred_val is not None:
-        target = deferred_val._get_or_create_var()
-    elif isinstance(value, oqpy.base.Var):
+    target = ctx.promote_deferred_value(target_name)
+    if target is not None:
+        return target
+    if isinstance(value, oqpy.base.Var):
         target = copy.copy(value)
         target.init_expression = None
         target.name = target_name
-    else:
-        return None
-
-    oqpy_program = ctx.get_oqpy_program()
-    if target.name not in oqpy_program.declared_vars:
-        decl_stmt = target.make_declaration_statement(oqpy_program)
-        oqpy_program._mark_var_declared(target)
-        oqpy_program.stack[0].body.append(decl_stmt)
-
-    return target
+        return target
+    return None
 
 
 def _defer_python_value(target_name: str, value: Any, ctx) -> Any:
@@ -281,14 +165,14 @@ def _defer_python_value(target_name: str, value: Any, ctx) -> Any:
     If the value can be deferred (int, float, bool), returns a deferred
     wrapper that behaves as a plain numeric literal but lazily promotes to an
     oqpy variable when combined with a QASM expression.  The wrapper is
-    stored in ``ctx._deferred_python_values`` so that
-    ``_promote_deferred_expression`` can retrieve it later.
+    stored via ``ctx.defer_python_value`` so that
+    ``ctx.promote_deferred_value`` can retrieve it later.
 
     If the value's type cannot be deferred, it is returned unchanged.
     """
-    deferred = _make_deferred(value, target_name)
+    deferred = make_deferred(value, target_name)
     if deferred is not value:
-        ctx._deferred_python_values[target_name] = deferred
+        ctx.defer_python_value(target_name, deferred)
     return deferred
 
 

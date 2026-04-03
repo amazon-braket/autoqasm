@@ -131,21 +131,21 @@ At the time of `val = 0.5`, we don't know whether `val` will later be used as a 
 
 ### The Solution: Deferred Wrappers
 
-The deferred promotion mechanism uses wrapper classes (`_DeferredFloat`, `_DeferredInt`) that subclass Python's `float` and `int`. These wrappers:
+The deferred promotion mechanism uses wrapper classes (`DeferredFloat`, `DeferredInt`) defined in `src/autoqasm/types/deferred.py` that subclass Python's `float` and `int`. These wrappers:
 
 - **Behave as plain numeric values** when used in pure Python contexts (gate parameters, Python arithmetic, etc.)
 - **Lazily promote to oqpy variables** when combined with QASM expressions via arithmetic operators
 
-#### `_DeferredVarMixin`
+#### `DeferredVarMixin`
 
-The shared mixin provides:
+The shared mixin (in `src/autoqasm/types/deferred.py`) provides:
 
 - `_deferred_init(value, name)` — stores the Python value and target variable name
-- `_get_or_create_var()` — lazily creates an oqpy `Var` (e.g., `FloatVar`) with the stored value and name. The `Var` is cached in `_promoted_var` so subsequent calls return the same object.
+- `get_or_create_var()` — lazily creates an oqpy `Var` (e.g., `FloatVar`) with the stored value and name. The `Var` is cached in `promoted_var` so subsequent calls return the same object.
 - `_dispatch(op, other)` — if `other` is an `OQPyExpression`, delegates the arithmetic to the promoted oqpy `Var`. Otherwise returns `NotImplemented`, causing Python to fall back to the base type's arithmetic.
 - Arithmetic operator overrides (`__add__`, `__radd__`, `__mul__`, etc.) — each calls `_dispatch` and falls back to `super()` if not dispatched.
 
-#### `_DeferredFloat` and `_DeferredInt`
+#### `DeferredFloat` and `DeferredInt`
 
 Thin subclasses that set `_oqpy_var_type` to `oqpy.FloatVar` or `oqpy.IntVar` respectively.
 
@@ -154,7 +154,7 @@ Thin subclasses that set `_oqpy_var_type` to `oqpy.FloatVar` or `oqpy.IntVar` re
 #### Case 1: Variable used as a literal (no promotion needed)
 
 ```python
-val = 0.5       # assign_stmt returns _DeferredFloat(0.5, "val")
+val = 0.5       # assign_stmt returns DeferredFloat(0.5, "val")
 rx(0, val)      # val is a float subclass, rx sees 0.5 as a literal
 ```
 
@@ -163,12 +163,12 @@ Generated QASM: `rx(0.5) __qubits__[0];` — no variable declaration.
 #### Case 2: Variable updated in a loop (promotion needed)
 
 ```python
-val = 0.5                           # assign_stmt returns _DeferredFloat(0.5, "val")
+val = 0.5                           # assign_stmt returns DeferredFloat(0.5, "val")
 for q in aq.range(3):
     val = val + measure(q)          # val + measure(q) triggers _dispatch
-                                    # _get_or_create_var creates FloatVar(name="val", init=0.5)
+                                    # get_or_create_var creates FloatVar(name="val", init=0.5)
                                     # assign_stmt sees OQPyExpression, calls _promote_deferred_expression
-                                    # _promote_deferred_expression declares float[64] val = 0.5;
+                                    # ctx.promote_deferred_value declares float[64] val = 0.5;
 ```
 
 Generated QASM:
@@ -196,26 +196,23 @@ Generated QASM: `gpi(2 * theta) __qubits__[0];` — no variable declaration.
 
 ### `_defer_python_value`
 
-Called from `assign_stmt`'s `else` branch when the value is not a QASM type. Wraps `int`, `float`, and `bool` values in deferred wrappers and stores them in `ctx._deferred_python_values[target_name]` for later retrieval by `_promote_deferred_expression`.
+Called from `assign_stmt`'s `else` branch when the value is not a QASM type. Wraps `int`, `float`, and `bool` values in deferred wrappers (via `make_deferred` from `types.deferred`) and stores them via `ctx.defer_python_value()` for later retrieval by `ctx.promote_deferred_value()`.
 
 ### `_promote_deferred_expression`
 
-Called from `assign_stmt` when the value is an `OQPyExpression` and the target name is not yet a QASM variable. This is the point where deferred promotion actually happens.
+Called from `assign_stmt` when the value is an `OQPyExpression` and the target name is not yet a QASM variable. Delegates to `ctx.promote_deferred_value()` for the actual promotion and declaration.
 
 Decision logic:
-1. If a deferred value exists for the target name AND its `_promoted_var` is not `None` (meaning the deferred wrapper was used in QASM arithmetic), reuse the promoted `Var` and declare it.
-2. If a deferred value exists but `_promoted_var` is `None` (the wrapper was never used in QASM arithmetic), call `_get_or_create_var()` to create the `Var` and declare it.
-3. If the value is an `oqpy.base.Var`, copy it with the target name.
-4. If no deferred value exists and the value is a bare `OQPyExpression`, return `None` — the expression should be used as-is without creating a variable.
-
-The declaration is appended to `oqpy_program.stack[0].body` (the root program scope) so it appears after qubit register declarations in the generated QASM.
+1. If `ctx.promote_deferred_value(target_name)` returns a `Var`, the deferred value was found and promoted — use it.
+2. If it returns `None` but the value is an `oqpy.base.Var`, copy it with the target name.
+3. If no deferred value exists and the value is a bare `OQPyExpression`, return `None` — the expression should be used as-is without creating a variable.
 
 ## The `ProgramConversionContext`
 
 The `ProgramConversionContext` (in `src/autoqasm/program/program.py`) holds the state for the current program being transpiled:
 
 - `_oqpy_program_stack` — stack of oqpy `Program` objects (one per scope level)
-- `_deferred_python_values: dict` — maps variable names to their deferred wrappers, used by `_defer_python_value` and `_promote_deferred_expression`
+- `_deferred_python_values: dict` — maps variable names to their deferred wrappers, managed via `defer_python_value()` and `promote_deferred_value()` methods
 - `_var_idx` — counter for auto-generated variable names (e.g., `__bit_0__`, `__int_1__`)
 - `at_function_root_scope` — `True` at the top level of a function, `False` inside control flow blocks
 - `is_var_name_used(name)` — checks if a variable name exists in the oqpy program's declared or undeclared vars
@@ -238,7 +235,7 @@ The `_add_var(var)` method registers a variable. It raises `RuntimeError` if a v
 
 ### `_mark_var_declared(var)`
 
-Moves a variable from `undeclared_vars` to `declared_vars`. Used by `_promote_deferred_expression` to explicitly declare deferred variables at the root scope.
+Moves a variable from `undeclared_vars` to `declared_vars`. Used by `ProgramConversionContext.promote_deferred_value()` to explicitly declare deferred variables at the root scope.
 
 ### Expression AST Generation
 
@@ -275,7 +272,7 @@ oqpy uses `var is existing_var` to check if a variable is the same object. Creat
 
 ### Deferred Wrappers and `isinstance`
 
-`_DeferredFloat` is a subclass of `float`, and `_DeferredInt` is a subclass of `int`. This means `isinstance(deferred_val, float)` returns `True`. Code that checks `isinstance(value, float)` will match deferred wrappers. If you need to distinguish deferred wrappers from plain values, check `isinstance(value, _DeferredVarMixin)`.
+`DeferredFloat` is a subclass of `float`, and `DeferredInt` is a subclass of `int`. This means `isinstance(deferred_val, float)` returns `True`. Code that checks `isinstance(value, float)` will match deferred wrappers. If you need to distinguish deferred wrappers from plain values, check `isinstance(value, DeferredVarMixin)`.
 
 ### Augmented Assignments
 
@@ -293,4 +290,4 @@ AutoGraph transpiles `return x` into `retval_ = x; return retval_`. The `assign_
 
 ### `_promote_deferred_expression` and Root Scope Declaration
 
-When a deferred variable is promoted inside a loop body (not at root scope), `_promote_deferred_expression` appends the declaration to `oqpy_program.stack[0].body` — the root scope — rather than the current scope. This ensures the declaration appears at the correct position in the generated QASM (after qubit register declarations, before the loop).
+When a deferred variable is promoted inside a loop body (not at root scope), `ctx.promote_deferred_value()` appends the declaration to `oqpy_program.stack[0].body` — the root scope — rather than the current scope. This ensures the declaration appears at the correct position in the generated QASM (after qubit register declarations, before the loop).
