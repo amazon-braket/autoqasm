@@ -149,12 +149,40 @@ timeline
 
 ## Documentation Guidelines
 
-We use reStructuredText (RST) for most of our documentation. For a quick primer on the syntax,
-see [the Sphinx documentation](https://www.sphinx-doc.org/en/main/usage/restructuredtext/basics.html).
+Our documentation is built with [Sphinx](https://www.sphinx-doc.org/) using the
+[sphinx-rtd-theme](https://sphinx-rtd-theme.readthedocs.io/) and hosted on
+[ReadTheDocs](https://autoqasm.readthedocs.io/). The build pipeline uses the following key extensions:
 
-In this repository, we the docstrings create the API reference found on readthedocs.
+* **nbsphinx** — Renders Jupyter notebooks (`.ipynb` files) from the `doc/examples/` directory as HTML
+  documentation pages. Notebooks are not executed during the build; they must contain pre-rendered
+  outputs.
+* **sphinxcontrib-apidoc** — Auto-generates API reference pages from source code docstrings.
 
-Here are some general guidelines to follow when writing either kind of documentation:
+Prose documentation files use **reStructuredText (`.rst`)** format and live in the `doc/` directory.
+Example notebooks in the `doc/examples/` directory are automatically rendered into the documentation
+site via nbsphinx. For a quick primer on RST syntax, see
+[the Sphinx documentation](https://www.sphinx-doc.org/en/main/usage/restructuredtext/basics.html).
+
+#### Adding a New Example Notebook
+
+1. Place your notebook (`.ipynb`) in the `doc/examples/` directory. Make sure it contains pre-rendered
+   cell outputs, since notebooks are not executed during the build.
+2. Add a toctree entry in `doc/index.rst` under the "Examples" section with a human-readable
+   display title. For example:
+
+   ```rst
+   My New Example <examples/my_new_example>
+   ```
+
+#### Adding or Editing Prose Documentation
+
+Prose docs are `.rst` files in the `doc/` directory (e.g., `doc/decorators.rst`,
+`doc/hybrid_jobs.rst`). To add a new prose page, create an `.rst` file in `doc/` and add a
+toctree entry in `doc/index.rst` under the appropriate section.
+
+#### General Writing Guidelines
+
+Here are some general guidelines to follow when writing documentation:
 * Use present tense.
   * 👍 "The device has this property..."
   * 👎 "The device will have this property."
@@ -198,6 +226,15 @@ tox -e docs
 ```
 
 You can then find the generated HTML files in `build/documentation/html`.
+
+To preview the documentation locally, open the generated HTML files in your browser. For example:
+
+```shell
+open build/documentation/html/index.html        # macOS
+xdg-open build/documentation/html/index.html    # Linux
+```
+
+This lets you verify formatting, navigation, and notebook rendering before submitting a PR.
 
 
 ## Find Contributions to Work On
