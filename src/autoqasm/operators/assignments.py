@@ -49,7 +49,11 @@ def assign_for_output(target_name: str, value: Any) -> Any:
     aq_context = program.get_program_conversion_context()
     oqpy_program = aq_context.get_oqpy_program()
 
-    if isinstance(value, oqpy.base.OQPyExpression) and not isinstance(value, oqpy.base.Var):
+    if isinstance(value, oqpy.base.OQPyExpression) and not isinstance(
+        value, oqpy.base.Var
+    ):  # Classical types subclass from both Var and OQPyExpression, and we
+        # only need to handle `OQPyExpression`s here
+        # Create a dummy target with the right name
         target = oqpy.FloatVar(name=target_name)
         oqpy_program.set(target, value)
         return target

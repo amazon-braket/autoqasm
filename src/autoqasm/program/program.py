@@ -39,7 +39,6 @@ from autoqasm.program.serialization_properties import (
 )
 from autoqasm.types import QubitIdentifierType as Qubit
 from autoqasm.types.deferred import DeferredVarMixin
-from autoqasm.types import QubitIdentifierType as Qubit
 from braket.aws.aws_device import AwsDevice
 from braket.circuits.free_parameter_expression import FreeParameterExpression
 from braket.circuits.serialization import IRType, SerializableProgram
