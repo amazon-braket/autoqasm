@@ -19,6 +19,7 @@ their explicit aq.FloatVar / aq.IntVar counterparts.
 """
 
 import autoqasm as aq
+import oqpy
 from autoqasm.instructions import measure, rx
 
 
@@ -200,3 +201,233 @@ rx(0.5) __qubits__[0];"""
 
     result = plain_var_as_literal.build().to_ir()
     assert result == expected
+
+
+def test_float_init_loop_subtract():
+    """Deferred float with subtraction operator in a loop."""
+
+    @aq.main(num_qubits=1)
+    def main():
+        val = 1.0
+        for q in aq.range(1):
+            val = val - measure(q)
+
+    expected = """OPENQASM 3.0;
+qubit[1] __qubits__;
+float[64] val = 1.0;
+for int q in [0:1 - 1] {
+    bit __bit_0__;
+    __bit_0__ = measure __qubits__[q];
+    val = val - __bit_0__;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_float_init_loop_multiply():
+    """Deferred float with multiplication operator in a loop."""
+
+    @aq.main(num_qubits=1)
+    def main():
+        val = 2.0
+        scale = aq.FloatVar(0.5)
+        for q in aq.range(1):
+            val = val * scale
+
+    expected = """OPENQASM 3.0;
+qubit[1] __qubits__;
+float[64] scale = 0.5;
+float[64] val = 2.0;
+for int q in [0:1 - 1] {
+    val = val * scale;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_float_init_loop_truediv():
+    """Deferred float with division operator in a loop."""
+
+    @aq.main(num_qubits=1)
+    def main():
+        val = 1.0
+        divisor = aq.FloatVar(2.0)
+        for q in aq.range(1):
+            val = val / divisor
+
+    expected = """OPENQASM 3.0;
+qubit[1] __qubits__;
+float[64] divisor = 2.0;
+float[64] val = 1.0;
+for int q in [0:1 - 1] {
+    val = val / divisor;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_float_init_loop_rsub():
+    """Deferred float reverse subtraction falls back to plain float when the
+    left operand handles it directly."""
+
+    @aq.main(num_qubits=1)
+    def main():
+        val = 1.0
+        for q in aq.range(1):
+            val = measure(q) - val
+
+    expected = """OPENQASM 3.0;
+qubit[1] __qubits__;
+float[64] val = 1.0;
+for int q in [0:1 - 1] {
+    bit __bit_0__;
+    __bit_0__ = measure __qubits__[q];
+    val = __bit_0__ - 1.0;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_float_init_loop_rmul():
+    """Deferred float reverse multiplication falls back to plain float when the
+    left operand handles it directly."""
+
+    @aq.main(num_qubits=1)
+    def main():
+        val = 2.0
+        scale = aq.FloatVar(0.5)
+        for q in aq.range(1):
+            val = scale * val
+
+    expected = """OPENQASM 3.0;
+qubit[1] __qubits__;
+float[64] scale = 0.5;
+float[64] val = 2.0;
+for int q in [0:1 - 1] {
+    val = scale * 2.0;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_float_init_loop_rtruediv():
+    """Deferred float reverse division falls back to plain float when the
+    left operand handles it directly."""
+
+    @aq.main(num_qubits=1)
+    def main():
+        val = 2.0
+        numerator = aq.FloatVar(1.0)
+        for q in aq.range(1):
+            val = numerator / val
+
+    expected = """OPENQASM 3.0;
+qubit[1] __qubits__;
+float[64] numerator = 1.0;
+float[64] val = 2.0;
+for int q in [0:1 - 1] {
+    val = numerator / 2.0;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_deferred_float_return_from_main():
+    """Deferred float returned from @aq.main triggers unwrap in assign_for_output."""
+
+    @aq.main(num_qubits=1)
+    def main():
+        val = 0.5
+        return val
+
+    expected = """OPENQASM 3.0;
+output float[64] val;
+qubit[1] __qubits__;
+val = 0.5;"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_deferred_value_returned_from_subroutine():
+    """Deferred value in a subroutine return triggers unwrap in _resolve_retval."""
+
+    @aq.subroutine
+    def helper() -> float:
+        val = 1.5
+        return val
+
+    @aq.main(num_qubits=1)
+    def main():
+        helper()
+
+    expected = """OPENQASM 3.0;
+def helper() -> float[64] {
+    float[64] retval_ = 1.5;
+    return retval_;
+}
+qubit[1] __qubits__;
+float[64] __float_1__;
+__float_1__ = helper();"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_deferred_float_arithmetic_operators():
+    """Direct unit tests for DeferredFloat arithmetic with oqpy expressions."""
+    from autoqasm.types.deferred import DeferredFloat
+
+    d = DeferredFloat(2.0, "x")
+    oqpy_var = oqpy.FloatVar(name="y")
+
+    assert isinstance(d - oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(oqpy_var - d, oqpy.base.OQPyExpression)
+    assert isinstance(d * oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d / oqpy_var, oqpy.base.OQPyExpression)
+
+    assert d - 1.0 == 1.0
+    assert d * 3.0 == 6.0
+    assert d / 2.0 == 1.0
+    assert 5.0 - d == 3.0
+    assert 3.0 * d == 6.0
+    assert 4.0 / d == 2.0
+    assert 1.0 + d == 3.0
+
+
+def test_deferred_int_arithmetic_operators():
+    """Direct unit tests for DeferredInt arithmetic with oqpy expressions."""
+    from autoqasm.types.deferred import DeferredInt
+
+    d = DeferredInt(3, "x")
+    oqpy_var = oqpy.IntVar(name="y")
+
+    assert isinstance(d - oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d * oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d / oqpy_var, oqpy.base.OQPyExpression)
+
+    assert d - 1 == 2
+    assert d * 2 == 6
+    assert d / 3 == 1.0
+
+
+def test_deferred_loop_update_return_expression():
+    """Deferred float promoted in a loop, then returned as part of an expression."""
+
+    @aq.main(num_qubits=1)
+    def main():
+        val = 0.5
+        for q in aq.range(1):
+            val = val + measure(q)
+        return val + 1
+
+    expected = """OPENQASM 3.0;
+output float[64] return_value;
+qubit[1] __qubits__;
+float[64] val = 0.5;
+for int q in [0:1 - 1] {
+    bit __bit_0__;
+    __bit_0__ = measure __qubits__[q];
+    val = val + __bit_0__;
+}
+return_value = val + 1;"""
+
+    assert main.build().to_ir() == expected

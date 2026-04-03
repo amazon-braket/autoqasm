@@ -44,18 +44,13 @@ def assign_for_output(target_name: str, value: Any) -> Any:
     """
     if value is None:
         return None
-    if isinstance(value, DeferredVarMixin):
-        value = value._deferred_value
     value = types.wrap_value(value)
 
     aq_context = program.get_program_conversion_context()
     oqpy_program = aq_context.get_oqpy_program()
 
     if isinstance(value, oqpy.base.OQPyExpression) and not isinstance(value, oqpy.base.Var):
-        if aq_context.is_var_name_used(target_name):
-            target = _get_oqpy_program_variable(target_name)
-        else:
-            target = oqpy.FloatVar(name=target_name)
+        target = oqpy.FloatVar(name=target_name)
         oqpy_program.set(target, value)
         return target
 
@@ -150,11 +145,6 @@ def _promote_deferred_expression(
     """
     target = ctx.promote_deferred_value(target_name)
     if target is not None:
-        return target
-    if isinstance(value, oqpy.base.Var):
-        target = copy.copy(value)
-        target.init_expression = None
-        target.name = target_name
         return target
     return None
 

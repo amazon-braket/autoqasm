@@ -362,10 +362,9 @@ class ProgramConversionContext:
             return None
         target = deferred_val.get_or_create_var()
         oqpy_program = self.get_oqpy_program()
-        if target.name not in oqpy_program.declared_vars:
-            decl_stmt = target.make_declaration_statement(oqpy_program)
-            oqpy_program._mark_var_declared(target)
-            oqpy_program.stack[0].body.append(decl_stmt)
+        decl_stmt = target.make_declaration_statement(oqpy_program)
+        oqpy_program._mark_var_declared(target)
+        oqpy_program.stack[0].body.append(decl_stmt)
         return target
 
     def make_program(self) -> Program:
