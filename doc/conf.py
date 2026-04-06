@@ -8,6 +8,7 @@ project = "autoqasm"
 version = version(project)
 release = version
 copyright = f"{datetime.datetime.now().year}, Amazon.com"
+author = "Amazon Web Services"
 
 extensions = [
     "sphinxcontrib.apidoc",
@@ -34,6 +35,24 @@ html_theme = "sphinx_rtd_theme"
 htmlhelp_basename = f"{project}doc"
 
 language = "en"
+
+# LaTeX configuration
+latex_elements = {
+    "preamble": r"""
+% Define commands for Dirac notation
+\providecommand{\ket}[1]{\left|#1\right\rangle}
+\providecommand{\bra}[1]{\left\langle#1\right|}
+\providecommand{\braket}[2]{\left\langle#1\middle|#2\right\rangle}
+% Fix for Pygments \PY macro not being defined in nbsphinx code cells
+\makeatletter
+\@ifundefined{PY}{%
+  \newcommand{\PY}[2]{#2}%
+}{}
+\makeatother
+% Pygments character escape macros
+\providecommand{\PYZhy}{\char`\-}
+""",
+}
 
 napoleon_use_rtype = False
 
