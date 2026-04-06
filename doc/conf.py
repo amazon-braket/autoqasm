@@ -3,6 +3,8 @@
 import datetime
 from importlib.metadata import version
 
+from pygments.formatters import LatexFormatter
+
 # Sphinx configuration below.
 project = "autoqasm"
 version = version(project)
@@ -37,16 +39,16 @@ htmlhelp_basename = f"{project}doc"
 language = "en"
 
 # LaTeX configuration
-latex_additional_files = ["pygments-defs.sty"]
+_pygments_style_defs = LatexFormatter().get_style_defs()
 
 latex_elements = {
-    "preamble": r"""
+    "preamble": rf"""
 % Define commands for Dirac notation (used in quantum computing notebooks)
-\providecommand{\ket}[1]{\left|#1\right\rangle}
-\providecommand{\bra}[1]{\left\langle#1\right|}
-\providecommand{\braket}[2]{\left\langle#1\middle|#2\right\rangle}
-% Full Pygments style definitions for syntax-highlighted code in nbsphinx cells
-\input{pygments-defs.sty}
+\providecommand{{\ket}}[1]{{\left|#1\right\rangle}}
+\providecommand{{\bra}}[1]{{\left\langle#1\right|}}
+\providecommand{{\braket}}[2]{{\left\langle#1\middle|#2\right\rangle}}
+% Pygments style definitions for syntax-highlighted code in nbsphinx cells
+{_pygments_style_defs}
 """,
 }
 
