@@ -1017,7 +1017,7 @@ def test_sanitize_chained_collision():
     """Test that sanitize_parameter_name produces unique results for
     ['bit', 'bit_', 'bit__'] with existing_names.
     """
-    existing_param_names = set("bit", "bit_", "bit__")
+    existing_param_names = {"bit", "bit_", "bit__"}
     sanitized_names = [sanitize_parameter_name(name, existing_param_names) for name in params]
     assert len(sanitized_names) == len(set(sanitized_names))
     for sname in sanitized_names:
