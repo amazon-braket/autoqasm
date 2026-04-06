@@ -1001,7 +1001,7 @@ def test_sanitize_input_collision_with_existing_input_():
     """
     existing_param_names = {"input", "input_"}
     sanitized_input = sanitize_parameter_name("input", existing_param_names)
-    assert sanitized_input not in (existing_param_names - {"input"})
+    assert sanitized_input not in existing_param_names
 
 
 def test_sanitize_qubit_collision_with_existing_qubit_():
@@ -1017,8 +1017,7 @@ def test_sanitize_chained_collision():
     """Test that sanitize_parameter_name produces unique results for
     ['bit', 'bit_', 'bit__'] with existing_names.
     """
-    params = ["bit", "bit_", "bit__"]
-    existing_param_names = set(params)
+    existing_param_names = set("bit", "bit_", "bit__")
     sanitized_names = [sanitize_parameter_name(name, existing_param_names) for name in params]
     assert len(sanitized_names) == len(set(sanitized_names))
     for sname in sanitized_names:
