@@ -1018,7 +1018,9 @@ def test_sanitize_chained_collision():
     ['bit', 'bit_', 'bit__'] with existing_names.
     """
     existing_param_names = {"bit", "bit_", "bit__"}
-    sanitized_names = [sanitize_parameter_name(name, existing_param_names) for name in params]
+    sanitized_names = [
+        sanitize_parameter_name(name, existing_param_names) for name in existing_param_names
+    ]
     assert len(sanitized_names) == len(set(sanitized_names))
     for sname in sanitized_names:
         assert sname not in reserved_keywords
