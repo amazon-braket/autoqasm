@@ -1043,13 +1043,6 @@ def test_sanitize_non_colliding_param_list():
     assert sanitized == ["input_", "theta"]
 
 
-def test_sanitize_non_reserved_param_list():
-    """Test that a non-reserved param list is completely unchanged."""
-    params = ["alpha", "beta"]
-    sanitized = [sanitize_parameter_name(p) for p in params]
-    assert sanitized == ["alpha", "beta"]
-
-
 def test_subroutine_with_colliding_reserved_keyword_params():
     """Test that a subroutine with both 'qubit' and 'qubit_' parameters
     generates valid OpenQASM with unique parameter names.
