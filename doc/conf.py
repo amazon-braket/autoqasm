@@ -37,20 +37,16 @@ htmlhelp_basename = f"{project}doc"
 language = "en"
 
 # LaTeX configuration
+latex_additional_files = ["pygments-defs.sty"]
+
 latex_elements = {
     "preamble": r"""
-% Define commands for Dirac notation
+% Define commands for Dirac notation (used in quantum computing notebooks)
 \providecommand{\ket}[1]{\left|#1\right\rangle}
 \providecommand{\bra}[1]{\left\langle#1\right|}
 \providecommand{\braket}[2]{\left\langle#1\middle|#2\right\rangle}
-% Fix for Pygments \PY macro not being defined in nbsphinx code cells
-\makeatletter
-\@ifundefined{PY}{%
-  \newcommand{\PY}[2]{#2}%
-}{}
-\makeatother
-% Pygments character escape macros
-\providecommand{\PYZhy}{\char`\-}
+% Full Pygments style definitions for syntax-highlighted code in nbsphinx cells
+\input{pygments-defs.sty}
 """,
 }
 
