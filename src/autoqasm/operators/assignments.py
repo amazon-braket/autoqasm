@@ -112,7 +112,7 @@ def _resolve_retval(value: Any, ctx) -> Any:
     program during subroutine processing, it is returned directly without
     wrapping or declaring a new variable.
 
-    Deferred wrappers (``_DeferredVarMixin``) are unwrapped back to their raw
+    Deferred wrappers (``DeferredVarMixin``) are unwrapped back to their raw
     Python value before calling ``wrap_value``, so the retval path behaves
     identically to the original code that never saw a deferred wrapper.
     """
