@@ -261,11 +261,11 @@ Deferred wrapper classes
 - ``DeferredInt`` — subclasses ``int``, promotes to ``oqpy.IntVar``
 
 Both inherit from a shared ``DeferredVarMixin`` that provides the lazy
-promotion logic. The wrappers override arithmetic operators (``__add__``,
-``__mul__``, etc.) to detect when the other operand is a QASM expression. When
-this happens, the wrapper creates an oqpy variable and delegates the arithmetic
-to it. When the other operand is a plain Python value, the wrapper falls back to
-normal numeric arithmetic.
+promotion logic. The wrappers override arithmetic and comparison operators
+(``__add__``, ``__mul__``, ``__eq__``, ``__lt__``, etc.) to detect when the
+other operand is a QASM expression. When this happens, the wrapper creates an
+oqpy variable and delegates the operation to it. When the other operand is a
+plain Python value, the wrapper falls back to normal numeric behavior.
 
 How deferred promotion works
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -292,6 +292,31 @@ it to a declared QASM variable at the root program scope.
 
 If the deferred value is never used in a QASM expression (e.g., it is only
 passed to a gate as a literal), no QASM variable is ever declared.
+
+Two-pass loop tracing
+^^^^^^^^^^^^^^^^^^^^^
+
+When a deferred value is compared *before* being updated inside a loop, the
+comparison runs before promotion has occurred and falls through to plain Python.
+To handle this, QASM ``for`` and ``while`` loops use a two-pass tracing
+strategy:
+
+1. **First pass** — the loop body is traced normally. If any deferred values
+   are promoted by an assignment during this pass, the set of promoted names is
+   recorded.
+2. **Rollback** — the first-pass output is discarded by truncating the oqpy
+   program's scope bodies back to their pre-trace lengths and restoring the
+   variable index counter and declared-vars dictionary.
+3. **Pre-promote** — the deferred values that were discovered in the first pass
+   are promoted (declared at root scope) *before* the second trace begins.
+4. **Second pass** — the loop body is traced again. Because the values are
+   already promoted, comparisons, gate parameters, and reverse operators all
+   see the QASM variable.
+
+If no deferred values are promoted during the first pass, the output is kept
+as-is and no second pass occurs. This means variables that are only compared
+but never updated inside the loop remain plain Python values and are not
+promoted.
 
 Example
 ^^^^^^^

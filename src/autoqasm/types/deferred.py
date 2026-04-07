@@ -16,7 +16,8 @@
 
 These wrappers subclass Python's numeric types (float, int) so they behave as
 plain literals when used as gate parameters, but lazily promote to oqpy
-variables when combined with QASM expressions via arithmetic operators.
+variables when combined with QASM expressions via arithmetic or comparison
+operators.
 """
 
 from typing import Any
@@ -82,11 +83,36 @@ class DeferredVarMixin:
         r = self._dispatch("__rtruediv__", other)
         return r if r is not NotImplemented else super().__rtruediv__(other)
 
+    def __eq__(self, other):
+        r = self._dispatch("__eq__", other)
+        return r if r is not NotImplemented else super().__eq__(other)
+
+    def __ne__(self, other):
+        r = self._dispatch("__ne__", other)
+        return r if r is not NotImplemented else super().__ne__(other)
+
+    def __lt__(self, other):
+        r = self._dispatch("__lt__", other)
+        return r if r is not NotImplemented else super().__lt__(other)
+
+    def __le__(self, other):
+        r = self._dispatch("__le__", other)
+        return r if r is not NotImplemented else super().__le__(other)
+
+    def __gt__(self, other):
+        r = self._dispatch("__gt__", other)
+        return r if r is not NotImplemented else super().__gt__(other)
+
+    def __ge__(self, other):
+        r = self._dispatch("__ge__", other)
+        return r if r is not NotImplemented else super().__ge__(other)
+
 
 class DeferredFloat(DeferredVarMixin, float):
     """A Python float that lazily promotes to an oqpy FloatVar."""
 
     _oqpy_var_type = oqpy.FloatVar
+    __hash__ = float.__hash__
 
     def __new__(cls, value, name):
         return float.__new__(cls, value)
@@ -99,6 +125,7 @@ class DeferredInt(DeferredVarMixin, int):
     """A Python int that lazily promotes to an oqpy IntVar."""
 
     _oqpy_var_type = oqpy.IntVar
+    __hash__ = int.__hash__
 
     def __new__(cls, value, name):
         return int.__new__(cls, value)

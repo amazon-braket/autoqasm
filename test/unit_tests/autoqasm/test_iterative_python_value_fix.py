@@ -267,66 +267,66 @@ for int q in [0:1 - 1] {
 
 
 def test_float_init_loop_rsub():
-    """Deferred float reverse subtraction falls back to plain float when the
-    left operand handles it directly."""
+    """Deferred float reverse subtraction with a FloatVar on the left.
+    val is updated in the loop so it is promoted to a QASM variable."""
 
     @aq.main(num_qubits=1)
     def main():
         val = 1.0
-        for q in aq.range(1):
-            val = measure(q) - val
+        offset = aq.FloatVar(5.0)
+        for q in aq.range(2):
+            val = offset - val
 
     expected = """OPENQASM 3.0;
 qubit[1] __qubits__;
+float[64] offset = 5.0;
 float[64] val = 1.0;
-for int q in [0:1 - 1] {
-    bit __bit_0__;
-    __bit_0__ = measure __qubits__[q];
-    val = __bit_0__ - 1.0;
+for int q in [0:2 - 1] {
+    val = offset - val;
 }"""
 
     assert main.build().to_ir() == expected
 
 
 def test_float_init_loop_rmul():
-    """Deferred float reverse multiplication falls back to plain float when the
-    left operand handles it directly."""
+    """Deferred float reverse multiplication.  val is updated in the loop
+    so it is promoted to a QASM variable."""
 
     @aq.main(num_qubits=1)
     def main():
         val = 2.0
         scale = aq.FloatVar(0.5)
-        for q in aq.range(1):
+        for q in aq.range(2):
             val = scale * val
 
     expected = """OPENQASM 3.0;
 qubit[1] __qubits__;
 float[64] scale = 0.5;
 float[64] val = 2.0;
-for int q in [0:1 - 1] {
-    val = scale * 2.0;
+for int q in [0:2 - 1] {
+    val = scale * val;
 }"""
 
     assert main.build().to_ir() == expected
 
 
 def test_float_init_loop_rtruediv():
-    """Deferred float reverse division falls back to plain float when the
-    left operand handles it directly."""
+    """Deferred float reverse division.  val is updated in the loop so it
+    is promoted to a QASM variable."""
 
     @aq.main(num_qubits=1)
     def main():
         val = 2.0
         numerator = aq.FloatVar(1.0)
-        for q in aq.range(1):
+        for q in aq.range(2):
             val = numerator / val
 
     expected = """OPENQASM 3.0;
 qubit[1] __qubits__;
 float[64] numerator = 1.0;
 float[64] val = 2.0;
-for int q in [0:1 - 1] {
-    val = numerator / 2.0;
+for int q in [0:2 - 1] {
+    val = numerator / val;
 }"""
 
     assert main.build().to_ir() == expected
@@ -429,5 +429,230 @@ for int q in [0:1 - 1] {
     val = val + __bit_0__;
 }
 return_value = val + 1;"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_deferred_float_comparison_operators():
+    """Direct unit tests for DeferredFloat comparison with oqpy expressions."""
+    from autoqasm.types.deferred import DeferredFloat
+
+    d = DeferredFloat(2.0, "x")
+    oqpy_var = oqpy.FloatVar(name="y")
+
+    assert isinstance(d == oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d != oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d < oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d <= oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d > oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d >= oqpy_var, oqpy.base.OQPyExpression)
+
+    assert (d == 2.0) is True
+    assert (d == 3.0) is False
+    assert (d != 3.0) is True
+    assert (d != 2.0) is False
+    assert (d < 3.0) is True
+    assert (d < 1.0) is False
+    assert (d <= 2.0) is True
+    assert (d <= 1.0) is False
+    assert (d > 1.0) is True
+    assert (d > 3.0) is False
+    assert (d >= 2.0) is True
+    assert (d >= 3.0) is False
+
+
+def test_deferred_int_comparison_operators():
+    """Direct unit tests for DeferredInt comparison with oqpy expressions."""
+    from autoqasm.types.deferred import DeferredInt
+
+    d = DeferredInt(3, "x")
+    oqpy_var = oqpy.IntVar(name="y")
+
+    assert isinstance(d == oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d != oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d < oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d <= oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d > oqpy_var, oqpy.base.OQPyExpression)
+    assert isinstance(d >= oqpy_var, oqpy.base.OQPyExpression)
+
+    assert (d == 3) is True
+    assert (d == 4) is False
+    assert (d != 4) is True
+    assert (d != 3) is False
+    assert (d < 4) is True
+    assert (d < 2) is False
+    assert (d <= 3) is True
+    assert (d <= 2) is False
+    assert (d > 2) is True
+    assert (d > 4) is False
+    assert (d >= 3) is True
+    assert (d >= 4) is False
+
+
+def test_deferred_float_comparison_before_update_in_for_loop():
+    """Deferred float compared before being updated in a for loop.
+    The comparison should emit QASM referencing the promoted variable."""
+
+    @aq.main(num_qubits=3)
+    def main():
+        val = 0.5
+        step = aq.FloatVar(0.1)
+        for q in aq.range(3):
+            if val < 1.0:
+                rx(0, val)
+            val = val + step
+
+    expected = """OPENQASM 3.0;
+qubit[3] __qubits__;
+float[64] step = 0.1;
+float[64] val = 0.5;
+for int q in [0:3 - 1] {
+    bool __bool_1__;
+    __bool_1__ = val < 1.0;
+    if (__bool_1__) {
+        rx(val) __qubits__[0];
+    }
+    val = val + step;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_deferred_int_comparison_before_update_in_for_loop():
+    """Deferred int compared before being updated in a for loop."""
+
+    @aq.main(num_qubits=3)
+    def main():
+        count = 0
+        step = aq.IntVar(1)
+        for q in aq.range(3):
+            if count == 2:
+                rx(0, count)
+            count = count + step
+
+    expected = """OPENQASM 3.0;
+qubit[3] __qubits__;
+int[32] step = 1;
+int[32] count = 0;
+for int q in [0:3 - 1] {
+    bool __bool_1__;
+    __bool_1__ = count == 2;
+    if (__bool_1__) {
+        rx(count) __qubits__[0];
+    }
+    count = count + step;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_deferred_not_promoted_when_not_updated_in_loop():
+    """A deferred value that is only compared but never updated inside the
+    loop must NOT be promoted.  The comparison evaluates as plain Python."""
+
+    @aq.main(num_qubits=3)
+    def main():
+        val = 0.5
+        for q in aq.range(3):
+            if val == 0.6:
+                rx(0, val)
+
+    expected = """OPENQASM 3.0;
+qubit[3] __qubits__;
+for int q in [0:3 - 1] {
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_deferred_multiple_comparisons_before_update_in_loop():
+    """Multiple comparisons on the same deferred value before the update."""
+
+    @aq.main(num_qubits=3)
+    def main():
+        val = 0.5
+        step = aq.FloatVar(0.1)
+        for q in aq.range(3):
+            if val == 0.6:
+                rx(0, val)
+            if val < 1.0:
+                rx(1, val)
+            val = val + step
+
+    expected = """OPENQASM 3.0;
+qubit[3] __qubits__;
+float[64] step = 0.1;
+float[64] val = 0.5;
+for int q in [0:3 - 1] {
+    bool __bool_1__;
+    __bool_1__ = val == 0.6;
+    if (__bool_1__) {
+        rx(val) __qubits__[0];
+    }
+    bool __bool_2__;
+    __bool_2__ = val < 1.0;
+    if (__bool_2__) {
+        rx(val) __qubits__[1];
+    }
+    val = val + step;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_deferred_comparison_before_update_in_while_loop():
+    """Deferred float compared before being updated in a while loop.
+    The comparison should emit QASM referencing the promoted variable."""
+
+    @aq.main(num_qubits=3)
+    def main():
+        val = 0.5
+        step = aq.FloatVar(0.1)
+        flag = aq.IntVar(1)
+        while flag == 1:
+            if val < 1.0:
+                rx(0, val)
+            val = val + step
+
+    expected = """OPENQASM 3.0;
+qubit[3] __qubits__;
+float[64] step = 0.1;
+int[32] flag = 1;
+float[64] val = 0.5;
+bool __bool_2__;
+__bool_2__ = flag == 1;
+while (__bool_2__) {
+    bool __bool_3__;
+    __bool_3__ = val < 1.0;
+    if (__bool_3__) {
+        rx(val) __qubits__[0];
+    }
+    val = val + step;
+}"""
+
+    assert main.build().to_ir() == expected
+
+
+def test_deferred_not_promoted_when_not_updated_in_while_loop():
+    """Deferred value only compared but never updated in a while loop
+    must NOT be promoted."""
+
+    @aq.main(num_qubits=3)
+    def main():
+        val = 0.5
+        flag = aq.IntVar(1)
+        while flag == 1:
+            if val == 0.6:
+                rx(0, val)
+
+    expected = """OPENQASM 3.0;
+qubit[3] __qubits__;
+int[32] flag = 1;
+bool __bool_1__;
+__bool_1__ = flag == 1;
+bool __bool_2__;
+__bool_2__ = flag == 1;
+while (__bool_2__) {
+}"""
 
     assert main.build().to_ir() == expected
