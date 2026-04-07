@@ -38,6 +38,7 @@ from autoqasm.program.serialization_properties import (
     SerializationProperties,
 )
 from autoqasm.types import QubitIdentifierType as Qubit
+from autoqasm.types.deferred import DeferredVarMixin
 from braket.aws.aws_device import AwsDevice
 from braket.circuits.free_parameter_expression import FreeParameterExpression
 from braket.circuits.serialization import IRType, SerializableProgram
@@ -334,6 +335,36 @@ class ProgramConversionContext:
         self._has_pulse_control = False
         self._input_parameters = {}
         self._output_parameters = {}
+        self._deferred_python_values: dict = {}
+
+    def defer_python_value(self, name: str, deferred: DeferredVarMixin) -> None:
+        """Store a deferred wrapper for potential promotion later.
+
+        Args:
+            name: The variable name to associate with the deferred value.
+            deferred: The deferred wrapper to store.
+        """
+        self._deferred_python_values[name] = deferred
+
+    def promote_deferred_value(self, name: str) -> oqpy.base.Var | None:
+        """Pop a stored deferred value, promote it to an oqpy Var, and declare
+        it at the root program scope.
+
+        Returns the promoted Var, or None if no deferred value exists for the
+        given name.
+
+        Args:
+            name: The variable name to look up.
+        """
+        deferred_val = self._deferred_python_values.pop(name, None)
+        if deferred_val is None:
+            return None
+        target = deferred_val.get_or_create_var()
+        oqpy_program = self.get_oqpy_program()
+        decl_stmt = target.make_declaration_statement(oqpy_program)
+        oqpy_program._mark_var_declared(target)
+        oqpy_program.stack[0].body.append(decl_stmt)
+        return target
 
     def make_program(self) -> Program:
         """Makes a Program object using the oqpy program from this conversion context.

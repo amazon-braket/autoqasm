@@ -61,11 +61,15 @@ def _oqpy_for_stmt(
     opts: dict,
 ) -> None:
     """Overload of for_stmt that produces an oqpy for loop."""
-    program_conversion_context = program.get_program_conversion_context()
+    ctx = program.get_program_conversion_context()
     if isinstance(iter, oqpy.Qubit):
         iter = Range(iter.size)
-    with program_conversion_context.for_in(iter, opts["iterate_names"]) as f:
-        body(f)
+
+    def _trace(ctx):
+        with ctx.for_in(iter, opts["iterate_names"]) as f:
+            body(f)
+
+    _two_pass_trace(ctx, _trace)
 
 
 def _py_for_stmt(
@@ -96,8 +100,11 @@ def while_stmt(
         opts (dict): Options of the while loop.
     """
     del get_state, set_state, symbol_names, opts
+    ctx = program.get_program_conversion_context()
+    oqpy_program = ctx.get_oqpy_program()
+    pre_trace_state = _capture_pre_trace_state(ctx, oqpy_program)
     if is_qasm_type(test()):
-        _oqpy_while_stmt(test, body)
+        _oqpy_while_stmt(test, body, pre_trace_state)
     else:
         _py_while_stmt(test, body)
 
@@ -105,11 +112,16 @@ def while_stmt(
 def _oqpy_while_stmt(
     test: Callable[[], Any],
     body: Callable[[], None],
+    pre_trace_state: dict,
 ) -> None:
     """Overload of while_stmt that produces an oqpy while loop."""
-    program_conversion_context = program.get_program_conversion_context()
-    with program_conversion_context.while_loop(test()):
-        body()
+    ctx = program.get_program_conversion_context()
+
+    def _trace(ctx):
+        with ctx.while_loop(test()):
+            body()
+
+    _two_pass_trace(ctx, _trace, pre_trace_state=pre_trace_state)
 
 
 def _py_while_stmt(
@@ -119,6 +131,68 @@ def _py_while_stmt(
     """Overload of while_stmt that executes a Python while loop."""
     while test():
         body()
+
+
+def _capture_pre_trace_state(
+    ctx: program.ProgramConversionContext,
+    oqpy_program: oqpy.base.Program,
+) -> dict:
+    """Capture the program state needed to roll back a first-pass trace."""
+    return {
+        "var_idx": ctx._var_idx,
+        "scope_lengths": [len(s.body) for s in oqpy_program.stack],
+        "deferred": dict(ctx._deferred_python_values),
+        "declared_vars": dict(oqpy_program.declared_vars),
+    }
+
+
+def _rollback_and_pre_promote(
+    ctx: program.ProgramConversionContext,
+    oqpy_program: oqpy.base.Program,
+    pre_trace_state: dict,
+    promoted_names: set[str],
+) -> None:
+    """Undo the first-pass trace output and pre-promote the discovered
+    deferred values so the second pass sees them as QASM variables."""
+    for scope, orig_len in zip(oqpy_program.stack, pre_trace_state["scope_lengths"]):
+        del scope.body[orig_len:]
+    oqpy_program.declared_vars = pre_trace_state["declared_vars"]
+
+    ctx._var_idx = pre_trace_state["var_idx"]
+    ctx._deferred_python_values = pre_trace_state["deferred"]
+    for name in promoted_names:
+        ctx._deferred_python_values[name].promoted_var = None
+        ctx.promote_deferred_value(name)
+
+
+def _two_pass_trace(
+    ctx: program.ProgramConversionContext,
+    trace_fn: Callable[[program.ProgramConversionContext], None],
+    pre_trace_state: dict | None = None,
+) -> None:
+    """Run *trace_fn* once.  If any deferred Python values were promoted
+    during that run, discard the output and re-run with those values
+    pre-promoted so that every reference in the loop body (comparisons,
+    gate parameters, reverse operators) sees the QASM variable.
+
+    If no deferred values are promoted the first-pass output is kept as-is.
+    """
+    oqpy_program = ctx.get_oqpy_program()
+    if pre_trace_state is None:
+        pre_trace_state = _capture_pre_trace_state(ctx, oqpy_program)
+
+    # --- First pass ---
+    trace_fn(ctx)
+
+    promoted_names = set(pre_trace_state["deferred"]) - set(ctx._deferred_python_values)
+    if not promoted_names:
+        return
+
+    # --- Discard first pass ---
+    _rollback_and_pre_promote(ctx, oqpy_program, pre_trace_state, promoted_names)
+
+    # --- Second pass ---
+    trace_fn(ctx)
 
 
 def if_stmt(

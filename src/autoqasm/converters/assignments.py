@@ -23,6 +23,32 @@ from autoqasm.operators.assignments import assign_for_output
 
 
 class AssignTransformer(converter.Base):
+    def visit_AugAssign(self, node: ast.stmt) -> ast.stmt:
+        """Converts augmented assignment operations (``+=``, ``-=``, etc.) into
+        regular assignments so they flow through ``assign_stmt``.
+
+        ``val += expr`` is desugared to ``val = val + expr`` and then
+        transformed by ``visit_Assign``.
+
+        Args:
+            node (ast.stmt): AST node to transform.
+
+        Returns:
+            ast.stmt: Transformed node.
+        """
+        new_value = ast.BinOp(
+            left=ast.Name(id=node.target.id, ctx=ast.Load()),
+            op=node.op,
+            right=node.value,
+        )
+        ast.copy_location(new_value, node)
+        assign_node = ast.Assign(
+            targets=[node.target],
+            value=new_value,
+        )
+        ast.copy_location(assign_node, node)
+        return self.visit_Assign(assign_node)
+
     def visit_Assign(self, node: ast.stmt) -> ast.stmt:
         """Converts assignment operations to their AutoQASM counterpart.
         Supports assignment to a single variable. Operator declares the
