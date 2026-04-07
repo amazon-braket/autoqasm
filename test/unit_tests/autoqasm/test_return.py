@@ -114,7 +114,8 @@ def test_expressions():
     expected = """OPENQASM 3.0;
 input int[32] input_a;
 output int[32] val;
-val = 1 + input_a;"""
+val = 1;
+val = val + input_a;"""
 
     assert main.build().to_ir() == expected
 

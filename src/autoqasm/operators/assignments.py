@@ -24,6 +24,7 @@ from malt.operators.variables import UndefinedReturnValue
 
 from autoqasm import constants, errors, program, types
 from autoqasm.types.conversions import var_type_from_oqpy
+from autoqasm.types.deferred import DeferredVarMixin, make_deferred
 
 
 def assign_for_output(target_name: str, value: Any) -> Any:
@@ -98,6 +99,77 @@ def _add_assignment(target_name: str, value: Any) -> Any:
     return target
 
 
+def _resolve_retval(value: Any, ctx) -> Any:
+    """Handle the special ``retval_`` variable that AutoGraph uses for return statements.
+
+    AutoGraph transpiles ``return <return_value>`` into::
+
+        retval_ = <return_value>
+        return retval_
+
+    This function handles that pattern, avoiding declaring a new variable
+    unless it is necessary. If the value already exists as a variable in the
+    program during subroutine processing, it is returned directly without
+    wrapping or declaring a new variable.
+
+    Deferred wrappers (``DeferredVarMixin``) are unwrapped back to their raw
+    Python value before calling ``wrap_value``, so the retval path behaves
+    identically to the original code that never saw a deferred wrapper.
+    """
+    if (
+        ctx.subroutines_processing
+        and isinstance(value, oqpy.base.Var)
+        and ctx.is_var_name_used(value.name)
+    ):
+        return value
+
+    if ctx.subroutines_processing and isinstance(value, list):
+        raise errors.UnsupportedSubroutineReturnType(
+            "Subroutine returns an array or list, which is not allowed."
+        )
+
+    if isinstance(value, DeferredVarMixin):
+        value = value._deferred_value
+
+    return types.wrap_value(value)
+
+
+def _promote_deferred_expression(
+    target_name: str, value: oqpy.base.OQPyExpression, ctx
+) -> oqpy.base.Var | None:
+    """Promote a deferred plain-Python variable to a declared QASM variable.
+
+    Called when a variable that was initially assigned a plain Python value
+    (e.g. ``val = 0.5``) is later reassigned with a QASM expression
+    (e.g. ``val = val + measure(q)``).
+
+    Returns ``None`` if no deferred value exists for the target name and the
+    expression is not a Var (e.g. a temporary expression like ``2 * theta``).
+    In that case the caller should return the expression value as-is.
+    """
+    target = ctx.promote_deferred_value(target_name)
+    if target is not None:
+        return target
+    return None
+
+
+def _defer_python_value(target_name: str, value: Any, ctx) -> Any:
+    """Wrap a plain Python value for deferred promotion and register it.
+
+    If the value can be deferred (int, float, bool), returns a deferred
+    wrapper that behaves as a plain numeric literal but lazily promotes to an
+    oqpy variable when combined with a QASM expression.  The wrapper is
+    stored via ``ctx.defer_python_value`` so that
+    ``ctx.promote_deferred_value`` can retrieve it later.
+
+    If the value's type cannot be deferred, it is returned unchanged.
+    """
+    deferred = make_deferred(value, target_name)
+    if deferred is not value:
+        ctx.defer_python_value(target_name, deferred)
+    return deferred
+
+
 def assign_stmt(target_name: str, value: Any) -> Any:
     """Operator declares the `oq` variable, or sets variable's value if it's
     already declared.
@@ -117,32 +189,16 @@ def assign_stmt(target_name: str, value: Any) -> Any:
     if isinstance(value, UndefinedReturnValue):
         return value
 
-    program_conversion_context = program.get_program_conversion_context()
-    is_target_name_used = program_conversion_context.is_var_name_used(target_name)
-    is_value_name_used = isinstance(
-        value, oqpy.base.Var
-    ) and program_conversion_context.is_var_name_used(value.name)
+    ctx = program.get_program_conversion_context()
+    is_target_name_used = ctx.is_var_name_used(target_name)
+    is_value_name_used = isinstance(value, oqpy.base.Var) and ctx.is_var_name_used(value.name)
 
     if target_name == constants.RETVAL_VARIABLE_NAME:
-        # AutoGraph transpiles return statements like
-        #    return <return_value>
-        # into
-        #    retval_ = <return_value>
-        #    return retval_
-        # The special logic here is to handle this case properly and avoid
-        # declaring a new variable unless it is necessary.
-
-        if program_conversion_context.subroutines_processing and is_value_name_used:
-            # This is a value which already exists as a variable in the program.
-            # Return it directly without wrapping it or declaring a new variable.
+        value = _resolve_retval(value, ctx)
+        if isinstance(value, oqpy.base.Var) and ctx.is_var_name_used(value.name):
             return value
-
-        if program_conversion_context.subroutines_processing and isinstance(value, list):
-            raise errors.UnsupportedSubroutineReturnType(
-                "Subroutine returns an array or list, which is not allowed."
-            )
-
-        value = types.wrap_value(value)
+        if not isinstance(value, (oqpy.base.Var, oqpy.base.OQPyExpression)):
+            return value
 
     if is_target_name_used and isinstance(value, (oqpy.base.Var, oqpy.base.OQPyExpression)):
         target = _get_oqpy_program_variable(target_name)
@@ -151,10 +207,14 @@ def assign_stmt(target_name: str, value: Any) -> Any:
         target = copy.copy(value)
         target.init_expression = None
         target.name = target_name
+    elif isinstance(value, oqpy.base.OQPyExpression):
+        target = _promote_deferred_expression(target_name, value, ctx)
+        if target is None:
+            return value
     else:
-        return value
+        return _defer_python_value(target_name, value, ctx)
 
-    oqpy_program = program_conversion_context.get_oqpy_program()
+    oqpy_program = ctx.get_oqpy_program()
 
     value_init_expression = value.init_expression if isinstance(value, oqpy.base.Var) else None
     if is_value_name_used or value_init_expression is None:
@@ -163,10 +223,7 @@ def assign_stmt(target_name: str, value: Any) -> Any:
         #   a = b;
         # where `b` is previously declared.
         oqpy_program.set(target, value)
-    elif (
-        target.name not in oqpy_program.declared_vars
-        and program_conversion_context.at_function_root_scope
-    ):
+    elif target.name not in oqpy_program.declared_vars and ctx.at_function_root_scope:
         # Explicitly declare and initialize the variable at the root scope.
         # For example:
         #   int[32] a = 10;
