@@ -325,8 +325,12 @@ def _convert_subroutine(
         oqpy_program = program_conversion_context.get_oqpy_program()
 
         # Iterate over list of dictionary keys to avoid runtime error
+        all_names = set(kwargs.keys())
         for key in list(kwargs):
-            new_name = sanitize_parameter_name(key)
+            new_name = sanitize_parameter_name(key, all_names)
+            if new_name != key:
+                all_names.discard(key)
+                all_names.add(new_name)
             kwargs[new_name] = kwargs.pop(key)
 
         if f not in program_conversion_context.subroutines_processing:
@@ -446,6 +450,7 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
     _func.__annotations__[first_param.name] = first_param.annotation
 
     new_params = [first_param]
+    all_param_names = {p.name for p in sig.parameters.values()}
     for param in sig.parameters.values():
         if param.annotation is param.empty:
             raise errors.MissingParameterTypeError(
@@ -454,7 +459,10 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
             )
 
         # Check whether 'param.name' is a reserved keyword
-        new_name = sanitize_parameter_name(param.name)
+        new_name = sanitize_parameter_name(param.name, all_param_names)
+        if new_name != param.name:
+            all_param_names.discard(param.name)
+            all_param_names.add(new_name)
         _func.__annotations__.pop(param.name)
 
         new_param = inspect.Parameter(

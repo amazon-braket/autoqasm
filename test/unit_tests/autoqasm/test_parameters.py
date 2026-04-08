@@ -19,6 +19,7 @@ import pytest
 import autoqasm as aq
 from autoqasm import pulse
 from autoqasm.instructions import cnot, cphaseshift, gpi, h, measure, ms, rx, rz, x
+from autoqasm.reserved_keywords import reserved_keywords, sanitize_parameter_name
 from autoqasm.simulator import McmSimulator
 from braket.circuits import FreeParameter
 from braket.devices import LocalSimulator
@@ -992,3 +993,98 @@ bit __bit_0__;
 __bit_0__ = measure __qubits__[0];"""
     assert two_n_hs.build().to_ir() == expected
     _test_parametric_on_local_sim(two_n_hs, {"n": 3})
+
+
+def test_sanitize_input_collision_with_existing_input_():
+    """Test that sanitize_parameter_name('input', existing_names) avoids
+    collision with an existing 'input_' param.
+    """
+    existing_param_names = {"input", "input_"}
+    sanitized_input = sanitize_parameter_name("input", existing_param_names)
+    assert sanitized_input not in existing_param_names
+    assert sanitized_input not in reserved_keywords
+
+
+def test_sanitize_qubit_collision_with_existing_qubit_():
+    """Test that sanitize_parameter_name('qubit', existing_names) avoids
+    collision with an existing 'qubit_' param.
+    """
+    existing_param_names = {"qubit", "qubit_"}
+    sanitized_qubit = sanitize_parameter_name("qubit", existing_param_names)
+    assert sanitized_qubit not in existing_param_names
+    assert sanitized_qubit not in reserved_keywords
+
+
+def test_sanitize_chained_collision():
+    """Test that sanitize_parameter_name produces unique results for
+    ['bit', 'bit_', 'bit__'] with existing_names.
+    """
+    param_names = {"bit", "bit_", "bit__"}
+    sanitized_names = {sanitize_parameter_name(name, param_names) for name in param_names}
+    assert len(sanitized_names) == len(param_names)
+    assert not sanitized_names & reserved_keywords
+
+
+def test_sanitize_reserved_keyword_gets_underscore():
+    """Test that reserved keywords get an underscore appended."""
+    assert sanitize_parameter_name("input") == "input_"
+    assert sanitize_parameter_name("qubit") == "qubit_"
+
+
+def test_sanitize_non_reserved_unchanged():
+    """Test that non-reserved names are left unchanged."""
+    assert sanitize_parameter_name("theta") == "theta"
+    assert sanitize_parameter_name("alpha") == "alpha"
+
+
+def test_sanitize_non_colliding_param_list():
+    """Test that a non-colliding param list sanitizes correctly."""
+    params = ["input", "theta"]
+    sanitized = [sanitize_parameter_name(p) for p in params]
+    assert sanitized == ["input_", "theta"]
+
+
+def test_subroutine_with_colliding_reserved_keyword_params():
+    """Test that a subroutine with both 'qubit' and 'qubit_' parameters
+    generates valid OpenQASM with unique parameter names.
+    """
+
+    @aq.subroutine
+    def sub(qubit: int, qubit_: int):
+        rx(qubit, 0.5)
+        rx(qubit_, 1.0)
+
+    @aq.main(num_qubits=3)
+    def main():
+        sub(0, 1)
+
+    expected = """OPENQASM 3.0;
+def sub(int[32] qubit__, int[32] qubit_) {
+    rx(0.5) __qubits__[qubit__];
+    rx(1.0) __qubits__[qubit_];
+}
+qubit[3] __qubits__;
+sub(0, 1);"""
+    assert main.build().to_ir() == expected
+
+
+def test_subroutine_with_colliding_reserved_keyword_kwargs():
+    """Test that a subroutine called with keyword arguments where a reserved
+    keyword collides with an existing parameter generates valid OpenQASM.
+    """
+
+    @aq.subroutine
+    def sub(input: int, input_: float):
+        rx(input, input_)
+
+    @aq.main(num_qubits=2)
+    def main():
+        sub(input=0, input_=1.5)
+
+    expected = """OPENQASM 3.0;
+def sub(int[32] input__, float[64] input_) {
+    rx(input_) __qubits__[input__];
+}
+qubit[2] __qubits__;
+sub(0, 1.5);"""
+    assert main.build().to_ir() == expected
