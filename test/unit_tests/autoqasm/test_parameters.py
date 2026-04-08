@@ -1002,6 +1002,7 @@ def test_sanitize_input_collision_with_existing_input_():
     existing_param_names = {"input", "input_"}
     sanitized_input = sanitize_parameter_name("input", existing_param_names)
     assert sanitized_input not in existing_param_names
+    assert sanitized_input not in reserved_keywords
 
 
 def test_sanitize_qubit_collision_with_existing_qubit_():
@@ -1010,7 +1011,8 @@ def test_sanitize_qubit_collision_with_existing_qubit_():
     """
     existing_param_names = {"qubit", "qubit_"}
     sanitized_qubit = sanitize_parameter_name("qubit", existing_param_names)
-    assert sanitized_qubit not in (existing_param_names - {"qubit"})
+    assert sanitized_qubit not in existing_param_names
+    assert sanitized_qubit not in reserved_keywords
 
 
 def test_sanitize_chained_collision():
