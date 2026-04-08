@@ -1017,13 +1017,10 @@ def test_sanitize_chained_collision():
     """Test that sanitize_parameter_name produces unique results for
     ['bit', 'bit_', 'bit__'] with existing_names.
     """
-    existing_param_names = {"bit", "bit_", "bit__"}
-    sanitized_names = [
-        sanitize_parameter_name(name, existing_param_names) for name in existing_param_names
-    ]
-    assert len(sanitized_names) == len(set(sanitized_names))
-    for sname in sanitized_names:
-        assert sname not in reserved_keywords
+    param_names = {"bit", "bit_", "bit__"}
+    sanitized_names = {sanitize_parameter_name(name, param_names) for name in param_names}
+    assert len(sanitized_names) == len(param_names)
+    assert not sanitized_names & reserved_keywords
 
 
 def test_sanitize_reserved_keyword_gets_underscore():
