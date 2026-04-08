@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.4.0 (2026-04-08)
+
+### Features
+
+ * use nbsphinx to render examples in docs
+
+### Bug Fixes and Other Changes
+
+ * resolve conflicts between user-defined and auto-sanitized parameter names
+ * iterative update of Python-initialized variables
+ * ensure sphinx pdf build passes
+
 ## v0.3.0 (2026-03-13)
 
 ### What's Changed
