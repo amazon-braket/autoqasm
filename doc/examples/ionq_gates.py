@@ -1,7 +1,7 @@
 import numpy as np
 
 import autoqasm as aq
-from autoqasm.instructions import gpi, gpi2, ms
+from autoqasm.instructions import gpi, gpi2, zz
 
 
 @aq.gate
@@ -28,9 +28,18 @@ def ry(q: aq.Qubit, theta: float):
 
 
 @aq.gate
+def xx(q0: aq.Qubit, q1: aq.Qubit, theta: float):
+    h(q0)
+    h(q1)
+    zz(q0, q1, theta)
+    h(q0)
+    h(q1)
+
+
+@aq.gate
 def cnot(q0: aq.Qubit, q1: aq.Qubit):
     ry(q0, np.pi / 2)
-    ms(q0, q1, 0, 0, np.pi / 2)
+    xx(q0, q1, np.pi / 2)
     rx(q0, -np.pi / 2)
     rx(q1, -np.pi / 2)
     ry(q0, -np.pi / 2)
