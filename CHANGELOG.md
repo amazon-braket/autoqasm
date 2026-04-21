@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0.post0 (2026-04-21)
+
+### Documentation Changes
+
+ * update device references in example notebooks
+
 ## v0.4.0 (2026-04-08)
 
 ### Features
