@@ -42,7 +42,7 @@ def test_program_conversion_context() -> None:
 
 def test_build_program() -> None:
     """Tests the aq.build_program function."""
-    with pytest.raises(AssertionError):
+    with pytest.raises(aq.errors.OutsideProgramContextError):
         aq.program.get_program_conversion_context()
 
     with aq.build_program() as program_conversion_context:
@@ -51,7 +51,7 @@ def test_build_program() -> None:
             assert inner_context is program_conversion_context
             assert aq.program.get_program_conversion_context() == inner_context
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(aq.errors.OutsideProgramContextError):
         aq.program.get_program_conversion_context()
 
 

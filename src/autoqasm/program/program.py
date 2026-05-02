@@ -31,7 +31,7 @@ from pygments.formatters.terminal import TerminalFormatter
 from sympy import Symbol
 
 import autoqasm.types as aq_types
-from autoqasm import constants, errors
+from autoqasm import _frame_filtering, constants, errors
 from autoqasm.instructions.qubits import GlobalQubitRegister, _get_physical_qubit_indices, _qubit
 from autoqasm.program.serialization_properties import (
     OpenQASMSerializationProperties,
@@ -117,7 +117,12 @@ class MainProgram(SerializableProgram):
         if isinstance(device, str):
             device = AwsDevice(device)
 
-        return self._program_generator(device=device)
+        try:
+            return self._program_generator(device=device)
+        except Exception as e:
+            # No-op when verbose errors are enabled; see set_verbose_errors.
+            _frame_filtering.filter_traceback(e)
+            raise
 
     def to_ir(
         self,
@@ -903,12 +908,11 @@ def build_program(user_config: UserConfig | None = None) -> None:
             owns_program_conversion_context = True
         yield _get_local().program_conversion_context
     except Exception as e:
-        if isinstance(e, errors.AutoQasmError):
-            raise
-        elif hasattr(e, "ag_error_metadata"):
-            raise e.ag_error_metadata.to_exception(e)
-        else:
-            raise
+        # Prefer the AutoGraph-reconstructed exception so the user sees
+        # their own source line quoted in the error message.
+        if not isinstance(e, errors.AutoQasmError) and hasattr(e, "ag_error_metadata"):
+            raise e.ag_error_metadata.to_exception(e) from None
+        raise
     finally:
         if owns_program_conversion_context:
             _get_local().program_conversion_context = None
@@ -930,10 +934,15 @@ def get_program_conversion_context() -> ProgramConversionContext:
     Must be called inside an active program conversion context (that is, while building a program)
     so that there is a valid thread-local ProgramConversionContext object.
 
+    Raises:
+        errors.OutsideProgramContextError: If there is no active program
+            conversion context — typically because an AutoQASM instruction or
+            helper was called outside a function decorated with
+            ``@aq.main`` / ``@aq.subroutine`` / ``@aq.gate``.
+
     Returns:
         ProgramConversionContext: The thread-local ProgramConversionContext object.
     """
-    assert _get_local().program_conversion_context is not None, (
-        "get_program_conversion_context() must be called inside build_program() block"
-    )
+    if _get_local().program_conversion_context is None:
+        raise errors.OutsideProgramContextError()
     return _get_local().program_conversion_context
