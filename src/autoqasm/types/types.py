@@ -58,6 +58,10 @@ def make_annotations_list(annotations: str | Iterable[str] | None) -> list[str]:
 
 QubitIdentifierType = int | str | Qubit | oqpy._ClassicalVar | oqpy.base.OQPyExpression | oqpy.Qubit
 
+# Precompute the type tuple once: ``get_args(QubitIdentifierType)`` isn't
+# free, and this is called on every gate emission.
+_QUBIT_IDENTIFIER_TYPES: tuple[type, ...] = get_args(QubitIdentifierType)
+
 
 def is_qubit_identifier_type(qubit: Any) -> bool:
     """Checks if a given object is a qubit identifier type.
@@ -68,7 +72,7 @@ def is_qubit_identifier_type(qubit: Any) -> bool:
     Returns:
         bool: True if the object is a qubit identifier type, False otherwise.
     """
-    return isinstance(qubit, get_args(QubitIdentifierType))
+    return isinstance(qubit, _QUBIT_IDENTIFIER_TYPES)
 
 
 class Range(oqpy.Range):
