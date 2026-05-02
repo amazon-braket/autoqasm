@@ -19,7 +19,7 @@ import pytest
 from braket.devices import LocalSimulator
 
 import autoqasm as aq
-from autoqasm.instructions import cc_prx, h, measure_ff
+from autoqasm.instructions import cc_prx, h, measure, measure_ff
 
 
 def test_measure_ff_emits_feedback_key() -> None:
@@ -117,3 +117,37 @@ def test_classical_control_runs_on_local_simulator() -> None:
     # With 200 shots we expect both outcomes to appear.
     assert "00" in counts
     assert "11" in counts
+
+
+def test_classical_control_runs_on_autoqasm_simulator() -> None:
+    """Same behaviour on the AutoQASM-backed simulator."""
+
+    @aq.main
+    def teleport_like():
+        h(0)
+        measure_ff(0, 0)
+        cc_prx(1, math.pi, 0.0, 0)
+        measure(1)
+
+    result = LocalSimulator("autoqasm").run(teleport_like, shots=100).result()
+    measurements = result.measurements
+    feedback = [bool(v) for v in measurements["__ff_0__"]]
+    qubit_1_key = next(k for k in measurements if k.startswith("__bit_"))
+    qubit_1 = [bool(v) for v in measurements[qubit_1_key]]
+    # Qubit 1 should match the feedback bit every time.
+    assert feedback == qubit_1, "cc_prx failed to conditionally flip qubit 1"
+    # Both outcomes should appear with 100 shots.
+    assert any(feedback)
+    assert not all(feedback)
+
+
+def test_cc_prx_missing_feedback_raises() -> None:
+    """If ``cc_prx`` is used before any ``measure_ff`` with the same
+    feedback key, the AutoQASM simulator raises a clean ValueError."""
+
+    @aq.main
+    def missing_key():
+        cc_prx(0, 0.1, 0.2, 42)
+
+    with pytest.raises(ValueError, match="feedback key 42"):
+        LocalSimulator("autoqasm").run(missing_key, shots=1).result()
