@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import os
 import traceback
 
 import pytest
@@ -22,6 +23,13 @@ import pytest
 import autoqasm as aq
 from autoqasm import _frame_filtering, errors
 from autoqasm.instructions import h, measure
+
+# Internal-path markers built with the OS-native separator so these tests pass on
+# Windows as well as POSIX.
+_MALT_MARKER = os.sep.join(("", "malt", ""))
+_TRANSPILER_MARKER = os.sep.join(("autoqasm", "transpiler", ""))
+_OPERATORS_MARKER = os.sep.join(("autoqasm", "operators", ""))
+_CONVERTERS_MARKER = os.sep.join(("autoqasm", "converters", ""))
 
 
 def test_outside_program_context_raises_autoqasm_error() -> None:
@@ -89,13 +97,13 @@ def test_filter_traceback_hides_autoqasm_frames() -> None:
 
     frames = traceback.extract_tb(exc_info.value.__traceback__)
     for frame in frames:
-        assert "/malt/" not in frame.filename, (
+        assert _MALT_MARKER not in frame.filename, (
             f"malt internal frame leaked through filter: {frame.filename}"
         )
-        assert "/autoqasm/transpiler/" not in frame.filename, (
+        assert _TRANSPILER_MARKER not in frame.filename, (
             f"transpiler internal frame leaked through filter: {frame.filename}"
         )
-        assert "/autoqasm/operators/" not in frame.filename, (
+        assert _OPERATORS_MARKER not in frame.filename, (
             f"operators internal frame leaked through filter: {frame.filename}"
         )
 
@@ -117,7 +125,7 @@ def test_filter_traceback_verbose_keeps_autoqasm_frames() -> None:
         frames = traceback.extract_tb(exc_info.value.__traceback__)
         # At least one frame should come from autoqasm internals (the
         # transpiler, where BuildError is raised).
-        has_internal = any("/autoqasm/transpiler/" in f.filename for f in frames)
+        has_internal = any(_TRANSPILER_MARKER in f.filename for f in frames)
         assert has_internal, (
             "Verbose mode should preserve at least one internal frame for debugging"
         )
@@ -203,8 +211,8 @@ def test_real_user_nameerror_filter() -> None:
 
     frames = traceback.extract_tb(exc_info.value.__traceback__)
     for frame in frames:
-        assert "/malt/" not in frame.filename
-        assert "/autoqasm/transpiler/" not in frame.filename
-        assert "/autoqasm/operators/" not in frame.filename
-        assert "/autoqasm/converters/" not in frame.filename
+        assert _MALT_MARKER not in frame.filename
+        assert _TRANSPILER_MARKER not in frame.filename
+        assert _OPERATORS_MARKER not in frame.filename
+        assert _CONVERTERS_MARKER not in frame.filename
         assert "__autograph_generated_file" not in frame.filename
