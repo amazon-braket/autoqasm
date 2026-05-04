@@ -465,9 +465,17 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
             all_param_names.add(new_name)
         _func.__annotations__.pop(param.name)
 
+        # OpenQASM subroutines have no concept of positional-only arguments,
+        # so promote any positional-only user parameter to positional-or-keyword.
+        new_kind = (
+            inspect.Parameter.POSITIONAL_OR_KEYWORD
+            if param.kind == inspect.Parameter.POSITIONAL_ONLY
+            else param.kind
+        )
+
         new_param = inspect.Parameter(
             name=new_name,
-            kind=param.kind,
+            kind=new_kind,
             annotation=aq_types.map_parameter_type(param.annotation),
         )
         new_params.append(new_param)
