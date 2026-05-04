@@ -483,23 +483,36 @@ class ProgramConversionContext:
 
         Raises:
             NotImplementedError: If the parameter type is not supported.
+            errors.ParameterTypeError: If ``name`` is already registered with
+                a different type.
         """
-        # TODO (#814): add type validation against existing inputs
-        if name not in self._input_parameters:
-            aq_type = aq_types.map_parameter_type(param_type)
-            if aq_type not in [oqpy.FloatVar, oqpy.IntVar, oqpy.BoolVar]:
-                raise NotImplementedError(param_type)
+        if name in self._input_parameters:
+            existing = self._input_parameters[name]
+            expected_type = aq_types.map_parameter_type(param_type)
+            if type(existing) is not expected_type:
+                raise errors.ParameterTypeError(
+                    f'Input parameter "{name}" was already registered as '
+                    f"{type(existing).__name__}, but a later use implies "
+                    f"{expected_type.__name__}. Make the types match, for "
+                    "example by updating the @aq.main signature to match "
+                    "the type expected by the gate or subroutine that "
+                    "consumes the parameter."
+                )
+            return
+        aq_type = aq_types.map_parameter_type(param_type)
+        if aq_type not in [oqpy.FloatVar, oqpy.IntVar, oqpy.BoolVar]:
+            raise NotImplementedError(param_type)
 
-            # In case a FreeParameter has already created a FloatVar somewhere else,
-            # we use need_declaration=False to avoid OQPy raising name conflict errors.
-            if aq_type == oqpy.FloatVar:
-                var = aq_type("input", name=name, needs_declaration=False)
-                var.size = None
-                var.type.size = None
-            else:
-                var = aq_type("input", name=name)
-            self._input_parameters[name] = var
-            return var
+        # In case a FreeParameter has already created a FloatVar somewhere else,
+        # we use need_declaration=False to avoid OQPy raising name conflict errors.
+        if aq_type == oqpy.FloatVar:
+            var = aq_type("input", name=name, needs_declaration=False)
+            var.size = None
+            var.type.size = None
+        else:
+            var = aq_type("input", name=name)
+        self._input_parameters[name] = var
+        return var
 
     def register_output_parameter(
         self, name: str, value: bool | float | oqpy.base.Var | oqpy.OQPyExpression | None
