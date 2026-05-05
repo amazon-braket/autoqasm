@@ -117,11 +117,20 @@ cnot __qubits__[q0], __qubits__[q1];"""
     assert aq.main(num_qubits=2)(MyClass().bell).build().to_ir() == expected
 
 
-def test_with_verbose_logging() -> None:
-    """Tests aq.main decorator application with verbose logging enabled."""
+def test_with_verbose_logging(monkeypatch: pytest.MonkeyPatch) -> None:
+    """AutoGraph verbosity >= 2 should drive the ``_log_callargs`` hot path
+    in ``_try_convert_actual``."""
+    from autoqasm.transpiler import transpiler
 
-    @aq.main
-    def nothing():
-        pass
+    monkeypatch.setattr(transpiler, "_AG_LOGGING_DISABLED", False)
+    original_verbosity = ag_logging.get_verbosity()
+    ag_logging.set_verbosity(2)
+    try:
 
-    ag_logging.set_verbosity(10)
+        @aq.main
+        def nothing():
+            pass
+
+        nothing.build()
+    finally:
+        ag_logging.set_verbosity(original_verbosity)
