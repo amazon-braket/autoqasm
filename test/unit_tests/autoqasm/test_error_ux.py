@@ -171,6 +171,11 @@ def test_filter_traceback_with_no_traceback_is_noop() -> None:
     assert exc.__traceback__ is None
 
 
+def test_module_or_ancestor_is_flagged_empty_name() -> None:
+    """A frame whose module has no ``__name__`` must be treated as non-internal."""
+    assert _frame_filtering._module_or_ancestor_is_flagged("") is False
+
+
 @aq.main
 def _nameerror_program_for_test():
     """Module-level ``@aq.main`` fixture so AutoGraph can locate its source

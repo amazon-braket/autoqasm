@@ -102,7 +102,7 @@ def _module_or_ancestor_is_flagged(module_name: str) -> bool:
         if module is not None and getattr(module, INTERNAL_MARKER, False):
             return True
         if "." not in name:
-            return False
+            break
         name = name.rsplit(".", 1)[0]
     return False
 
