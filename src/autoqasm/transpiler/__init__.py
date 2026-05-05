@@ -14,4 +14,6 @@
 """This module implements the AutoQASM transpiler which uses autograph to convert a
 decorated Python function to an oqpy program."""
 
+__autoqasm_internal__ = True
+
 from .transpiler import PyToOqpy, converted_call  # noqa: F401

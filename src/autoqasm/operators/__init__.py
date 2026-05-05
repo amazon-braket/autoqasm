@@ -17,6 +17,8 @@ to AutoQASM types. Generally, operators are only used in the code template in Au
 This module implements operators that AutoQASM overloads or adds on top of AutoGraph.
 """
 
+__autoqasm_internal__ = True
+
 # Operators below are imported directly from core autograph implementation
 from malt.impl.api import autograph_artifact  # noqa: F401
 from malt.operators.variables import Undefined, UndefinedReturnValue, ld, ldu  # noqa: F401

@@ -19,37 +19,47 @@ in tracebacks alongside AutoQASM's own internals. When a user's program
 has a bug, the traceback can contain more than a dozen frames that obscure
 the line in user code that actually raised.
 
-This module rewrites ``exc.__traceback__`` to drop frames whose source
-lives inside AutoQASM or malt internals. Users can opt in to the full
-unfiltered traceback via :func:`set_verbose_errors` or by setting the
-``AUTOQASM_VERBOSE_ERRORS`` environment variable.
+This module rewrites ``exc.__traceback__`` to drop internal frames. Users
+can opt in to the full unfiltered traceback via :func:`set_verbose_errors`
+or by setting the ``AUTOQASM_VERBOSE_ERRORS`` environment variable.
+
+How a frame is classified as internal
+-------------------------------------
+
+* A module (or subpackage) that should be hidden sets
+  ``__autoqasm_internal__ = True`` at its top level. The filter walks a
+  frame's dotted module name up the import hierarchy via :data:`sys.modules`
+  and hides the frame if any ancestor carries the flag. Setting the flag
+  on a subpackage's ``__init__.py`` therefore covers every submodule
+  under it.
+
+* Frames from third-party packages we cannot modify are matched by their
+  dotted module name against :data:`_THIRD_PARTY_INTERNAL_MODULES` —
+  currently ``diastatic-malt``, which AutoQASM uses as its AutoGraph
+  implementation.
+
+* AutoGraph compiles transformed user code into a scratch file named
+  ``__autograph_generated_file*.py``. Those frames have no importable
+  module, so they are matched by filename basename — the one case where
+  a path check is genuinely the right tool.
 """
 
 from __future__ import annotations
 
 import os
-from collections.abc import Iterable
-from types import TracebackType
+import sys
+from types import FrameType, TracebackType
 
-VERBOSE_ERRORS_ENV_VAR = "AUTOQASM_VERBOSE_ERRORS"
+__autoqasm_internal__ = True
 
-# Path segments identifying frames that are stripped from filtered
-# tracebacks. AutoGraph writes the transformed user function to a
-# ``__autograph_generated_file*.py`` scratch module in the OS tmp dir;
-# those frames are noise as well. We deliberately keep ``oqpy`` frames
-# since they can point at meaningful type errors.
-_INTERNAL_PATH_MARKERS: tuple[str, ...] = (
-    os.sep.join(("autoqasm", "api.py")),
-    os.sep.join(("autoqasm", "transpiler", "")),
-    os.sep.join(("autoqasm", "operators", "")),
-    os.sep.join(("autoqasm", "converters", "")),
-    os.sep.join(("autoqasm", "program", "program.py")),
-    os.sep.join(("autoqasm", "_frame_filtering.py")),
-    os.sep.join(("", "malt", "")),
-    "__autograph_generated_file",
-)
+INTERNAL_MARKER: str = "__autoqasm_internal__"
 
-# Module-level override. ``None`` defers to the environment variable.
+VERBOSE_ERRORS_ENV_VAR: str = "AUTOQASM_VERBOSE_ERRORS"
+
+_THIRD_PARTY_INTERNAL_MODULES: tuple[str, ...] = ("malt",)
+
+_AUTOGRAPH_GENERATED_PREFIX: str = "__autograph_generated_file"
+
 _verbose_errors_override: bool | None = None
 
 
@@ -83,17 +93,42 @@ def verbose_errors_enabled() -> bool:
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _is_internal_frame(tb: TracebackType, markers: Iterable[str]) -> bool:
-    """Return True if the given traceback frame comes from AutoQASM internals."""
-    filename = tb.tb_frame.f_code.co_filename
-    return any(marker in filename for marker in markers)
+def _module_or_ancestor_is_flagged(module_name: str) -> bool:
+    """Return True if ``module_name`` or any of its ancestors in
+    :data:`sys.modules` sets :data:`INTERNAL_MARKER` to True."""
+    name = module_name
+    while name:
+        module = sys.modules.get(name)
+        if module is not None and getattr(module, INTERNAL_MARKER, False):
+            return True
+        if "." not in name:
+            return False
+        name = name.rsplit(".", 1)[0]
+    return False
 
 
-def filter_traceback(
-    exc: BaseException,
-    extra_markers: Iterable[str] = (),
-) -> BaseException:
-    """Rewrite ``exc.__traceback__`` to hide AutoQASM and malt internal frames.
+def _is_third_party_internal_module(module_name: str) -> bool:
+    """Return True if ``module_name`` is, or is nested under, one of the
+    third-party modules listed in :data:`_THIRD_PARTY_INTERNAL_MODULES`."""
+    return any(
+        module_name == ext or module_name.startswith(ext + ".")
+        for ext in _THIRD_PARTY_INTERNAL_MODULES
+    )
+
+
+def _is_internal_frame(frame: FrameType) -> bool:
+    """Return True if ``frame`` comes from AutoQASM internals."""
+    module_name = frame.f_globals.get("__name__", "")
+    if _module_or_ancestor_is_flagged(module_name):
+        return True
+    if _is_third_party_internal_module(module_name):
+        return True
+    basename = os.path.basename(frame.f_code.co_filename)
+    return basename.startswith(_AUTOGRAPH_GENERATED_PREFIX)
+
+
+def filter_traceback(exc: BaseException) -> BaseException:
+    """Rewrite ``exc.__traceback__`` to hide AutoQASM-internal frames.
 
     No-op when :func:`verbose_errors_enabled` returns ``True``. If every frame
     is internal, the traceback is set to ``None``: Python will then append
@@ -102,8 +137,6 @@ def filter_traceback(
     Args:
         exc (BaseException): The exception whose ``__traceback__`` should be
             filtered. The exception is returned for convenience.
-        extra_markers (Iterable[str]): Additional path-segment markers to
-            treat as internal. Useful for tests.
 
     Returns:
         BaseException: The same exception with its ``__traceback__`` rewritten.
@@ -115,21 +148,23 @@ def filter_traceback(
     if tb is None:
         return exc
 
-    markers = (*_INTERNAL_PATH_MARKERS, *extra_markers)
-    kept_frames: list[TracebackType] = []
+    kept: list[TracebackType] = []
     cursor: TracebackType | None = tb
     while cursor is not None:
-        if not _is_internal_frame(cursor, markers):
-            kept_frames.append(cursor)
+        if not _is_internal_frame(cursor.tb_frame):
+            kept.append(cursor)
         cursor = cursor.tb_next
 
     new_tb: TracebackType | None = None
-    for frame in reversed(kept_frames):
+    for node in reversed(kept):
         new_tb = TracebackType(
             tb_next=new_tb,
-            tb_frame=frame.tb_frame,
-            tb_lasti=frame.tb_lasti,
-            tb_lineno=frame.tb_lineno,
+            tb_frame=node.tb_frame,
+            tb_lasti=node.tb_lasti,
+            tb_lineno=node.tb_lineno,
         )
     exc.__traceback__ = new_tb
     return exc
+
+
+__autoqasm_internal__ = True

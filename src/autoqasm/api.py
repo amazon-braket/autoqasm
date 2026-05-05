@@ -15,6 +15,8 @@
 
 from __future__ import annotations
 
+__autoqasm_internal__ = True
+
 import copy
 import functools
 import inspect
