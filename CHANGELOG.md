@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.1 (2026-05-05)
+
+### Bug Fixes and Other Changes
+
+ * skip AutoGraph verbose-logging calls when verbosity is disabled
+ * raise when a free parameter is registered with a conflicting type
+ * accept positional-only parameters on autoqasm subroutines
+
 ## v0.4.0.post0 (2026-04-21)
 
 ### Documentation Changes
