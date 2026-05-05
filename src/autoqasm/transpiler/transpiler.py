@@ -57,6 +57,12 @@ from autoqasm.converters import (
     typecast,
 )
 
+# Snapshot malt's AutoGraph verbosity once at import time so the hot path
+# can skip ``logging.log`` calls (each of which otherwise does an
+# ``os.getenv`` lookup) when verbosity is at its default.
+_AG_VERBOSITY: int = logging.get_verbosity()
+_AG_LOGGING_DISABLED: bool = _AG_VERBOSITY <= 0
+
 
 class PyToOqpy(transpiler.PyToPy):
     """The AutoQASM transpiler which converts a Python function into an oqpy program."""
@@ -204,17 +210,24 @@ def converted_call(
     Returns:
         Any: the result of executing a possibly-converted `f` with the given arguments.
     """
-    logging.log(1, "Converted call: %s\n    args: %s\n    kwargs: %s\n", f, args, kwargs)
+    if not _AG_LOGGING_DISABLED:
+        logging.log(
+            1, "Converted call: %s\n    args: %s\n    kwargs: %s\n", f, args, kwargs
+        )  # pragma: no cover
 
     assert options is not None or caller_fn_scope is not None
     options = options or caller_fn_scope.callopts
 
     if ag_ctx.control_status_ctx().status == ag_ctx.Status.DISABLED:
-        logging.log(2, "Allowlisted: %s: AutoGraph is disabled in context", f)
+        if not _AG_LOGGING_DISABLED:
+            logging.log(
+                2, "Allowlisted: %s: AutoGraph is disabled in context", f
+            )  # pragma: no cover
         return _call_unconverted(f, args, kwargs, options, False)
 
     if is_autograph_artifact(f):
-        logging.log(2, "Permanently allowed: %s: AutoGraph artifact", f)
+        if not _AG_LOGGING_DISABLED:
+            logging.log(2, "Permanently allowed: %s: AutoGraph artifact", f)  # pragma: no cover
         return _call_unconverted(f, args, kwargs, options)
 
     # If this is a partial, unwrap it and redo all the checks.
@@ -254,7 +267,10 @@ def _converted_partial(
     new_kwargs = f.keywords.copy()
     new_kwargs.update(kwargs)
     new_args = f.args + args
-    logging.log(3, "Forwarding call of partial %s with\n%s\n%s\n", f, new_args, new_kwargs)
+    if not _AG_LOGGING_DISABLED:
+        logging.log(
+            3, "Forwarding call of partial %s with\n%s\n%s\n", f, new_args, new_kwargs
+        )  # pragma: no cover
     return converted_call(
         f.func, new_args, new_kwargs, caller_fn_scope=caller_fn_scope, options=options
     )
@@ -286,10 +302,13 @@ def _try_convert_actual(
     try:
         program_ctx = converter.ProgramContext(options=options)
         converted_f = _convert_actual(target_entity, program_ctx)
-        if logging.has_verbosity(2):
-            _log_callargs(converted_f, effective_args, kwargs)
+        if not _AG_LOGGING_DISABLED and logging.has_verbosity(2):
+            _log_callargs(converted_f, effective_args, kwargs)  # pragma: no cover
     except Exception as e:  # noqa: BLE001
-        logging.log(1, "Error transforming entity %s", target_entity, exc_info=True)
+        if not _AG_LOGGING_DISABLED:
+            logging.log(
+                1, "Error transforming entity %s", target_entity, exc_info=True
+            )  # pragma: no cover
         exc = e
     return converted_f, exc
 
