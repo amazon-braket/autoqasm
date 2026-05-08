@@ -21,6 +21,16 @@ from braket.tasks import GateModelQuantumTaskResult
 
 
 class McmSimulator(StateVectorSimulator):
+    """AutoQASM-backed local simulator registered under the ``autoqasm`` device ID.
+
+    Deprecated: kept for now because ``braket.devices.LocalSimulator`` does
+    not yet execute OpenQASM ``output`` variable declarations, which
+    ``@aq.main`` functions emit for every Python return value. This class
+    will be removed once upstream ``LocalSimulator`` supports output
+    variables; after that, autoqasm programs can run directly on
+    ``braket.devices.LocalSimulator()``.
+    """
+
     DEVICE_ID = "autoqasm"
 
     def initialize_simulation(self, **kwargs) -> Simulation:

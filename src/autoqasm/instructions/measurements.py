@@ -28,6 +28,7 @@ from collections.abc import Iterable
 
 from autoqasm import program
 from autoqasm import types as aq_types
+from autoqasm.instructions.instructions import _qubit_instruction
 from autoqasm.instructions.qubits import GlobalQubitRegister, _qubit, global_qubit_register
 
 
@@ -67,3 +68,29 @@ def measure(
             oqpy_program.measure(qubit, bit_var[idx])
 
     return bit_var
+
+
+def measure_ff(
+    target: aq_types.QubitIdentifierType,
+    feedback_key: int,
+    **kwargs,
+) -> None:
+    """Measure a qubit and store its result under a classical feedback key.
+
+    The measurement result is not bound to a Python variable; instead it is
+    stored by the runtime under the integer ``feedback_key`` so that it can
+    be consumed later in the same program by a classically-controlled
+    operation such as :func:`autoqasm.instructions.cc_prx`.
+
+    This is an IQM experimental capability. See
+    :class:`braket.experimental_capabilities.iqm.classical_control.MeasureFF`
+    for the corresponding Braket SDK surface.
+
+    Args:
+        target (QubitIdentifierType): The qubit to measure.
+        feedback_key (int): Integer key under which the measurement result
+            is recorded. Must match the ``feedback_key`` passed to any
+            subsequent ``cc_prx`` call that depends on this measurement.
+
+    """
+    _qubit_instruction("measure_ff", [target], feedback_key, is_unitary=False, **kwargs)

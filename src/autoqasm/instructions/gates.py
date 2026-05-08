@@ -40,6 +40,38 @@ def ccnot(
     _qubit_instruction("ccnot", [control_0, control_1, target], **kwargs)
 
 
+def cc_prx(
+    target: QubitIdentifierType,
+    angle_0: GateParameterType,
+    angle_1: GateParameterType,
+    feedback_key: int,
+    **kwargs,
+) -> None:
+    """Classically-controlled Phased Rx gate.
+
+    Applies :func:`prx` to ``target`` on the runtime branches where the
+    classical feedback bit identified by ``feedback_key`` is ``1``. The
+    feedback bit is produced by a prior :func:`measure_ff` with the same
+    ``feedback_key``.
+
+    This is an IQM experimental capability. See
+    :class:`braket.experimental_capabilities.iqm.classical_control.CCPRx`
+    for the corresponding Braket SDK surface.
+
+    Args:
+        target (QubitIdentifierType): Target qubit.
+        angle_0 (GateParameterType): First PRx angle in radians.
+        angle_1 (GateParameterType): Second PRx angle in radians.
+        feedback_key (int): Integer key identifying which prior
+            ``measure_ff`` result gates this operation. Must be the same
+            value passed to the corresponding :func:`measure_ff` call.
+
+    """
+    _qubit_instruction(
+        "cc_prx", [target], angle_0, angle_1, feedback_key, is_unitary=False, **kwargs
+    )
+
+
 def cnot(
     control: QubitIdentifierType,
     target: QubitIdentifierType,

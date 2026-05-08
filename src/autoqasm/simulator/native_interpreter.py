@@ -26,6 +26,7 @@ from braket.default_simulator.openqasm.parser.openqasm_ast import (
     BitType,
     BooleanLiteral,
     ClassicalDeclaration,
+    Identifier,
     IndexedIdentifier,
     IODeclaration,
     IOKeyword,
@@ -49,6 +50,7 @@ class NativeInterpreter(Interpreter):
         self.simulation = simulation
         context = context or McmProgramContext()
         super().__init__(context, logger)
+        self._declared_feedback_keys: set[int] = set()
 
     def simulate(
         self,
@@ -80,6 +82,7 @@ class NativeInterpreter(Interpreter):
         program = parse(source)
         for _ in range(shots):
             program_copy = deepcopy(program)
+            self._declared_feedback_keys.clear()
             self.visit(program_copy)
             self.context.save_output_values()
             self.context.num_qubits = 0
@@ -151,3 +154,79 @@ class NativeInterpreter(Interpreter):
             init_value = wrap_value_into_literal(self.context.inputs[node.identifier.name])
             declaration = ClassicalDeclaration(node.type, node.identifier, init_value)
             self.visit(declaration)
+
+    def handle_builtin_gate(
+        self,
+        gate_name: str,
+        arguments: list,
+        qubits: list,
+        modifiers: list,
+    ) -> None:
+        """Handle a call to a built-in quantum gate.
+
+        Intercepts the IQM classical-control gates ``measure_ff`` and
+        ``cc_prx`` and implements them directly against ``self.simulation``,
+        bypassing the upstream ``ProgramContext`` mid-circuit-measurement
+        pipeline (which is built around a one-pass, all-shots-at-once
+        branching model incompatible with this per-shot interpreter).
+        """
+        if gate_name == "measure_ff":
+            self._handle_measure_ff(arguments, qubits)
+            return
+        if gate_name == "cc_prx":
+            self._handle_cc_prx(arguments, qubits, modifiers)
+            return
+        super().handle_builtin_gate(gate_name, arguments, qubits, modifiers)
+
+    def _handle_measure_ff(self, arguments: list, qubits: list) -> None:
+        """Measure the target qubit and bind the outcome under a synthetic
+        bit variable ``__ff_<feedback_key>__`` in the context's symbol table.
+        """
+        feedback_key = int(arguments[0].value)
+        if feedback_key in self._declared_feedback_keys:
+            raise ValueError(
+                f"measure_ff feedback key {feedback_key} is already in use; "
+                "feedback keys must be unique within a program."
+            )
+        ff_name = _feedback_key_name(feedback_key)
+        self.simulation.evolve(self.context.pop_instructions())
+        targets = self.context.get_qubits(qubits[0])
+        outcome = self.simulation.measure(targets)
+        self._declared_feedback_keys.add(feedback_key)
+        self.context.declare_variable(ff_name, BitType(size=None))
+        self.context.update_value(
+            Identifier(name=ff_name),
+            BooleanLiteral(bool(outcome[0])),
+        )
+
+    def _handle_cc_prx(
+        self,
+        arguments: list,
+        qubits: list,
+        modifiers: list,
+    ) -> None:
+        """Apply ``prx(angle_0, angle_1) q`` only when the feedback bit
+        identified by ``feedback_key`` is ``1``.
+        """
+        feedback_key = int(arguments[2].value)
+        ff_name = _feedback_key_name(feedback_key)
+        try:
+            ff_value = self.context.get_value_by_identifier(Identifier(name=ff_name))
+        except KeyError as exc:
+            raise ValueError(
+                f"cc_prx references feedback key {feedback_key}, but no measure_ff "
+                "has been recorded for that key."
+            ) from exc
+        if ff_value is None or not bool(getattr(ff_value, "value", ff_value)):
+            return
+        # Dispatch through the normal builtin-gate path so gate modifiers
+        # (ctrl, pow, etc.) are honoured consistently with other gates.
+        super().handle_builtin_gate("prx", arguments[:2], qubits, modifiers)
+
+
+def _feedback_key_name(feedback_key: int) -> str:
+    """Synthetic bit-variable name used to store a feedback key's value.
+
+    Matches the convention used by ``braket.default_simulator``.
+    """
+    return f"__ff_{int(feedback_key)}__"
