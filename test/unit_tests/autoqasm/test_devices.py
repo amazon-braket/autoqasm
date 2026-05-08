@@ -191,6 +191,29 @@ box {
     assert my_program.build(device=aws_device).to_ir() == expected_ir
 
 
+def test_barrier_outside_verbatim_allowed(aws_device: Mock) -> None:
+    """Barriers are allowed outside verbatim blocks on devices that list
+    ``barrier`` in their ``supportedOperations``."""
+    aws_device.properties.action[DeviceActionType.OPENQASM].supportedOperations = [
+        "h",
+        "cnot",
+        "barrier",
+    ]
+
+    @aq.main
+    def my_program():
+        h(0)
+        barrier([0, 1])
+        cnot(0, 1)
+
+    expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;
+h __qubits__[0];
+barrier __qubits__[0], __qubits__[1];
+cnot __qubits__[0], __qubits__[1];"""
+    assert my_program.build(device=aws_device).to_ir() == expected_ir
+
+
 def test_barrier_not_in_supported_operations(aws_device: Mock) -> None:
     """Devices that do not list ``barrier`` in ``supportedOperations`` should still
     reject programs that use it."""
