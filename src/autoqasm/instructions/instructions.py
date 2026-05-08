@@ -23,7 +23,7 @@ import oqpy
 
 from autoqasm import program as aq_program
 from autoqasm import types as aq_types
-from autoqasm.instructions.qubits import _qubit
+from autoqasm.instructions.qubits import _as_qubit_iterable, _qubit
 from autoqasm.types import QubitIdentifierType
 from braket.circuits.basis_state import BasisState, BasisStateInput
 
@@ -101,10 +101,7 @@ def _get_pos_neg_control(
         contains the positive-control qubits, and the second list contains the negative-control
         qubits. The union of the two lists is the same as the list of control qubits.
     """
-    if control is None:
-        control = []
-    elif aq_types.is_qubit_identifier_type(control):
-        control = [control]
+    control = _as_qubit_iterable(control)
 
     if control_state is None:
         control_state = [1] * len(control)
@@ -123,3 +120,20 @@ def reset(target: QubitIdentifierType) -> None:
         target (QubitIdentifierType): The target qubit.
     """
     _qubit_instruction("reset", [target], is_unitary=False)
+
+
+def barrier(
+    qubits: aq_types.QubitIdentifierType | Iterable[aq_types.QubitIdentifierType] | None = None,
+) -> None:
+    """Adds a barrier compiler directive on the specified qubits. If ``qubits`` is None,
+    the barrier applies to all qubits in the program.
+
+    Args:
+        qubits (QubitIdentifierType | Iterable[QubitIdentifierType] | None): The target qubits.
+            If None, the barrier applies to all qubits in the program. Default is None.
+    """
+    qubits = _as_qubit_iterable(qubits)
+    program_conversion_context = aq_program.get_program_conversion_context()
+    program_conversion_context.validate_gate_targets(qubits, [])
+    program_conversion_context.register_gate("barrier")
+    program_conversion_context.get_oqpy_program().barrier([_qubit(q) for q in qubits])

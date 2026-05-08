@@ -29,7 +29,7 @@ from collections.abc import Iterable
 from autoqasm import program
 from autoqasm import types as aq_types
 from autoqasm.instructions.instructions import _qubit_instruction
-from autoqasm.instructions.qubits import GlobalQubitRegister, _qubit, global_qubit_register
+from autoqasm.instructions.qubits import _as_qubit_iterable, _qubit, global_qubit_register
 
 
 def measure(
@@ -45,11 +45,7 @@ def measure(
     Returns:
         BitVar: Bit variable the measurement results are assigned to.
     """
-    if qubits is None:
-        qubits = global_qubit_register()
-
-    if aq_types.is_qubit_identifier_type(qubits) and not isinstance(qubits, GlobalQubitRegister):
-        qubits = [qubits]
+    qubits = _as_qubit_iterable(qubits, default=global_qubit_register())
 
     oqpy_program = program.get_program_conversion_context().get_oqpy_program()
 
