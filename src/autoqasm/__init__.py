@@ -45,6 +45,7 @@ The Python code above outputs the following OpenQASM program:
 """
 
 from . import errors, instructions, operators  # noqa: F401
+from ._frame_filtering import set_verbose_errors, verbose_errors_enabled  # noqa: F401
 from ._version import __version__  # noqa: F401
 from .api import gate, gate_calibration, main, subroutine  # noqa: F401
 from .instructions import QubitIdentifierType as Qubit  # noqa: F401

@@ -17,3 +17,5 @@ injects the content of an AST node into a code template, creating a transformed 
 transformed AST node is the output of a converter. This module implements converters that AutoQASM
 overloads or adds on top of AutoGraph.
 """
+
+__filter_from_traceback__ = True

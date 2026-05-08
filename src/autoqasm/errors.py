@@ -82,6 +82,50 @@ Specify the number of qubits used by your program by supplying the \
         return self.message
 
 
+class OutsideProgramContextError(AutoQasmError):
+    """Raised when an AutoQASM feature is used outside of an active program
+    context (i.e. outside a function decorated with ``@aq.main`` /
+    ``@aq.subroutine`` / ``@aq.gate``).
+    """
+
+    def __init__(self, feature: str | None = None):
+        """
+        Args:
+            feature (str | None): The name of the AutoQASM feature being invoked
+                outside of an active program context, if known. Used to produce a
+                slightly more pointed error message.
+        """
+        feature_description = f"`{feature}`" if feature else "This AutoQASM feature"
+        self.message = f"""{feature_description} can only be used inside a function decorated \
+with `@aq.main`, `@aq.subroutine`, `@aq.gate`, or `@aq.gate_calibration`.
+
+For example:
+
+    import autoqasm as aq
+    from autoqasm.instructions import h, cnot, measure
+
+    @aq.main
+    def my_program():
+        h(0)
+        cnot(0, 1)
+        return measure([0, 1])
+
+If you want to build a program programmatically, use the `aq.build_program()` \
+context manager directly.
+"""
+
+    def __str__(self):
+        return self.message
+
+
+class BuildError(AutoQasmError):
+    """Non-AutoQasmError raised during program construction, wrapped with
+    actionable guidance pointing back to the user's code.
+
+    The original exception is preserved via ``__cause__``.
+    """
+
+
 class InsufficientQubitCountError(AutoQasmError):
     """Target device does not have enough qubits for the program."""
 

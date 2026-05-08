@@ -15,6 +15,8 @@
 
 from __future__ import annotations
 
+__filter_from_traceback__ = True
+
 import copy
 import functools
 import inspect

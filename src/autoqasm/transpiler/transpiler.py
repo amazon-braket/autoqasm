@@ -44,6 +44,7 @@ from malt.core import ag_ctx, converter, unsupported_features_checker
 from malt.impl.api import _attach_error_metadata, _log_callargs, is_autograph_artifact
 from malt.operators import function_wrappers
 from malt.pyct import anno, cfg, qual_names, transpiler
+from malt.pyct.errors import InaccessibleSourceCodeError
 from malt.pyct.static_analysis import activity, reaching_definitions
 from malt.utils import ag_logging as logging
 
@@ -56,6 +57,7 @@ from autoqasm.converters import (
     return_statements,
     typecast,
 )
+from autoqasm.errors import BuildError
 
 # Snapshot malt's AutoGraph verbosity once at import time so the hot path
 # can skip ``logging.log`` calls (each of which otherwise does an
@@ -303,7 +305,21 @@ def _try_convert_actual(
         program_ctx = converter.ProgramContext(options=options)
         converted_f = _convert_actual(target_entity, program_ctx)
         if not _AG_LOGGING_DISABLED and logging.has_verbosity(2):
-            _log_callargs(converted_f, effective_args, kwargs)  # pragma: no cover
+            _log_callargs(converted_f, effective_args, kwargs)
+    except InaccessibleSourceCodeError as e:
+        # Raised by ``diastatic-malt`` when it cannot retrieve the source code
+        # of the user's function (e.g. when the function was defined in an
+        # interactive REPL). Turn the cryptic default message into an
+        # actionable AutoQASM error.
+        func_name = getattr(target_entity, "__name__", repr(target_entity))
+        exc = BuildError(
+            f"AutoQASM could not read the source code of function `{func_name}`. "
+            "This usually happens when a function is defined in an interactive "
+            "Python session (such as the REPL or a dynamically-compiled `exec` "
+            "block). Please define the function in a regular Python source "
+            "file, a script, or a notebook cell and try again."
+        )
+        exc.__cause__ = e
     except Exception as e:  # noqa: BLE001
         if not _AG_LOGGING_DISABLED:
             logging.log(
