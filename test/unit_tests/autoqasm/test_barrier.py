@@ -26,8 +26,12 @@ def test_barrier_on_qubits() -> None:
         barrier([0, 1])
         cnot(0, 1)
 
-    ir = program.build().to_ir()
-    assert "barrier __qubits__[0], __qubits__[1];" in ir
+    expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;
+h __qubits__[0];
+barrier __qubits__[0], __qubits__[1];
+cnot __qubits__[0], __qubits__[1];"""
+    assert program.build().to_ir() == expected_ir
 
 
 def test_barrier_single_qubit() -> None:
@@ -36,8 +40,11 @@ def test_barrier_single_qubit() -> None:
         h(0)
         barrier(0)
 
-    ir = program.build().to_ir()
-    assert "barrier __qubits__[0];" in ir
+    expected_ir = """OPENQASM 3.0;
+qubit[1] __qubits__;
+h __qubits__[0];
+barrier __qubits__[0];"""
+    assert program.build().to_ir() == expected_ir
 
 
 def test_barrier_all_qubits() -> None:
@@ -47,8 +54,12 @@ def test_barrier_all_qubits() -> None:
         barrier()
         cnot(0, 1)
 
-    ir = program.build().to_ir()
-    assert "barrier;" in ir
+    expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;
+h __qubits__[0];
+barrier;
+cnot __qubits__[0], __qubits__[1];"""
+    assert program.build().to_ir() == expected_ir
 
 
 def test_barrier_disallowed_inside_gate_definition() -> None:

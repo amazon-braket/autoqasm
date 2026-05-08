@@ -182,7 +182,13 @@ def test_barrier_inside_verbatim_allowed(aws_device: Mock) -> None:
             x("$0")
             barrier("$0")
 
-    assert "barrier $0;" in my_program.build(device=aws_device).to_ir()
+    expected_ir = """OPENQASM 3.0;
+pragma braket verbatim
+box {
+    x $0;
+    barrier $0;
+}"""
+    assert my_program.build(device=aws_device).to_ir() == expected_ir
 
 
 def test_barrier_not_in_supported_operations(aws_device: Mock) -> None:
