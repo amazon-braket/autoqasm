@@ -135,5 +135,5 @@ def barrier(
     qubits = _as_qubit_iterable(qubits)
     program_conversion_context = aq_program.get_program_conversion_context()
     program_conversion_context.validate_gate_targets(qubits, [])
-    program_conversion_context.register_gate("barrier")
+    program_conversion_context.register_gate("barrier", is_compiler_directive=True)
     program_conversion_context.get_oqpy_program().barrier([_qubit(q) for q in qubits])
