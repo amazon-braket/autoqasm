@@ -50,6 +50,7 @@ class NativeInterpreter(Interpreter):
         self.simulation = simulation
         context = context or McmProgramContext()
         super().__init__(context, logger)
+        self._declared_feedback_keys: set[int] = set()
 
     def simulate(
         self,
@@ -81,6 +82,7 @@ class NativeInterpreter(Interpreter):
         program = parse(source)
         for _ in range(shots):
             program_copy = deepcopy(program)
+            self._declared_feedback_keys.clear()
             self.visit(program_copy)
             self.context.save_output_values()
             self.context.num_qubits = 0
@@ -181,15 +183,17 @@ class NativeInterpreter(Interpreter):
         bit variable ``__ff_<feedback_key>__`` in the context's symbol table.
         """
         feedback_key = int(arguments[0].value)
+        if feedback_key in self._declared_feedback_keys:
+            raise ValueError(
+                f"measure_ff feedback key {feedback_key} is already in use; "
+                "feedback keys must be unique within a program."
+            )
         ff_name = _feedback_key_name(feedback_key)
-        # Flush pending gates so the measurement sees the right state.
         self.simulation.evolve(self.context.pop_instructions())
         targets = self.context.get_qubits(qubits[0])
         outcome = self.simulation.measure(targets)
-        try:
-            self.context.get_type(ff_name)
-        except KeyError:
-            self.context.declare_variable(ff_name, BitType(size=None))
+        self._declared_feedback_keys.add(feedback_key)
+        self.context.declare_variable(ff_name, BitType(size=None))
         self.context.update_value(
             Identifier(name=ff_name),
             BooleanLiteral(bool(outcome[0])),

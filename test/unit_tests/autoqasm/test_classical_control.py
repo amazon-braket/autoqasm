@@ -151,3 +151,17 @@ def test_cc_prx_missing_feedback_raises() -> None:
 
     with pytest.raises(ValueError, match="feedback key 42"):
         LocalSimulator("autoqasm").run(missing_key, shots=1).result()
+
+
+def test_measure_ff_duplicate_feedback_key_raises() -> None:
+    """IQM requires feedback keys to be unique within a program; the
+    AutoQASM simulator should raise ``ValueError`` when a feedback key
+    is reused within a single shot."""
+
+    @aq.main
+    def duplicate_key():
+        measure_ff(0, 7)
+        measure_ff(1, 7)
+
+    with pytest.raises(ValueError, match="feedback key 7"):
+        LocalSimulator("autoqasm").run(duplicate_key, shots=1).result()
