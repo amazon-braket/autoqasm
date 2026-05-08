@@ -45,13 +45,13 @@ def _build_dynamic_program(name: str = "p") -> object:
 
 
 def _frame_is_internal(frame) -> bool:
-    """Independent reimplementation of ``_frame_filtering._is_internal_frame``.
+    """Independent reimplementation of ``_frame_filtering._should_filter_from_traceback``.
 
     Kept separate so that a bug in the production classifier cannot silently
     mask itself in tests.
     """
     f_globals = frame.f_globals
-    if f_globals.get(_frame_filtering.INTERNAL_MARKER, False):
+    if f_globals.get(_frame_filtering.FILTER_FROM_TRACEBACK, False):
         return True
     module_name = f_globals.get("__name__", "")
     return module_name == "malt" or module_name.startswith("malt.")
@@ -197,12 +197,12 @@ def test_real_user_nameerror_filter() -> None:
 
 
 def test_new_internal_module_is_hidden(monkeypatch: pytest.MonkeyPatch) -> None:
-    """A future AutoQASM module that opts in via ``__autoqasm_internal__``
+    """A future AutoQASM module that opts in via ``__filter_from_traceback__``
     has its frames hidden without any change to the filter."""
     import types as _types
 
     fake = _types.ModuleType("autoqasm._test_fake_internal")
-    fake.__dict__[_frame_filtering.INTERNAL_MARKER] = True
+    fake.__dict__[_frame_filtering.FILTER_FROM_TRACEBACK] = True
 
     # Compile _raiser in the fake module's namespace so the frame's module is the fake one.
     exec(  # noqa: S102

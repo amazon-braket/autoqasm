@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-__autoqasm_internal__ = True
+__filter_from_traceback__ = True
 
 import copy
 import functools

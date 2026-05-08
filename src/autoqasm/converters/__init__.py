@@ -18,4 +18,4 @@ transformed AST node is the output of a converter. This module implements conver
 overloads or adds on top of AutoGraph.
 """
 
-__autoqasm_internal__ = True
+__filter_from_traceback__ = True
