@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.0 (2026-05-11)
+
+### Features
+
+ * clean up user-visible build-error tracebacks
+ * support measure_ff and cc_prx gates
+
 ## v0.4.1 (2026-05-05)
 
 ### Bug Fixes and Other Changes
