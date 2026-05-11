@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from functools import singledispatch
 from typing import Any
 
@@ -25,6 +25,7 @@ import oqpy.base
 from openpulse.printer import dumps
 
 from autoqasm import constants, errors, program
+from autoqasm import types as aq_types
 
 
 def _get_physical_qubit_indices(qids: list[str]) -> list[int]:
@@ -64,6 +65,20 @@ class GlobalQubitRegister(oqpy.Qubit):
 
 def global_qubit_register() -> GlobalQubitRegister:
     return program.get_program_conversion_context().global_qubit_register
+
+
+def _as_qubit_iterable(
+    qubits: aq_types.QubitIdentifierType | Iterable[aq_types.QubitIdentifierType] | None,
+    default: Iterable[aq_types.QubitIdentifierType] | None = None,
+) -> Iterable[aq_types.QubitIdentifierType]:
+    """Normalize a qubit argument to an iterable. ``None`` maps to ``default`` (an empty
+    list if not provided); a single qubit identifier is wrapped in a list; iterables
+    (including :class:`GlobalQubitRegister`) pass through unchanged."""
+    if qubits is None:
+        qubits = default if default is not None else []
+    if aq_types.is_qubit_identifier_type(qubits) and not isinstance(qubits, GlobalQubitRegister):
+        return [qubits]
+    return qubits
 
 
 @singledispatch
