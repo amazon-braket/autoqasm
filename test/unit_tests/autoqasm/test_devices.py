@@ -20,7 +20,7 @@ import pytest
 
 import autoqasm as aq
 from autoqasm import errors
-from autoqasm.instructions import cnot, cphaseshift00, h, rx, x
+from autoqasm.instructions import barrier, cnot, cphaseshift00, h, rx, x
 from braket.aws import AwsDevice
 from braket.device_schema import DeviceActionType
 from braket.device_schema.simulators import GateModelSimulatorDeviceCapabilities
@@ -166,6 +166,65 @@ def test_unsupported_native_gate(aws_device: Mock) -> None:
             h("$0")
 
     with pytest.raises(errors.UnsupportedNativeGate):
+        my_program.build(device=aws_device)
+
+
+def test_barrier_inside_verbatim_allowed(aws_device: Mock) -> None:
+    """Barriers are compiler directives, not native gates, and must be allowed
+    inside verbatim blocks regardless of the device's ``nativeGateSet``."""
+    aws_device.properties.action[DeviceActionType.OPENQASM].supportedOperations = ["x", "barrier"]
+    aws_device.properties.action[DeviceActionType.OPENQASM].supportedPragmas = ["verbatim"]
+    aws_device.properties.paradigm.nativeGateSet = ["x"]
+
+    @aq.main
+    def my_program():
+        with aq.verbatim():
+            x("$0")
+            barrier("$0")
+
+    expected_ir = """OPENQASM 3.0;
+pragma braket verbatim
+box {
+    x $0;
+    barrier $0;
+}"""
+    assert my_program.build(device=aws_device).to_ir() == expected_ir
+
+
+def test_barrier_outside_verbatim_allowed(aws_device: Mock) -> None:
+    """Barriers are allowed outside verbatim blocks on devices that list
+    ``barrier`` in their ``supportedOperations``."""
+    aws_device.properties.action[DeviceActionType.OPENQASM].supportedOperations = [
+        "h",
+        "cnot",
+        "barrier",
+    ]
+
+    @aq.main
+    def my_program():
+        h(0)
+        barrier([0, 1])
+        cnot(0, 1)
+
+    expected_ir = """OPENQASM 3.0;
+qubit[2] __qubits__;
+h __qubits__[0];
+barrier __qubits__[0], __qubits__[1];
+cnot __qubits__[0], __qubits__[1];"""
+    assert my_program.build(device=aws_device).to_ir() == expected_ir
+
+
+def test_barrier_not_in_supported_operations(aws_device: Mock) -> None:
+    """Devices that do not list ``barrier`` in ``supportedOperations`` should still
+    reject programs that use it."""
+    aws_device.properties.action[DeviceActionType.OPENQASM].supportedOperations = ["h"]
+
+    @aq.main
+    def my_program():
+        h(0)
+        barrier(0)
+
+    with pytest.raises(errors.UnsupportedGate):
         my_program.build(device=aws_device)
 
 

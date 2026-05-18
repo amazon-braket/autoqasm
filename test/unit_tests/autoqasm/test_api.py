@@ -23,6 +23,7 @@ import pytest
 import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
+from autoqasm.instructions.qubits import GlobalQubitRegister, _as_qubit_iterable
 from autoqasm.simulator import McmSimulator
 from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
@@ -1242,6 +1243,22 @@ h __qubits__[1];
 h __qubits__[2];
 h __qubits__[3];"""
     assert main.build().to_ir() == expected_ir
+
+
+def test_as_qubit_iterable_single_qubit_is_wrapped():
+    assert _as_qubit_iterable(0) == [0]
+    assert _as_qubit_iterable("$1") == ["$1"]
+
+
+def test_as_qubit_iterable_iterable_passes_through():
+    assert _as_qubit_iterable([0, 1]) == [0, 1]
+    register = GlobalQubitRegister(size=3)
+    assert _as_qubit_iterable(register) is register
+
+
+def test_as_qubit_iterable_none_uses_default():
+    assert _as_qubit_iterable(None) == []
+    assert _as_qubit_iterable(None, default=[5, 6]) == [5, 6]
 
 
 def test_subroutine_call_with_kwargs():

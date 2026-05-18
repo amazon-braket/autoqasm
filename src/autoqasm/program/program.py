@@ -424,16 +424,24 @@ class ProgramConversionContext:
         self.global_qubit_register.size = size
         root_oqpy_program.declare(self.global_qubit_register, to_beginning=True)
 
-    def register_gate(self, gate_name: str) -> None:
+    def register_gate(self, gate_name: str, is_compiler_directive: bool = False) -> None:
         """Register a gate that is used in this program.
 
         Args:
             gate_name (str): The name of the gate being used.
+            is_compiler_directive (bool): Whether ``gate_name`` is a compiler directive
+                (e.g. ``barrier``) rather than a unitary gate. Compiler directives are exempt
+                from the verbatim-block native-gate restriction but are still validated at
+                build time against the target device's ``supportedOperations``. Default is False.
 
         Raises:
             errors.UnsupportedNativeGate: If the gate is being used inside a verbatim block
                 and the gate is not a native gate of the target device.
         """
+        if is_compiler_directive:
+            self._gates_used.add(gate_name)
+            return
+
         if not self.in_verbatim_block:
             self._gates_used.add(gate_name)
             return
