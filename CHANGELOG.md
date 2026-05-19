@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.0 (2026-05-19)
+
+### Features
+
+ * add barrier instruction support
+
 ## v0.5.0 (2026-05-11)
 
 ### Features
