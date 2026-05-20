@@ -56,17 +56,12 @@ def _qubit(qid: Any) -> oqpy.Qubit:
     Returns:
         Qubit: A translated oqpy qubit.
     """
-    raise TypeError(f"object of type '{type(qid).__name__}' cannot be used as a qubit: '{qid}'")
+    raise TypeError(f"object of type '{type(qid).__name__}' cannot be used as a qubit")
 
 
 @_qubit.register
 def _(qid: bool) -> oqpy.Qubit:
-    raise TypeError(f"qubit index cannot be a bool: '{qid}'")
-
-
-@_qubit.register
-def _(qid: float) -> oqpy.Qubit:
-    raise TypeError(f"qubit index cannot be a float: '{qid}'")
+    raise TypeError(f"object of type '{type(qid).__name__}' cannot be used as a qubit")
 
 
 @_qubit.register

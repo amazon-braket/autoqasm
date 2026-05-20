@@ -687,7 +687,7 @@ def test_bool_qubit_index_fails() -> None:
         """Uses invalid type for qubit index"""
         h(True)
 
-    with pytest.raises(TypeError, match="qubit index cannot be a bool"):
+    with pytest.raises(TypeError, match="object of type 'bool' cannot be used as a qubit"):
         broken.build()
 
 
@@ -705,7 +705,7 @@ def test_invalid_qubit_type_fails() -> None:
 
 def test_qubit_dispatch_rejects_float() -> None:
     """Direct call to _qubit with a float hits the float singledispatch arm."""
-    with pytest.raises(TypeError, match="qubit index cannot be a float"):
+    with pytest.raises(TypeError, match="object of type 'float' cannot be used as a qubit"):
         _qubit(0.5)
 
 
