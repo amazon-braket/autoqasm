@@ -34,11 +34,12 @@ from sympy import Symbol
 
 import autoqasm.types as aq_types
 from autoqasm import _frame_filtering, constants, errors
-from autoqasm.instructions.qubits import GlobalQubitRegister, _get_physical_qubit_indices, _qubit
+from autoqasm.instructions.qubits import _get_physical_qubit_indices, _qubit
 from autoqasm.program.serialization_properties import (
     OpenQASMSerializationProperties,
     SerializationProperties,
 )
+from autoqasm.types import GlobalQubitRegister
 from autoqasm.types import QubitIdentifierType as Qubit
 from autoqasm.types.deferred import DeferredVarMixin
 from braket.aws.aws_device import AwsDevice
@@ -422,7 +423,7 @@ class ProgramConversionContext:
         """
         root_oqpy_program = self.get_oqpy_program(scope=ProgramScope.MAIN)
         self.global_qubit_register.size = size
-        root_oqpy_program.declare(self.global_qubit_register, to_beginning=True)
+        root_oqpy_program.declare(self.global_qubit_register.oqpy_var, to_beginning=True)
 
     def register_gate(self, gate_name: str, is_compiler_directive: bool = False) -> None:
         """Register a gate that is used in this program.
@@ -650,17 +651,28 @@ class ProgramConversionContext:
         oqpy_program = self.get_oqpy_program()
         return var_name in oqpy_program.declared_vars or var_name in oqpy_program.undeclared_vars
 
-    def validate_gate_targets(self, qubits: list[Any], angles: list[Any]) -> None:
+    def validate_gate_targets(
+        self,
+        qubits: Iterable[Qubit],
+        angles: Iterable[Any],
+    ) -> None:
         """Validate that the specified gate targets are valid at this point in the program.
 
         Args:
-            qubits (list[Any]): The list of target qubits to validate.
-            angles (list[Any]): The list of target angles to validate.
+            qubits (Iterable[QubitIdentifierType]): The target qubits to validate.
+            angles (Iterable[Any]): The target angles to validate.
 
         Raises:
+            TypeError: A target qubit is not a single qubit identifier.
             errors.InvalidTargetQubit: Target qubits are invalid in the current context.
             errors.InvalidGateDefinition: Targets are invalid in the current gate definition.
         """
+        for qubit in qubits:
+            if not aq_types.is_qubit_identifier_type(qubit):
+                raise TypeError(
+                    f'Invalid qubit target: "{qubit}". Target must be a single qubit, not a list or a register.'
+                )
+
         if self.in_verbatim_block and not self._gate_definitions_processing:
             self._validate_verbatim_target_qubits(qubits)
 

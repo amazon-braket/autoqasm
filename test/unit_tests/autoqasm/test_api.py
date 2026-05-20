@@ -23,8 +23,9 @@ import pytest
 import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
-from autoqasm.instructions.qubits import GlobalQubitRegister, _as_qubit_iterable
+from autoqasm.instructions.qubits import _as_qubit_iterable, _qubit
 from autoqasm.simulator import McmSimulator
+from autoqasm.types import GlobalQubitRegister
 from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
@@ -697,8 +698,20 @@ def test_invalid_qubit_type_fails() -> None:
         """Uses invalid type for qubit index"""
         h(h)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         broken.build()
+
+
+def test_qubit_dispatch_rejects_float() -> None:
+    """Direct call to _qubit with a float hits the float singledispatch arm."""
+    with pytest.raises(TypeError, match="qubit index cannot be a float"):
+        _qubit(0.5)
+
+
+def test_qubit_dispatch_rejects_arbitrary_object() -> None:
+    """Direct call to _qubit with an unsupported type hits the default singledispatch arm."""
+    with pytest.raises(ValueError, match="invalid qubit label"):
+        _qubit(LocalSimulator())
 
 
 def test_bit_array_name() -> None:
@@ -1187,7 +1200,22 @@ def test_gate_register_not_allowed():
         h(aq.qubits)
 
     with pytest.raises(
-        ValueError, match="qubit index must be a single value, not a list or a register"
+        TypeError,
+        match=r'Invalid qubit target: "__qubits__"\. '
+        r"Target must be a single qubit, not a list or a register\.",
+    ):
+        main.build()
+
+
+def test_gate_list_not_allowed():
+    @aq.main(num_qubits=2)
+    def main():
+        h([0, 1])
+
+    with pytest.raises(
+        TypeError,
+        match=r'Invalid qubit target: "\[0, 1\]"\. '
+        r"Target must be a single qubit, not a list or a register\.",
     ):
         main.build()
 

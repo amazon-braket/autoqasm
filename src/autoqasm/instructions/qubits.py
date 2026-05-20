@@ -17,14 +17,14 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from functools import singledispatch
 from typing import Any
 
 import oqpy.base
 from openpulse.printer import dumps
 
-from autoqasm import constants, errors, program
+from autoqasm import errors, program
 from autoqasm import types as aq_types
 
 
@@ -48,25 +48,6 @@ def _get_physical_qubit_indices(qids: list[str]) -> list[int]:
     return braket_qubits
 
 
-def _global_qubit_register(qubit_idx_expr: int | str) -> oqpy.Qubit:
-    return oqpy.Qubit(f"{constants.QUBIT_REGISTER}[{qubit_idx_expr}]", needs_declaration=False)
-
-
-class GlobalQubitRegister(oqpy.Qubit):
-    def __init__(self, size: int | None):
-        super().__init__(name=constants.QUBIT_REGISTER, size=size, needs_declaration=False)
-
-    def __len__(self) -> int:
-        return self.size
-
-    def __iter__(self) -> Iterator:
-        return iter(range(len(self)))
-
-
-def global_qubit_register() -> GlobalQubitRegister:
-    return program.get_program_conversion_context().global_qubit_register
-
-
 def _as_qubit_iterable(
     qubits: aq_types.QubitIdentifierType | Iterable[aq_types.QubitIdentifierType] | None,
     default: Iterable[aq_types.QubitIdentifierType] | None = None,
@@ -76,7 +57,7 @@ def _as_qubit_iterable(
     (including :class:`GlobalQubitRegister`) pass through unchanged."""
     if qubits is None:
         qubits = default if default is not None else []
-    if aq_types.is_qubit_identifier_type(qubits) and not isinstance(qubits, GlobalQubitRegister):
+    if aq_types.is_qubit_identifier_type(qubits):
         return [qubits]
     return qubits
 
@@ -107,32 +88,29 @@ def _(qid: float) -> oqpy.Qubit:
 @_qubit.register
 def _(qid: int) -> oqpy.Qubit:
     # Integer virtual qubit, like `h(0)`
-    program.get_program_conversion_context().register_qubit(qid)
-    return _global_qubit_register(qid)
-
-
-@_qubit.register
-def _(qid: GlobalQubitRegister) -> oqpy.Qubit:
-    raise ValueError("qubit index must be a single value, not a list or a register")
+    ctx = program.get_program_conversion_context()
+    ctx.register_qubit(qid)
+    return ctx.global_qubit_register[qid]
 
 
 @_qubit.register
 def _(qid: oqpy._ClassicalVar) -> oqpy.Qubit:
     # Indexed by variable, such as i in range(n); h(i)
-    if program.get_program_conversion_context().get_declared_qubits() is None:
+    ctx = program.get_program_conversion_context()
+    if ctx.get_declared_qubits() is None:
         raise errors.UnknownQubitCountError()
-    return _global_qubit_register(qid.name)
+    return ctx.global_qubit_register[qid.name]
 
 
 @_qubit.register
 def _(qid: oqpy.base.OQPyExpression) -> oqpy.Qubit:
     # Indexed by expression, such as i in range(n); h(i + 1)
-    if program.get_program_conversion_context().get_declared_qubits() is None:
+    ctx = program.get_program_conversion_context()
+    if ctx.get_declared_qubits() is None:
         raise errors.UnknownQubitCountError()
 
-    oqpy_program = program.get_program_conversion_context().get_oqpy_program()
-    qubit_idx_expr = dumps(qid.to_ast(oqpy_program))
-    return _global_qubit_register(qubit_idx_expr)
+    qubit_idx_expr = dumps(qid.to_ast(ctx.get_oqpy_program()))
+    return ctx.global_qubit_register[qubit_idx_expr]
 
 
 @_qubit.register
