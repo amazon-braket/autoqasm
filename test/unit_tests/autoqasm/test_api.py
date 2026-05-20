@@ -687,7 +687,7 @@ def test_bool_qubit_index_fails() -> None:
         """Uses invalid type for qubit index"""
         h(True)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError, match="qubit index cannot be a bool"):
         broken.build()
 
 
@@ -711,8 +711,8 @@ def test_qubit_dispatch_rejects_float() -> None:
 
 def test_qubit_dispatch_rejects_arbitrary_object() -> None:
     """Direct call to _qubit with an unsupported type hits the default singledispatch arm."""
-    with pytest.raises(ValueError, match="invalid qubit label"):
-        _qubit(LocalSimulator())
+    with pytest.raises(TypeError, match="object of type 'complex' cannot be used as a qubit"):
+        _qubit(complex(1.2 + 3.4j))
 
 
 def test_bit_array_name() -> None:
