@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from typing import Any, get_args
 
 import oqpy
@@ -39,6 +39,20 @@ def is_qubit_identifier_type(qubit: Any) -> bool:
         bool: True if the object is a qubit identifier type, False otherwise.
     """
     return isinstance(qubit, _QUBIT_IDENTIFIER_TYPES)
+
+
+def _as_qubit_iterable(
+    qubits: QubitIdentifierType | Iterable[QubitIdentifierType] | None,
+    default: Iterable[QubitIdentifierType] | None = None,
+) -> Iterable[QubitIdentifierType]:
+    """Normalize a qubit argument to an iterable. ``None`` maps to ``default`` (an empty
+    list if not provided); a single qubit identifier is wrapped in a list; iterables
+    (including :class:`GlobalQubitRegister`) pass through unchanged."""
+    if qubits is None:
+        qubits = default if default is not None else []
+    if is_qubit_identifier_type(qubits):
+        return [qubits]
+    return qubits
 
 
 class GlobalQubitRegister:

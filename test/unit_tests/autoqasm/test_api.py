@@ -23,7 +23,8 @@ import pytest
 import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
-from autoqasm.instructions.qubits import _as_qubit_iterable, _qubit
+from autoqasm.instructions.qubits import _qubit
+from autoqasm.types.qubits import _as_qubit_iterable
 from autoqasm.simulator import McmSimulator
 from autoqasm.types import GlobalQubitRegister
 from braket.devices import LocalSimulator
