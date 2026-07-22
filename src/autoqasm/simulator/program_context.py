@@ -93,7 +93,7 @@ class QubitTable(Table):
             for index in index_list:
                 if isinstance(index, int):
                     self._validate_qubit_in_range(index, name)
-            target = tuple([self[name][0] + index for index in index_list])  # noqa: C409
+            target = tuple([self[name][0] + index for index in index_list])
 
         if len(indices) == 2:
             # used for gate calls on registers, index will be IntegerLiteral
