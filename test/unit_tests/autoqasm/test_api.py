@@ -23,7 +23,6 @@ import pytest
 import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
-from autoqasm.instructions.qubits import _qubit
 from autoqasm.simulator import McmSimulator
 from autoqasm.types.qubits import GlobalQubitRegister, _as_qubit_iterable
 from braket.devices import LocalSimulator
@@ -674,7 +673,7 @@ def test_float_qubit_index_fails() -> None:
         i = 1
         h(i / 2)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(errors.InvalidQubitIdentifier):
         broken.build()
 
 
@@ -686,7 +685,11 @@ def test_bool_qubit_index_fails() -> None:
         """Uses invalid type for qubit index"""
         h(True)
 
-    with pytest.raises(TypeError, match="object of type 'bool' cannot be used as a qubit"):
+    with pytest.raises(
+        errors.InvalidQubitIdentifier,
+        match=r'Invalid qubit identifier: "True"\. Must be a single qubit, '
+        r"not an object of type 'bool'\.",
+    ):
         broken.build()
 
 
@@ -698,20 +701,8 @@ def test_invalid_qubit_type_fails() -> None:
         """Uses invalid type for qubit index"""
         h(h)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(errors.InvalidQubitIdentifier, match="not an object of type 'function'"):
         broken.build()
-
-
-def test_qubit_dispatch_rejects_float() -> None:
-    """Direct call to _qubit with a float hits the default singledispatch arm."""
-    with pytest.raises(TypeError, match="object of type 'float' cannot be used as a qubit"):
-        _qubit(0.5)
-
-
-def test_qubit_dispatch_rejects_arbitrary_object() -> None:
-    """Direct call to _qubit with an unsupported type hits the default singledispatch arm."""
-    with pytest.raises(TypeError, match="object of type 'complex' cannot be used as a qubit"):
-        _qubit(complex(1.2 + 3.4j))
 
 
 def test_bit_array_name() -> None:
@@ -1200,8 +1191,9 @@ def test_gate_register_not_allowed():
         h(aq.qubits)
 
     with pytest.raises(
-        TypeError,
-        match=r'Invalid qubit target: "__qubits__"\. Target must be a single qubit\.',
+        errors.InvalidQubitIdentifier,
+        match=r'Invalid qubit identifier: "__qubits__"\. Must be a single qubit, '
+        r"not an object of type 'GlobalQubitRegister'\.",
     ):
         main.build()
 
@@ -1212,8 +1204,9 @@ def test_gate_list_not_allowed():
         h([0, 1])
 
     with pytest.raises(
-        TypeError,
-        match=r'Invalid qubit target: "\[0, 1\]"\. Target must be a single qubit\.',
+        errors.InvalidQubitIdentifier,
+        match=r'Invalid qubit identifier: "\[0, 1\]"\. Must be a single qubit, '
+        r"not an object of type 'list'\.",
     ):
         main.build()
 
@@ -1224,8 +1217,9 @@ def test_gate_float_not_allowed():
         h(1.0)
 
     with pytest.raises(
-        TypeError,
-        match=r'Invalid qubit target: "1\.0"\. Target must be a single qubit\.',
+        errors.InvalidQubitIdentifier,
+        match=r'Invalid qubit identifier: "1\.0"\. Must be a single qubit, '
+        r"not an object of type 'float'\.",
     ):
         main.build()
 

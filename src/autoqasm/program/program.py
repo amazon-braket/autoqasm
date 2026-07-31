@@ -663,14 +663,9 @@ class ProgramConversionContext:
             angles (Iterable[Any]): The target angles to validate.
 
         Raises:
-            TypeError: A target qubit is not a single qubit identifier.
             errors.InvalidTargetQubit: Target qubits are invalid in the current context.
             errors.InvalidGateDefinition: Targets are invalid in the current gate definition.
         """
-        for qubit in qubits:
-            if not aq_types.is_qubit_identifier_type(qubit):
-                raise TypeError(f'Invalid qubit target: "{qubit}". Target must be a single qubit.')
-
         if self.in_verbatim_block and not self._gate_definitions_processing:
             self._validate_verbatim_target_qubits(qubits)
 
