@@ -21,11 +21,13 @@ from typing import Any, get_args
 import oqpy
 import oqpy.base
 
-from autoqasm import constants
+from autoqasm import constants, errors
 from braket.registers import Qubit
 
 QubitIdentifierType = int | str | Qubit | oqpy._ClassicalVar | oqpy.base.OQPyExpression | oqpy.Qubit
 
+# Precompute the type tuple once. get_args(QubitIdentifierType) is
+# an expensive operation and is called on every gate emission.
 _QUBIT_IDENTIFIER_TYPES: tuple[type, ...] = get_args(QubitIdentifierType)
 
 
@@ -77,14 +79,24 @@ class GlobalQubitRegister:
         return self._var
 
     def __repr__(self) -> str:
+        return f"{type(self).__name__}(name={self.name!r}, size={self.size!r})"
+
+    def __str__(self) -> str:
         return self.name
 
     def __len__(self) -> int:
+        if self.size is None:
+            raise errors.UnknownQubitCountError()
         return self.size
 
     def __iter__(self) -> Iterator[int]:
         return iter(range(len(self)))
 
     def __getitem__(self, index: int | str) -> oqpy.Qubit:
-        """Returns an oqpy.Qubit referring to ``__qubits__[index]``."""
+        """Returns an oqpy.Qubit referring to ``__qubits__[index]``.
+        ``index`` is either an integer index or a string containing
+        an already-serialized OpenQASM index expression.
+        """
+        if isinstance(index, bool) or not isinstance(index, (int, str)):
+            raise TypeError(f"invalid qubit register index: {index!r}")
         return oqpy.Qubit(f"{self.name}[{index}]", needs_declaration=False)

@@ -4,6 +4,8 @@ import datetime
 from importlib.metadata import version
 
 from pygments.formatters import LatexFormatter
+from pygments.lexers import PythonLexer
+from sphinx.highlighting import lexers
 
 # Sphinx configuration below.
 project = "autoqasm"
@@ -23,6 +25,10 @@ extensions = [
 ]
 
 nbsphinx_execute = "never"
+
+# The notebooks declare the `ipython3` lexer, an alias provided by IPython rather than
+# Pygments. Map it to the standard Python lexer so highlighting resolves without IPython.
+lexers["ipython3"] = PythonLexer()
 
 exclude_patterns = ["**/.ipynb_checkpoints"]
 

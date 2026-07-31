@@ -22,7 +22,8 @@ from typing import Any
 import oqpy.base
 
 from autoqasm import program
-from autoqasm.types import GlobalQubitRegister, Range, is_qasm_type
+from autoqasm.types import Range, is_qasm_type
+from autoqasm.types.qubits import GlobalQubitRegister
 
 
 def for_stmt(

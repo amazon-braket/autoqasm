@@ -24,9 +24,8 @@ import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
 from autoqasm.instructions.qubits import _qubit
-from autoqasm.types.qubits import _as_qubit_iterable
 from autoqasm.simulator import McmSimulator
-from autoqasm.types import GlobalQubitRegister
+from autoqasm.types.qubits import GlobalQubitRegister, _as_qubit_iterable
 from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
@@ -704,7 +703,7 @@ def test_invalid_qubit_type_fails() -> None:
 
 
 def test_qubit_dispatch_rejects_float() -> None:
-    """Direct call to _qubit with a float hits the float singledispatch arm."""
+    """Direct call to _qubit with a float hits the default singledispatch arm."""
     with pytest.raises(TypeError, match="object of type 'float' cannot be used as a qubit"):
         _qubit(0.5)
 
@@ -1202,8 +1201,7 @@ def test_gate_register_not_allowed():
 
     with pytest.raises(
         TypeError,
-        match=r'Invalid qubit target: "__qubits__"\. '
-        r"Target must be a single qubit, not a list or a register\.",
+        match=r'Invalid qubit target: "__qubits__"\. Target must be a single qubit\.',
     ):
         main.build()
 
@@ -1215,10 +1213,41 @@ def test_gate_list_not_allowed():
 
     with pytest.raises(
         TypeError,
-        match=r'Invalid qubit target: "\[0, 1\]"\. '
-        r"Target must be a single qubit, not a list or a register\.",
+        match=r'Invalid qubit target: "\[0, 1\]"\. Target must be a single qubit\.',
     ):
         main.build()
+
+
+def test_gate_float_not_allowed():
+    @aq.main(num_qubits=2)
+    def main():
+        h(1.0)
+
+    with pytest.raises(
+        TypeError,
+        match=r'Invalid qubit target: "1\.0"\. Target must be a single qubit\.',
+    ):
+        main.build()
+
+
+def test_gate_register_slice_not_allowed():
+    @aq.main(num_qubits=4)
+    def main():
+        h(aq.qubits[0:2])
+
+    with pytest.raises(TypeError, match="invalid qubit register index"):
+        main.build()
+
+
+def test_global_qubit_register_len_needs_num_qubits():
+    with pytest.raises(errors.UnknownQubitCountError):
+        len(GlobalQubitRegister())
+
+
+def test_global_qubit_register_repr_and_str():
+    register = GlobalQubitRegister(size=3)
+    assert str(register) == "__qubits__"
+    assert repr(register) == "GlobalQubitRegister(name='__qubits__', size=3)"
 
 
 def test_global_qubit_register_loop():

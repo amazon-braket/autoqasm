@@ -61,6 +61,8 @@ def _qubit(qid: Any) -> oqpy.Qubit:
 
 @_qubit.register
 def _(qid: bool) -> oqpy.Qubit:
+    # `bool` is a subclass of `int`, so without this, `singledispatch` would route
+    # `h(True)` to the `int` arm and emit a gate on qubit 1.
     raise TypeError(f"object of type '{type(qid).__name__}' cannot be used as a qubit")
 
 

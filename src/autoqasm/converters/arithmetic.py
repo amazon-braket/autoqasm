@@ -28,10 +28,12 @@ class ArithmeticTransformer(converter.Base):
 
     def visit_BinOp(self, node: ast.stmt) -> ast.stmt:
         """Transforms a BinOp node.
-        Args :
-            node(ast.stmt) : AST node to transform
-        Returns :
-            ast.stmt : Transformed node
+
+        Args:
+            node (ast.stmt): AST node to transform
+
+        Returns:
+            ast.stmt: Transformed node
         """
         node = self.generic_visit(node)
         op_type = type(node.op)
@@ -50,11 +52,13 @@ class ArithmeticTransformer(converter.Base):
 
 def transform(node: ast.stmt, ctx: ag_ctx.ControlStatusCtx) -> ast.stmt:
     """Transform arithmetic nodes.
+
     Args:
-        node(ast.stmt) : AST node to transform
-        ctx (ag_ctx.ControlStatusCtx) : Transformer context.
-    Returns :
-        ast.stmt : Transformed node.
+        node (ast.stmt): AST node to transform
+        ctx (ag_ctx.ControlStatusCtx): Transformer context.
+
+    Returns:
+        ast.stmt: Transformed node.
     """
 
     return ArithmeticTransformer(ctx).visit(node)

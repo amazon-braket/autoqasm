@@ -16,11 +16,7 @@ for type handling.
 """
 
 from .conversions import map_parameter_type, var_type_from_oqpy, wrap_value  # noqa: F401
-from .qubits import (  # noqa: F401
-    GlobalQubitRegister,
-    QubitIdentifierType,
-    is_qubit_identifier_type,
-)
+from .qubits import QubitIdentifierType, is_qubit_identifier_type  # noqa: F401
 from .types import (  # noqa: F401
     ArrayVar,
     BitVar,

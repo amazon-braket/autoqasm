@@ -20,7 +20,7 @@ __filter_from_traceback__ = True
 import contextlib
 import copy
 import threading
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -39,9 +39,9 @@ from autoqasm.program.serialization_properties import (
     OpenQASMSerializationProperties,
     SerializationProperties,
 )
-from autoqasm.types import GlobalQubitRegister
 from autoqasm.types import QubitIdentifierType as Qubit
 from autoqasm.types.deferred import DeferredVarMixin
+from autoqasm.types.qubits import GlobalQubitRegister
 from braket.aws.aws_device import AwsDevice
 from braket.circuits.free_parameter_expression import FreeParameterExpression
 from braket.circuits.serialization import IRType, SerializableProgram
@@ -653,13 +653,13 @@ class ProgramConversionContext:
 
     def validate_gate_targets(
         self,
-        qubits: Iterable[Qubit],
+        qubits: Sequence[Qubit],
         angles: Iterable[Any],
     ) -> None:
         """Validate that the specified gate targets are valid at this point in the program.
 
         Args:
-            qubits (Iterable[QubitIdentifierType]): The target qubits to validate.
+            qubits (Sequence[Qubit]): The target qubits to validate.
             angles (Iterable[Any]): The target angles to validate.
 
         Raises:
@@ -669,9 +669,7 @@ class ProgramConversionContext:
         """
         for qubit in qubits:
             if not aq_types.is_qubit_identifier_type(qubit):
-                raise TypeError(
-                    f'Invalid qubit target: "{qubit}". Target must be a single qubit, not a list or a register.'
-                )
+                raise TypeError(f'Invalid qubit target: "{qubit}". Target must be a single qubit.')
 
         if self.in_verbatim_block and not self._gate_definitions_processing:
             self._validate_verbatim_target_qubits(qubits)
@@ -701,7 +699,7 @@ class ProgramConversionContext:
     def _normalize_gate_names(gate_names: Iterable[str]) -> list[str]:
         return [gate_name.lower() for gate_name in gate_names]
 
-    def _validate_verbatim_target_qubits(self, qubits: list[Any]) -> None:
+    def _validate_verbatim_target_qubits(self, qubits: Sequence[Qubit]) -> None:
         # Only physical target qubits are allowed in a verbatim block:
         for qubit in qubits:
             if not isinstance(qubit, str):
