@@ -20,18 +20,21 @@ import autoqasm as aq
 from autoqasm import pulse
 from autoqasm.instructions import cnot, cphaseshift, gpi, h, measure, ms, rx, rz, x
 from autoqasm.reserved_keywords import reserved_keywords, sanitize_parameter_name
-from autoqasm.simulator import McmSimulator
 from braket.circuits import FreeParameter
 from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
 
 def _test_parametric_on_local_sim(program: aq.Program, inputs: dict[str, float]) -> np.ndarray:
-    device = LocalSimulator(backend=McmSimulator())
+    device = LocalSimulator()
     task = device.run(program, shots=100, inputs=inputs)
     assert isinstance(task, LocalQuantumTask)
-    assert isinstance(task.result().measurements, dict)
-    return task.result().measurements
+    # These programs have no return value, so they declare no OpenQASM `output`
+    # variables; assert on the measurement array instead. Columns are the
+    # measured qubits in ascending order.
+    measurements = task.result().measurements
+    assert isinstance(measurements, np.ndarray)
+    return measurements
 
 
 @pytest.fixture
@@ -80,16 +83,16 @@ __bit_0__ = measure __qubits__[0];"""
 
 def test_sim_simple(simple_parametric):
     measurements = _test_parametric_on_local_sim(simple_parametric, {"theta": 0})
-    assert 1 not in measurements["__bit_0__"]
+    assert 1 not in measurements[:, 0]
     measurements = _test_parametric_on_local_sim(simple_parametric, {"theta": np.pi})
-    assert 0 not in measurements["__bit_0__"]
+    assert 0 not in measurements[:, 0]
 
 
 def test_sim_simple_fp(simple_parametric_fp):
     measurements = _test_parametric_on_local_sim(simple_parametric_fp, {"theta": 0})
-    assert 1 not in measurements["__bit_0__"]
+    assert 1 not in measurements[:, 0]
     measurements = _test_parametric_on_local_sim(simple_parametric_fp, {"theta": np.pi})
-    assert 0 not in measurements["__bit_0__"]
+    assert 0 not in measurements[:, 0]
 
 
 @pytest.fixture
@@ -122,9 +125,9 @@ c = __bit_0__;"""
 
 def test_sim_multi_param(multi_parametric):
     measurements = _test_parametric_on_local_sim(multi_parametric, {"alpha": np.pi, "theta": 0})
-    assert all(val == "10" for val in measurements["c"])
+    assert all(list(row) == [1, 0] for row in measurements)
     measurements = _test_parametric_on_local_sim(multi_parametric, {"alpha": 0, "theta": np.pi})
-    assert all(val == "01" for val in measurements["c"])
+    assert all(list(row) == [0, 1] for row in measurements)
 
 
 def test_repeat_parameter():
@@ -295,7 +298,7 @@ def test_sim_subroutine_arg():
         measure(0)
 
     measurements = _test_parametric_on_local_sim(parametric, {"theta": np.pi})
-    assert 0 not in measurements["__bit_0__"]
+    assert 0 not in measurements[:, 0]
 
 
 def test_parametric_gate_args():
@@ -670,9 +673,9 @@ def test_sim_conditional_stmts():
         c = measure(0)  # noqa: F841
 
     measurements = _test_parametric_on_local_sim(main, {"basis": 0})
-    assert all(val == 1 for val in measurements["c"])
+    assert all(val == 1 for val in measurements[:, 0])
     measurements = _test_parametric_on_local_sim(main, {"basis": 1})
-    assert 1 in measurements["c"] and 0 in measurements["c"]
+    assert 1 in measurements[:, 0] and 0 in measurements[:, 0]
 
 
 def test_sim_comparison_stmts():
@@ -683,9 +686,9 @@ def test_sim_comparison_stmts():
         c = measure(0)  # noqa: F841
 
     measurements = _test_parametric_on_local_sim(main, {"basis": 0.5})
-    assert all(val == 0 for val in measurements["c"])
+    assert all(val == 0 for val in measurements[:, 0])
     measurements = _test_parametric_on_local_sim(main, {"basis": 0.55})
-    assert all(val == 1 for val in measurements["c"])
+    assert all(val == 1 for val in measurements[:, 0])
 
 
 def test_param_neq():
@@ -861,7 +864,7 @@ def test_sim_expressions():
         measure(0)
 
     measurements = _test_parametric_on_local_sim(parametric, {"phi": np.pi / 2})
-    assert 0 not in measurements["__bit_0__"]
+    assert 0 not in measurements[:, 0]
 
 
 def test_multi_parameter_expressions():

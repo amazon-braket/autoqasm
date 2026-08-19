@@ -24,16 +24,18 @@ import autoqasm as aq
 from autoqasm import errors
 from autoqasm.instructions import cnot, h, measure, rx, x
 from autoqasm.instructions.qubits import GlobalQubitRegister, _as_qubit_iterable
-from autoqasm.simulator import McmSimulator
 from braket.devices import LocalSimulator
 from braket.tasks.local_quantum_task import LocalQuantumTask
 
 
 def _test_on_local_sim(program: aq.Program, inputs=None) -> None:
-    device = LocalSimulator(backend=McmSimulator())
+    device = LocalSimulator()
     task = device.run(program, shots=10, inputs=inputs or {})
     assert isinstance(task, LocalQuantumTask)
-    assert isinstance(task.result().measurements, dict)
+    # outputs is None for programs that declare no `output` variables
+    # (i.e. @aq.main functions with no return value).
+    outputs = task.result().outputs
+    assert outputs is None or isinstance(outputs, list)
 
 
 def test_empty_function(empty_program) -> None:
