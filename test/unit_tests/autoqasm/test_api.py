@@ -885,6 +885,20 @@ def test_sim_classical_variables_types(classical_variables_types):
     _test_on_local_sim(classical_variables_types)
 
 
+def test_sim_array_return_value():
+    """Test that a returned array is reported per shot by the local simulator."""
+
+    @aq.main
+    def return_array():
+        a = aq.ArrayVar([0, 1, 2], base_type=aq.IntVar)
+        a[0] = 7
+        return a
+
+    shots = 4
+    result = LocalSimulator().run(return_array, shots=shots).result()
+    assert result.outputs == [{"a": [7, 1, 2]}] * shots
+
+
 def test_classical_variables_assignment():
     @aq.main
     def prog() -> None:
