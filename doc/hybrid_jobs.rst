@@ -23,7 +23,7 @@ This `documentation page <https://docs.aws.amazon.com/braket/latest/developergui
        print("Test job started!")
 
        # Use the device declared in the job script
-       device = LocalSimulator("autoqasm")
+       device = LocalSimulator()
 
        @aq.main
        def bell():
@@ -78,7 +78,7 @@ Below is a working example to create an AutoQASM job with the ``@hybrid_job`` de
            cnot(0, 1)
            c = measure([0, 1])
 
-       device = LocalSimulator("autoqasm")
+       device = LocalSimulator()
        for count in range(5):
            task = device.run(bell, shots=100)
            print(task.result().measurements)
