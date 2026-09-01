@@ -20,7 +20,7 @@ __filter_from_traceback__ = True
 import contextlib
 import copy
 import threading
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -34,13 +34,14 @@ from sympy import Symbol
 
 import autoqasm.types as aq_types
 from autoqasm import _frame_filtering, constants, errors
-from autoqasm.instructions.qubits import GlobalQubitRegister, _get_physical_qubit_indices, _qubit
+from autoqasm.instructions.qubits import _get_physical_qubit_indices, _qubit
 from autoqasm.program.serialization_properties import (
     OpenQASMSerializationProperties,
     SerializationProperties,
 )
 from autoqasm.types import QubitIdentifierType as Qubit
 from autoqasm.types.deferred import DeferredVarMixin
+from autoqasm.types.qubits import GlobalQubitRegister
 from braket.aws.aws_device import AwsDevice
 from braket.circuits.free_parameter_expression import FreeParameterExpression
 from braket.circuits.serialization import IRType, SerializableProgram
@@ -422,7 +423,7 @@ class ProgramConversionContext:
         """
         root_oqpy_program = self.get_oqpy_program(scope=ProgramScope.MAIN)
         self.global_qubit_register.size = size
-        root_oqpy_program.declare(self.global_qubit_register, to_beginning=True)
+        root_oqpy_program.declare(self.global_qubit_register.oqpy_var, to_beginning=True)
 
     def register_gate(self, gate_name: str, is_compiler_directive: bool = False) -> None:
         """Register a gate that is used in this program.
@@ -650,12 +651,16 @@ class ProgramConversionContext:
         oqpy_program = self.get_oqpy_program()
         return var_name in oqpy_program.declared_vars or var_name in oqpy_program.undeclared_vars
 
-    def validate_gate_targets(self, qubits: list[Any], angles: list[Any]) -> None:
+    def validate_gate_targets(
+        self,
+        qubits: Sequence[Qubit],
+        angles: Iterable[Any],
+    ) -> None:
         """Validate that the specified gate targets are valid at this point in the program.
 
         Args:
-            qubits (list[Any]): The list of target qubits to validate.
-            angles (list[Any]): The list of target angles to validate.
+            qubits (Sequence[Qubit]): The target qubits to validate.
+            angles (Iterable[Any]): The target angles to validate.
 
         Raises:
             errors.InvalidTargetQubit: Target qubits are invalid in the current context.
@@ -689,7 +694,7 @@ class ProgramConversionContext:
     def _normalize_gate_names(gate_names: Iterable[str]) -> list[str]:
         return [gate_name.lower() for gate_name in gate_names]
 
-    def _validate_verbatim_target_qubits(self, qubits: list[Any]) -> None:
+    def _validate_verbatim_target_qubits(self, qubits: Sequence[Qubit]) -> None:
         # Only physical target qubits are allowed in a verbatim block:
         for qubit in qubits:
             if not isinstance(qubit, str):

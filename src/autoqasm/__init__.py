@@ -50,6 +50,7 @@ from ._version import __version__  # noqa: F401
 from .api import gate, gate_calibration, main, subroutine  # noqa: F401
 from .instructions import QubitIdentifierType as Qubit  # noqa: F401
 from .program import Program, build_program, verbatim  # noqa: F401
+from .program import get_program_conversion_context as _get_program_conversion_context
 from .transpiler import transpiler  # noqa: F401
 from .types import ArrayVar, BitVar, BoolVar, FloatVar, IntVar  # noqa: F401
 from .types import Range as range  # noqa: F401
@@ -57,5 +58,5 @@ from .types import Range as range  # noqa: F401
 
 def __getattr__(name):
     if name == "qubits":
-        return instructions.global_qubit_register()
+        return _get_program_conversion_context().global_qubit_register
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

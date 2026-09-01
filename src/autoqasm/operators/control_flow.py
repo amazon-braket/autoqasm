@@ -23,10 +23,11 @@ import oqpy.base
 
 from autoqasm import program
 from autoqasm.types import Range, is_qasm_type
+from autoqasm.types.qubits import GlobalQubitRegister
 
 
 def for_stmt(
-    iter: Iterable | oqpy.Range | oqpy.Qubit,
+    iter: Iterable | oqpy.Range,
     extra_test: Callable[[], Any] | None,
     body: Callable[[Any], None],
     get_state: Any,
@@ -37,7 +38,7 @@ def for_stmt(
     """Implements a for loop.
 
     Args:
-        iter (Iterable | Range | Qubit): The iterable to be looped over.
+        iter (Iterable | Range): The iterable to be looped over.
         extra_test (Callable[[], Any] | None): A function to cause the loop to break if true.
         body (Callable[[Any], None]): The body of the for loop.
         get_state (Any): Unused.
@@ -56,13 +57,13 @@ def for_stmt(
 
 
 def _oqpy_for_stmt(
-    iter: oqpy.Range | oqpy.Qubit,
+    iter: oqpy.Range | GlobalQubitRegister,
     body: Callable[[Any], None],
     opts: dict,
 ) -> None:
     """Overload of for_stmt that produces an oqpy for loop."""
     ctx = program.get_program_conversion_context()
-    if isinstance(iter, oqpy.Qubit):
+    if isinstance(iter, GlobalQubitRegister):
         iter = Range(iter.size)
 
     def _trace(ctx):
