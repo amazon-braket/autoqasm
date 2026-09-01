@@ -30,7 +30,7 @@ def measurement_sample(prob: Iterable[float], target_count: int) -> tuple[int]:
         tuple[int]: Measurement outcomes 0 or 1 for each of the target_count bits.
     """
     basis_states = np.array(list(itertools.product([0, 1], repeat=target_count)))
-    outcome_idx = np.random.choice(list(range(2**target_count)), p=prob)
+    outcome_idx = np.random.choice(list(range(2**target_count)), p=prob)  # noqa: NPY002
     return tuple(basis_states[outcome_idx])
 
 
