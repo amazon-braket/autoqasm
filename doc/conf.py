@@ -66,8 +66,7 @@ apidoc_extra_args = ["-f", "--implicit-namespaces", "-H", "API Reference"]
 
 LLMS_TXT_TITLE = "AutoQASM"
 LLMS_TXT_SUMMARY = (
-    "Experimental quantum-imperative programming experience embedded in Python for "
-    "developing quantum programs. AutoQASM is not an officially supported AWS product."
+    "Python-native programming library for developing quantum programs"
 )
 LLMS_TXT_BASE_URL = "https://autoqasm.readthedocs.io/en/stable/"
 LLMS_TXT_SECTIONS: dict[str, tuple[str, ...]] = {
@@ -78,11 +77,7 @@ LLMS_TXT_SECTIONS: dict[str, tuple[str, ...]] = {
 
 
 def _llms_txt_section(docname: str) -> str:
-    """Return the llms.txt section heading a document belongs under.
-
-    Sections are tried in declaration order, so the first matching prefix wins.
-    A document that matches no prefix goes under the first section.
-    """
+    """Return the llms.txt section heading a document belongs under."""
     for heading, prefixes in LLMS_TXT_SECTIONS.items():
         if any(docname.startswith(prefix) for prefix in prefixes):
             return heading
