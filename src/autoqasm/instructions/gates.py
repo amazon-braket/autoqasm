@@ -110,7 +110,7 @@ def cphaseshift00(
     theta: GateParameterType,
     **kwargs,
 ) -> None:
-    """Controlled phase shift gate for phasing the \\|00> state.
+    r"""Controlled phase shift gate for phasing the \|00> state.
 
     Args:
         control (QubitIdentifierType): Control qubit.
@@ -127,7 +127,7 @@ def cphaseshift01(
     theta: GateParameterType,
     **kwargs,
 ) -> None:
-    """Controlled phase shift gate for phasing the \\|01> state.
+    r"""Controlled phase shift gate for phasing the \|01> state.
 
     Args:
         control (QubitIdentifierType): Control qubit.
@@ -144,7 +144,7 @@ def cphaseshift10(
     theta: GateParameterType,
     **kwargs,
 ) -> None:
-    """Controlled phase shift gate for phasing the \\|10> state.
+    r"""Controlled phase shift gate for phasing the \|10> state.
 
     Args:
         control (QubitIdentifierType): Control qubit.
