@@ -552,6 +552,13 @@ class ProgramConversionContext:
         type_class = aq_types.map_parameter_type(value_type)
         if isinstance(value, aq_types.BitVar):
             new_output = type_class("output", name=name, size=value.size)
+        elif isinstance(value, oqpy.ArrayVar):
+            new_output = oqpy.ArrayVar(
+                "output",
+                name=name,
+                dimensions=list(value.dimensions),
+                base_type=value.base_type,
+            )
         else:
             new_output = type_class("output", name=name)
         self._output_parameters[name] = new_output
@@ -595,12 +602,30 @@ class ProgramConversionContext:
                 # Add an assignment statement to the beginning of the program to initialize
                 # the output parameter to the desired value.
                 # TODO: This logic uses oqpy internals - should it be moved into oqpy?
-                init_stmt = ast.ClassicalAssignment(
-                    ast.Identifier(name=parameter_name),
-                    ast.AssignmentOperator["="],
-                    oqpy.base.to_ast(root_oqpy_program, popped.init_expression),
-                )
-                root_oqpy_program._state.body.insert(0, init_stmt)
+                if isinstance(popped, oqpy.ArrayVar):
+                    # OpenQASM has no whole-array literal assignment, so initialize
+                    # each element individually.
+                    init_stmts = [
+                        ast.ClassicalAssignment(
+                            ast.IndexedIdentifier(
+                                ast.Identifier(name=parameter_name),
+                                [[ast.IntegerLiteral(index)]],
+                            ),
+                            ast.AssignmentOperator["="],
+                            oqpy.base.to_ast(root_oqpy_program, element),
+                        )
+                        for index, element in enumerate(popped.init_expression)
+                    ]
+                else:
+                    init_stmts = [
+                        ast.ClassicalAssignment(
+                            ast.Identifier(name=parameter_name),
+                            ast.AssignmentOperator["="],
+                            oqpy.base.to_ast(root_oqpy_program, popped.init_expression),
+                        )
+                    ]
+                for init_stmt in reversed(init_stmts):
+                    root_oqpy_program._state.body.insert(0, init_stmt)
 
             parameter.name = parameter_name
             root_oqpy_program._add_var(parameter)

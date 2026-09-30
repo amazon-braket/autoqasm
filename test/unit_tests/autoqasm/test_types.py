@@ -202,6 +202,25 @@ b = a;"""
     assert declare_array.build().to_ir() == expected
 
 
+def test_return_array():
+    """Test returning an array declares a sized array output."""
+
+    @aq.main
+    def return_array():
+        a = aq.ArrayVar([1, 2, 3], base_type=aq.IntVar)
+        a[0] = 11
+        return a
+
+    expected = """OPENQASM 3.0;
+output array[int[32], 3] a;
+a[0] = 1;
+a[1] = 2;
+a[2] = 3;
+a[0] = 11;"""
+
+    assert return_array.build().to_ir() == expected
+
+
 def test_invalid_array_assignment():
     """Test invalid array assignment."""
 
