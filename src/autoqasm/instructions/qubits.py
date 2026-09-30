@@ -74,7 +74,7 @@ def _(qid: int) -> oqpy.Qubit:
     # Integer virtual qubit, like `h(0)`
     ctx = program.get_program_conversion_context()
     ctx.register_qubit(qid)
-    return ctx.global_qubit_register[qid]
+    return ctx.global_qubit_register._index_by_expression(qid)
 
 
 @_qubit.register
@@ -83,7 +83,7 @@ def _(qid: oqpy._ClassicalVar) -> oqpy.Qubit:
     ctx = program.get_program_conversion_context()
     if ctx.get_declared_qubits() is None:
         raise errors.UnknownQubitCountError()
-    return ctx.global_qubit_register[qid.name]
+    return ctx.global_qubit_register._index_by_expression(qid.name)
 
 
 @_qubit.register
@@ -94,7 +94,7 @@ def _(qid: oqpy.base.OQPyExpression) -> oqpy.Qubit:
         raise errors.UnknownQubitCountError()
 
     qubit_idx_expr = dumps(qid.to_ast(ctx.get_oqpy_program()))
-    return ctx.global_qubit_register[qubit_idx_expr]
+    return ctx.global_qubit_register._index_by_expression(qubit_idx_expr)
 
 
 @_qubit.register
@@ -114,3 +114,24 @@ def _(qid: str) -> oqpy.Qubit:
 @_qubit.register
 def _(qid: oqpy.Qubit) -> oqpy.Qubit:
     return qid
+
+
+def _index_global_qubit_register(index: Any) -> oqpy.Qubit:
+    """Resolves ``aq.qubits[index]`` inside a converted program.
+
+    Accepts the same virtual qubit index types as a gate target (``int``, integer
+    variables, and integer expressions), so ``h(aq.qubits[i])`` is equivalent to
+    ``h(i)``. Physical qubit labels and qubit objects are not valid register indices.
+
+    Args:
+        index (Any): The index into the global qubit register.
+
+    Returns:
+        oqpy.Qubit: The qubit at ``index``.
+
+    Raises:
+        errors.InvalidQubitIdentifier: ``index`` is not a valid register index.
+    """
+    if isinstance(index, (str, oqpy.Qubit)):
+        raise errors.InvalidQubitIdentifier(index)
+    return _qubit(index)

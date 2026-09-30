@@ -92,11 +92,26 @@ class GlobalQubitRegister:
     def __iter__(self) -> Iterator[int]:
         return iter(range(len(self)))
 
-    def __getitem__(self, index: int | str) -> oqpy.Qubit:
+    def __getitem__(self, index: int) -> oqpy.Qubit:
         """Returns an oqpy.Qubit referring to ``__qubits__[index]``.
-        ``index`` is either an integer index or a string containing
-        an already-serialized OpenQASM index expression.
+
+        Args:
+            index (int): The integer index of the qubit in the register.
+
+        Returns:
+            oqpy.Qubit: The qubit at ``index``.
+
+        Raises:
+            errors.InvalidQubitIdentifier: ``index`` is not an integer.
         """
-        if isinstance(index, bool) or not isinstance(index, (int, str)):
-            raise TypeError(f"invalid qubit register index: {index!r}")
-        return oqpy.Qubit(f"{self.name}[{index}]", needs_declaration=False)
+        if isinstance(index, bool) or not isinstance(index, int):
+            raise errors.InvalidQubitIdentifier(index)
+        return self._index_by_expression(index)
+
+    def _index_by_expression(self, index_expr: int | str) -> oqpy.Qubit:
+        """Returns an oqpy.Qubit referring to ``__qubits__[index_expr]``, where
+        ``index_expr`` is an integer index or an already-serialized OpenQASM
+        index expression. For internal use; callers are responsible for
+        validating ``index_expr``.
+        """
+        return oqpy.Qubit(f"{self.name}[{index_expr}]", needs_declaration=False)

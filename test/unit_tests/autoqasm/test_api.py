@@ -1229,8 +1229,85 @@ def test_gate_register_slice_not_allowed():
     def main():
         h(aq.qubits[0:2])
 
-    with pytest.raises(TypeError, match="invalid qubit register index"):
+    with pytest.raises(
+        errors.InvalidQubitIdentifier,
+        match=r"not an object of type 'slice'\.",
+    ):
         main.build()
+
+
+def test_global_qubit_register_index_by_int():
+    @aq.main(num_qubits=3)
+    def main():
+        h(aq.qubits[1])
+
+    expected_ir = """OPENQASM 3.0;
+qubit[3] __qubits__;
+h __qubits__[1];"""
+    assert main.build().to_ir() == expected_ir
+
+
+def test_global_qubit_register_index_infers_qubit_count():
+    @aq.main
+    def main():
+        h(aq.qubits[2])
+
+    expected_ir = """OPENQASM 3.0;
+qubit[3] __qubits__;
+h __qubits__[2];"""
+    assert main.build().to_ir() == expected_ir
+
+
+def test_global_qubit_register_index_by_variable():
+    @aq.main(num_qubits=3)
+    def main():
+        for i in aq.range(3):
+            h(aq.qubits[i])
+
+    expected_ir = """OPENQASM 3.0;
+qubit[3] __qubits__;
+for int i in [0:3 - 1] {
+    h __qubits__[i];
+}"""
+    assert main.build().to_ir() == expected_ir
+
+
+def test_global_qubit_register_index_by_expression():
+    @aq.main(num_qubits=3)
+    def main():
+        for i in aq.range(2):
+            h(aq.qubits[i + 1])
+
+    expected_ir = """OPENQASM 3.0;
+qubit[3] __qubits__;
+for int i in [0:2 - 1] {
+    h __qubits__[i + 1];
+}"""
+    assert main.build().to_ir() == expected_ir
+
+
+@pytest.mark.parametrize("index", ["1", "$0", True, 1.0])
+def test_global_qubit_register_invalid_index(index):
+    @aq.main(num_qubits=3)
+    def main():
+        h(aq.qubits[index])
+
+    with pytest.raises(
+        errors.InvalidQubitIdentifier,
+        match=rf"not an object of type '{type(index).__name__}'\.",
+    ):
+        main.build()
+
+
+def test_global_qubit_register_getitem():
+    register = GlobalQubitRegister(size=3)
+    assert register[2].name == "__qubits__[2]"
+
+
+@pytest.mark.parametrize("index", ["1", True, 1.0, slice(0, 2)])
+def test_global_qubit_register_getitem_rejects_non_int(index):
+    with pytest.raises(errors.InvalidQubitIdentifier):
+        GlobalQubitRegister(size=3)[index]
 
 
 def test_global_qubit_register_len_needs_num_qubits():
