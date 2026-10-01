@@ -21,7 +21,7 @@ from malt.utils import ag_logging
 
 import autoqasm as aq
 from autoqasm.errors import UnknownQubitCountError
-from autoqasm.instructions import cnot, h, measure, x
+from autoqasm.instructions import cnot, h, measure, rx, x
 
 
 def test_convert_invalid_main_object() -> None:
@@ -64,6 +64,21 @@ def test_autograph_disabled() -> None:
 
         with pytest.raises(RuntimeError):
             my_program.build()
+
+
+def test_partial_called_without_keyword_arguments() -> None:
+    """Tests calling a partial from inside a program with no keyword arguments."""
+
+    def rotate(qubit: int, angle: float):
+        rx(qubit, angle)
+
+    partial_rotate = functools.partial(rotate, angle=0.5)
+
+    @aq.main
+    def my_program():
+        partial_rotate(0)
+
+    assert "rx(0.5) __qubits__[0];" in my_program.build().to_ir()
 
 
 def test_partial_function() -> None:
