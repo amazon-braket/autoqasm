@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.1 (2026-10-01)
+
+### Bug Fixes and Other Changes
+
+ * keep every bound in a chained comparison
+ * guard against a keyword-free call to a partial
+
 ## v0.6.0.post0 (2026-09-02)
 
 ### Documentation Changes
