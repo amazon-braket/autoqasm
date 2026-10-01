@@ -267,7 +267,8 @@ def _converted_partial(
 ) -> Any:
     # Use copy to avoid mutating the underlying keywords.
     new_kwargs = f.keywords.copy()
-    new_kwargs.update(kwargs)
+    if kwargs is not None:
+        new_kwargs.update(kwargs)
     new_args = f.args + args
     if not _AG_LOGGING_DISABLED:
         logging.log(
