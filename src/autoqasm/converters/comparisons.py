@@ -40,18 +40,25 @@ class ComparisonTransformer(converter.Base):
         """
         node = self.generic_visit(node)
 
-        op_type = type(node.ops[0])
-        if op_type not in COMPARISON_OPERATORS:
+        if any(type(op) not in COMPARISON_OPERATORS for op in node.ops):
             return node
 
-        template = f"{COMPARISON_OPERATORS[op_type]}(lhs_, rhs_)"
+        operands = [node.left, *node.comparators]
+        result = None
+        for op, lhs, rhs in zip(node.ops, operands, operands[1:]):
+            template = f"{COMPARISON_OPERATORS[type(op)]}(lhs_, rhs_)"
+            pair_expr = templates.replace(template, lhs_=lhs, rhs_=rhs, original=node)[0].value
+            if result is None:
+                result = pair_expr
+            else:
+                result = templates.replace(
+                    "ag__.and_(lambda: lhs_, lambda: rhs_)",
+                    lhs_=result,
+                    rhs_=pair_expr,
+                    original=node,
+                )[0].value
 
-        return templates.replace(
-            template,
-            lhs_=node.left,
-            rhs_=node.comparators[0],
-            original=node,
-        )[0].value
+        return result
 
 
 def transform(node: ast.stmt, ctx: ag_ctx.ControlStatusCtx) -> ast.stmt:

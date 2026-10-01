@@ -579,6 +579,120 @@ if (__bool_1__) {
     assert prog.build().to_ir() == expected
 
 
+def test_comparison_chained() -> None:
+    """Tests that a chained comparison (``a < b < c``) is compiled as a
+    conjunction of both bounds instead of silently dropping every bound
+    after the first."""
+
+    @aq.main
+    def prog():
+        a = measure(0)
+        if 0 <= a < 1:
+            h(0)
+
+    expected = """OPENQASM 3.0;
+bit a;
+qubit[1] __qubits__;
+bit __bit_0__;
+__bit_0__ = measure __qubits__[0];
+a = __bit_0__;
+bool __bool_1__;
+__bool_1__ = a >= 0;
+bool __bool_2__;
+__bool_2__ = a < 1;
+bool __bool_3__;
+__bool_3__ = __bool_1__ && __bool_2__;
+if (__bool_3__) {
+    h __qubits__[0];
+}"""
+    assert prog.build().to_ir() == expected
+
+
+def test_comparison_chained_multiple_operators() -> None:
+    """Tests that every bound of a longer chain is kept."""
+
+    @aq.main
+    def prog():
+        a = measure(0)
+        b = measure(1)
+        c = measure(2)
+        if 4 < a <= b <= c < 8:
+            h(0)
+
+    expected = """OPENQASM 3.0;
+bit a;
+bit b;
+bit c;
+qubit[3] __qubits__;
+bit __bit_0__;
+__bit_0__ = measure __qubits__[0];
+a = __bit_0__;
+bit __bit_1__;
+__bit_1__ = measure __qubits__[1];
+b = __bit_1__;
+bit __bit_2__;
+__bit_2__ = measure __qubits__[2];
+c = __bit_2__;
+bool __bool_3__;
+__bool_3__ = a > 4;
+bool __bool_4__;
+__bool_4__ = a <= b;
+bool __bool_5__;
+__bool_5__ = __bool_3__ && __bool_4__;
+bool __bool_6__;
+__bool_6__ = b <= c;
+bool __bool_7__;
+__bool_7__ = __bool_5__ && __bool_6__;
+bool __bool_8__;
+__bool_8__ = c < 8;
+bool __bool_9__;
+__bool_9__ = __bool_7__ && __bool_8__;
+if (__bool_9__) {
+    h __qubits__[0];
+}"""
+    assert prog.build().to_ir() == expected
+
+
+def test_comparison_chained_with_equality_operator() -> None:
+    """A chain containing an operator AutoQASM does not overload is left to
+    AutoGraph's own decomposition, which keeps every bound."""
+
+    @aq.main
+    def prog():
+        a = measure(0)
+        b = measure(1)
+        c = measure(2)
+        if 4 < a < b == c < 8:
+            h(0)
+
+    expected = """OPENQASM 3.0;
+bit a;
+bit b;
+bit c;
+qubit[3] __qubits__;
+bit __bit_0__;
+__bit_0__ = measure __qubits__[0];
+a = __bit_0__;
+bit __bit_1__;
+__bit_1__ = measure __qubits__[1];
+b = __bit_1__;
+bit __bit_2__;
+__bit_2__ = measure __qubits__[2];
+c = __bit_2__;
+bool __bool_3__;
+__bool_3__ = a > 4 && a < b;
+bool __bool_4__;
+__bool_4__ = b == c;
+bool __bool_5__;
+__bool_5__ = __bool_3__ && __bool_4__;
+bool __bool_6__;
+__bool_6__ = __bool_5__ && c < 8;
+if (__bool_6__) {
+    h __qubits__[0];
+}"""
+    assert prog.build().to_ir() == expected
+
+
 def test_comparison_ops_py() -> None:
     """Tests the comparison aq.operators for Python expressions."""
 
@@ -592,7 +706,10 @@ def test_comparison_ops_py() -> None:
         f = a >= b
         g = 1.2
         h = a <= g
-        assert all([c, d, not e, not f, h])
+        i = 0 <= a < b
+        j = 0 <= b < a
+        k = 0 < a <= b <= 5
+        assert all([c, d, not e, not f, h, i, not j, not k])
 
     expected = """OPENQASM 3.0;"""
     assert prog.build().to_ir() == expected
