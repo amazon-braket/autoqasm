@@ -6,7 +6,9 @@ from importlib.metadata import version
 from pathlib import Path
 
 from pygments.formatters import LatexFormatter
+from pygments.lexers import PythonLexer
 from sphinx.application import Sphinx
+from sphinx.highlighting import lexers
 
 # Sphinx configuration below.
 project = "autoqasm"
@@ -26,6 +28,8 @@ extensions = [
 ]
 
 nbsphinx_execute = "never"
+
+lexers["ipython3"] = PythonLexer()
 
 exclude_patterns = ["**/.ipynb_checkpoints"]
 

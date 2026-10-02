@@ -15,6 +15,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 
 class AutoQasmError(Exception):
     """Base class for all AutoQASM exceptions."""
@@ -52,6 +54,20 @@ class InvalidTargetQubit(AutoQasmError):
     """Target qubit is invalid in the current context."""
 
 
+class InvalidQubitIdentifier(AutoQasmError):
+    """An object cannot be used as a qubit identifier."""
+
+    def __init__(self, qid: Any):
+        """
+        Args:
+            qid (Any): The object that was supplied where a single qubit was expected.
+        """
+        super().__init__(
+            f'Invalid qubit identifier: "{qid}". Must be a single qubit, '
+            f"not an object of type '{type(qid).__name__}'."
+        )
+
+
 class UnsupportedGate(AutoQasmError):
     """Gate is not supported by the target device."""
 
@@ -68,7 +84,7 @@ class UnknownQubitCountError(AutoQasmError):
     """Missing declaration for the number of qubits."""
 
     def __init__(self):
-        self.message = """Unspecified number of qubits.
+        super().__init__("""Unspecified number of qubits.
 
 Specify the number of qubits used by your program by supplying the \
 `num_qubits` argument to `aq.main`. For example:
@@ -76,10 +92,7 @@ Specify the number of qubits used by your program by supplying the \
     @aq.main(num_qubits=5)
     def my_autoqasm_program():
         ...
-"""
-
-    def __str__(self):
-        return self.message
+""")
 
 
 class OutsideProgramContextError(AutoQasmError):
@@ -96,7 +109,7 @@ class OutsideProgramContextError(AutoQasmError):
                 slightly more pointed error message.
         """
         feature_description = f"`{feature}`" if feature else "This AutoQASM feature"
-        self.message = f"""{feature_description} can only be used inside a function decorated \
+        super().__init__(f"""{feature_description} can only be used inside a function decorated \
 with `@aq.main`, `@aq.subroutine`, `@aq.gate`, or `@aq.gate_calibration`.
 
 For example:
@@ -112,10 +125,7 @@ For example:
 
 If you want to build a program programmatically, use the `aq.build_program()` \
 context manager directly.
-"""
-
-    def __str__(self):
-        return self.message
+""")
 
 
 class BuildError(AutoQasmError):
@@ -136,13 +146,10 @@ class UnsupportedConditionalExpressionError(AutoQasmError):
     def __init__(self, true_type: type | None, false_type: type | None):
         if_type = true_type.__name__ if true_type else "None"
         else_type = false_type.__name__ if false_type else "None"
-        self.message = f"""\
+        super().__init__(f"""\
 `if` clause resolves to {if_type}, but `else` clause resolves to {else_type}. \
 Both the `if` and `else` clauses of an inline conditional expression \
-must resolve to the same type."""
-
-    def __str__(self):
-        return self.message
+must resolve to the same type.""")
 
 
 class InvalidAssignmentStatement(AutoQasmError):

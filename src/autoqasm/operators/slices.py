@@ -20,7 +20,9 @@ from typing import Any
 import oqpy.base
 
 from autoqasm import program
+from autoqasm.instructions.qubits import _index_global_qubit_register
 from autoqasm.types import is_qasm_type, wrap_value
+from autoqasm.types.qubits import GlobalQubitRegister
 
 
 class GetItemOpts(collections.namedtuple("GetItemOpts", ("element_dtype",))):
@@ -38,6 +40,8 @@ def get_item(target: Any, i: Any, opts: GetItemOpts) -> Any:
     Returns:
         Any: The read element.
     """
+    if isinstance(target, GlobalQubitRegister):
+        return _index_global_qubit_register(i)
     if is_qasm_type(target) or is_qasm_type(i):
         return _oqpy_get_item(target, i, opts)
     else:

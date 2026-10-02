@@ -173,7 +173,7 @@ def test_incorrect_arg_types() -> None:
     def incorrect_arg_types():
         my_gate(0.25, 0)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(errors.InvalidQubitIdentifier):
         incorrect_arg_types.build()
 
 

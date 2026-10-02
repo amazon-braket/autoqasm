@@ -23,8 +23,9 @@ import oqpy
 
 from autoqasm import program as aq_program
 from autoqasm import types as aq_types
-from autoqasm.instructions.qubits import _as_qubit_iterable, _qubit
+from autoqasm.instructions.qubits import _qubit
 from autoqasm.types import QubitIdentifierType
+from autoqasm.types.qubits import _as_qubit_iterable
 from braket.circuits.basis_state import BasisState, BasisStateInput
 
 

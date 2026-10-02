@@ -26,11 +26,13 @@ def floor_div(
     den: aq_types.IntVar | aq_types.FloatVar | float,
 ) -> int | aq_types.IntVar:
     """Functional form of "//".
+
     Args:
-        num (IntVar | FloatVar | float) : The numerator of the integer division
-        den (IntVar | FloatVar | float) : The denominator of the integer division
-    Returns :
-        int | IntVar : integer division, IntVar if either numerator or denominator
+        num (IntVar | FloatVar | float): The numerator of the integer division
+        den (IntVar | FloatVar | float): The denominator of the integer division
+
+    Returns:
+        int | IntVar: integer division, IntVar if either numerator or denominator
         are QASM types, else int
     """
     if aq_types.is_qasm_type(num) or aq_types.is_qasm_type(den):

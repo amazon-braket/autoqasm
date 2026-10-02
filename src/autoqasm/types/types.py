@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any, get_args
+from typing import Any
 
 import numpy as np
 import oqpy
@@ -24,8 +24,8 @@ import oqpy.base
 from openpulse import ast
 
 from autoqasm import errors, program
+from autoqasm.types.qubits import GlobalQubitRegister
 from braket.circuits import FreeParameterExpression
-from braket.registers import Qubit
 
 
 def is_qasm_type(val: Any) -> bool:
@@ -44,6 +44,7 @@ def is_qasm_type(val: Any) -> bool:
         oqpy.Qubit,
         oqpy.base.OQPyExpression,
         FreeParameterExpression,
+        GlobalQubitRegister,
     )
     # The input can either be a class, like oqpy.Range ...
     if type(val) is type:
@@ -54,25 +55,6 @@ def is_qasm_type(val: Any) -> bool:
 
 def make_annotations_list(annotations: str | Iterable[str] | None) -> list[str]:
     return [annotations] if isinstance(annotations, str) else annotations or []
-
-
-QubitIdentifierType = int | str | Qubit | oqpy._ClassicalVar | oqpy.base.OQPyExpression | oqpy.Qubit
-
-# Precompute the type tuple once: ``get_args(QubitIdentifierType)`` isn't
-# free, and this is called on every gate emission.
-_QUBIT_IDENTIFIER_TYPES: tuple[type, ...] = get_args(QubitIdentifierType)
-
-
-def is_qubit_identifier_type(qubit: Any) -> bool:
-    """Checks if a given object is a qubit identifier type.
-
-    Args:
-        qubit (Any): The object to check.
-
-    Returns:
-        bool: True if the object is a qubit identifier type, False otherwise.
-    """
-    return isinstance(qubit, _QUBIT_IDENTIFIER_TYPES)
 
 
 class Range(oqpy.Range):
