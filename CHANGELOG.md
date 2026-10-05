@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.2 (2026-10-05)
+
+### Bug Fixes and Other Changes
+
+ * refactor qubit types into new submodule
+
 ## v0.6.1 (2026-10-01)
 
 ### Bug Fixes and Other Changes
