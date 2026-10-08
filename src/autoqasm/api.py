@@ -449,7 +449,6 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
         kind=inspect._ParameterKind.POSITIONAL_OR_KEYWORD,
         annotation=oqpy.Program,
     )
-    _func.__annotations__[first_param.name] = first_param.annotation
 
     new_params = [first_param]
     all_param_names = {p.name for p in sig.parameters.values()}
@@ -465,7 +464,6 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
         if new_name != param.name:
             all_param_names.discard(param.name)
             all_param_names.add(new_name)
-        _func.__annotations__.pop(param.name)
 
         # OpenQASM subroutines have no concept of positional-only arguments,
         # so promote any positional-only user parameter to positional-or-keyword.
@@ -481,9 +479,11 @@ def _wrap_for_oqpy_subroutine(f: Callable, options: converter.ConversionOptions)
             annotation=aq_types.map_parameter_type(param.annotation),
         )
         new_params.append(new_param)
-        _func.__annotations__[new_param.name] = new_param.annotation
 
     _func.__signature__ = sig.replace(parameters=new_params)
+    _func.__annotations__ = {p.name: p.annotation for p in new_params}
+    if "return" in f.__annotations__:
+        _func.__annotations__["return"] = f.__annotations__["return"]
     return _func
 
 
