@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.0 (2026-10-27)
+
+### Features
+
+ * remove custom McmSimulator
+
+### Bug Fixes and Other Changes
+
+ * emit valid OpenQASM for array output variables
+
 ## v0.6.2 (2026-10-05)
 
 ### Bug Fixes and Other Changes
